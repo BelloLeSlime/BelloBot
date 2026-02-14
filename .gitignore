@@ -1,0 +1,5 @@
+.idea/
+.venv/
+messages.txt
+log.txt
+.env
