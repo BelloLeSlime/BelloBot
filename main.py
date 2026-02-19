@@ -9,6 +9,8 @@ hg_token = os.getenv('HG_TOKEN')
 from discord import *
 from datetime import datetime, timedelta, UTC
 from typing import Literal
+from PIL import Image
+import io
 
 #---------------------------------SET UP-----------------------------------------
 
@@ -152,6 +154,11 @@ def ask_ai(messages, model):
     )
     return response.choices[0].message.content
 
+def text_to_image(prompt, model, negative_prompt, width = 1024, height = 1024, steps=30):
+    client = InferenceClient(token=hg_token)
+    image = client.text_to_image(prompt=prompt, model=model, negative_prompt=negative_prompt, width=width, height=height, num_inference_steps=steps)
+    return image
+
 def log(type, message):
     to_write = f"{type} - {message} - {datetime.now()}"
     print(to_write)
@@ -188,10 +195,20 @@ def check_has_data_file(user_id):
     if not str(user_id)+".json" in os.listdir("./xp/"):
         write_json({"xp": 0, "level": 1, "money": 0, "mult_xp": 1, "mult_money": 1, "temp_effects": {}, "items": {}}, "xp/" + str(user_id) + ".json")
 
+async def send_image(interaction: Interaction, image: Image):
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    file = File(fp=buffer, filename="generated.png")
+    await interaction.followup.send(file=file)
+
+
 #---------------------------------VARIABLES------------------------------------------
 
 system = "Tu es BelloBot, un bot Discord. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport."
 model = "meta-llama/Llama-3.1-8B-Instruct"
+image_model = "stabilityai/stable-diffusion-xl-base-1.0"
 guild_id: int = int(os.getenv("GUILD_ID"))
 guild: Guild|None = None
 xp_channel: TextChannel|None = None
@@ -349,7 +366,6 @@ async def on_message(message: Message):
         if datetime.fromisoformat(user_data_xp["temp_effects"]["bypass_slow_mode"]) < datetime.now(UTC):
             del user_data_xp["temp_effects"]["bypass_slow_mode"]
             await message.author.remove_roles(bypass_slow_mode_role)
-
     user_data_xp["xp"] += 5 * user_data_xp["mult_xp"]
     user_data_xp["money"] += 10 * user_data_xp["mult_money"]
     if user_data_xp["xp"] >= 15 * user_data_xp["level"]:
@@ -675,6 +691,15 @@ async def inventory(interaction: Interaction, user: User|None = None):
             description += f"{item_trad[item_type]} : {inventory[item_type]}\n"
     embed = Embed(title=f" Inventaire de {user.display_name} :", description=description, color=Color.green())
     await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="generate", description="Génère une image")
+@app_commands.describe(prompt="prompt", negative_prompt="negative_prompt", width="width", height="height", steps="steps")
+async def generate(interaction: Interaction, prompt: str, negative_prompt: str = "", width: int = 1024, height: int = 1024, steps: int = 30):
+    await interaction.response.defer()
+
+    image = text_to_image(prompt, image_model, negative_prompt, width, height, steps)
+    await send_image(interaction, image)
+    log("generated_image", prompt)
 
 #--------------------------------------RUN---------------------------------------------
 
