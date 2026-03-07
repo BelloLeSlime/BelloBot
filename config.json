@@ -9,5 +9,6 @@
   "link_role": 1472678415751708693,
   "extern_role": 1472678784837746798,
   "priority_voice_role": 1472680246666072124,
-  "bypass_slow_mode_role": 1472680709318512640
+  "bypass_slow_mode_role": 1472680709318512640,
+  "max_messages_in_memory": 100
 }

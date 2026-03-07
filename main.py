@@ -232,6 +232,7 @@ priority_voice_role_id = read_json("config.json")["priority_voice_role"]
 priority_voice_role: Role|None = None
 bypass_slow_mode_role_id = read_json("config.json")["bypass_slow_mode_role"]
 bypass_slow_mode_role: Role|None = None
+max_messages = read_json("config.json")["max_messages_in_memory"]
 
 #---------------------------------EVENTS---------------------------------------------
 
@@ -311,6 +312,7 @@ async def on_message(message: Message):
                     msg = str(msg)
                     author = msg.split(" : ")[0]
                     messages.append({"role": "user" if author != "BelloBot" else "assistant", "content":msg if author != "BelloBot" else msg.removeprefix("BelloBot : ")})
+                messages = messages[:max_messages]
                 answer = ask_ai(messages, model)
                 await message.reply(answer)
             except Exception as e:
@@ -697,9 +699,25 @@ async def inventory(interaction: Interaction, user: User|None = None):
 async def generate(interaction: Interaction, prompt: str, negative_prompt: str = "", width: int = 1024, height: int = 1024, steps: int = 30):
     await interaction.response.defer()
 
-    image = text_to_image(prompt, image_model, negative_prompt, width, height, steps)
-    await send_image(interaction, image)
-    log("generated_image", prompt)
+    nude_str: str = ask_ai([{"role": "system", "content": "Tu dois déterminer si le prompt suivant pour générer une image est adéquat. Ex: pas de nude, d'image sexualisée, de gore, ou de contenu pouvant choquer. Tu répondra qu'avec 'Y' ou 'N'. Y pour ça passe et N pour empêcher l'utilisateur"}, {"role": "user", "content": prompt}], model)
+
+    if nude_str.__contains__("Y"):
+        nude = False
+    elif nude_str.__contains__("N"):
+        nude = True
+    else:
+        nude = None
+
+    if not nude is None:
+        if nude:
+            await interaction.followup.send(f"Regardez, {interaction.user.mention} a essayé de générer une image de {prompt} mais a pas réussi ce nul XD \n Allez 1 jour de mute pour toi :p")
+            await interaction.user.timeout(timedelta(days=1), reason="Essaie de générer une image suspicieuse")
+        else:
+            image = text_to_image(prompt, image_model, negative_prompt, width, height, steps)
+            await send_image(interaction, image)
+            log("generated_image", prompt)
+    else:
+        await interaction.followup.send("AAaah j'arrive pas à décider si ça passe ou non jsp quoi faire")
 
 #--------------------------------------RUN---------------------------------------------
 
