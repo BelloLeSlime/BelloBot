@@ -284,7 +284,7 @@ async def on_ready():
 async def on_message(message: Message):
     content = message.content
     #ai
-    if (not content == "") and (not message.author == bot.user):
+    if not message.author == bot.user:
         author = message.author.display_name
         for mention in message.mentions:
             content = content.replace(
