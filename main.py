@@ -727,6 +727,3 @@ except Exception as e:
     log("critical error", str(e))
 finally:
     log("exiting", bot.user.name)
-
-
-
