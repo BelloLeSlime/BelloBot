@@ -208,7 +208,7 @@ async def send_image(interaction: Interaction, image: Image):
 #---------------------------------VARIABLES------------------------------------------
 
 system = "Tu es BelloBot, un bot Discord. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport."
-model = "meta-llama/Llama-3.1-8B-Instruct"
+model = "meta-llama/Meta-Llama-3-8B-Instruct"
 image_model = "stabilityai/stable-diffusion-xl-base-1.0"
 guild_id: int = int(os.getenv("GUILD_ID"))
 guild: Guild|None = None
@@ -313,11 +313,11 @@ async def on_message(message: Message):
                 for msg in read_file("messages.txt"):
                     msg = str(msg)
                     author = msg.split(" : ")[0]
-                    messages.append({"role": "user" if author != "BelloBot" else "assistant", "content":msg if author != "BelloBot" else msg.removeprefix("BelloBot : ")})
+                    messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "assistant", "content":msg if author != "BelloBot(forbellobot)" else msg.removeprefix("BelloBot(forbellobot) : ")})
                 messages = messages[:max_messages]
                 answer = ask_ai(messages, model)
                 await message.reply(answer)
-                write_file("BelloBot : " + answer, "messages.txt")
+                write_file("BelloBot(forbellobot) : " + answer, "messages.txt")
 
             except BadRequestError as e:
                 log("error", e)
@@ -687,6 +687,7 @@ async def inventory(interaction: Interaction, user: User|None = None):
     embed = Embed(title=f" Inventaire de {user.display_name} :", description=description, color=Color.green())
     await interaction.response.send_message(embed=embed)
 
+"""
 @bot.tree.command(name="generate", description="Génère une image")
 @app_commands.describe(prompt="prompt", negative_prompt="negative_prompt", width="width", height="height", steps="steps")
 async def generate(interaction: Interaction, prompt: str, negative_prompt: str = "", width: int = 1024, height: int = 1024, steps: int = 30):
@@ -711,6 +712,7 @@ async def generate(interaction: Interaction, prompt: str, negative_prompt: str =
             log("generated_image", prompt)
     else:
         await interaction.followup.send("AAaah j'arrive pas à décider si ça passe ou non jsp quoi faire")
+"""
 
 @bot.tree.command(name="config", description="Configuration du bot")
 @app_commands.describe(key="key", value="value")
