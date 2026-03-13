@@ -3,6 +3,7 @@ import json
 from random import choice
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
+from huggingface_hub.errors import BadRequestError
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 hg_token = os.getenv('HG_TOKEN')
@@ -207,7 +208,7 @@ async def send_image(interaction: Interaction, image: Image):
 #---------------------------------VARIABLES------------------------------------------
 
 system = "Tu es BelloBot, un bot Discord. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport."
-model = "meta-llama/Llama-3.1-8B-Instruct"
+model = "meta-llama/Meta-Llama-3-8B-Instruct"
 image_model = "stabilityai/stable-diffusion-xl-base-1.0"
 guild_id: int = int(os.getenv("GUILD_ID"))
 guild: Guild|None = None
@@ -252,12 +253,12 @@ async def on_ready():
     global bypass_slow_mode_role
     log("connected", bot.user.name)
     states = [
-        "rien, je suis une IA :p",
-        "Peak car c'est incrr",
         "NEVER GONNA GIVE YOU UP",
         "une minute de plus dans ce jacuzzi et je me transforme en William Afton.",
         "avec vos données >:3",
-        "v2.1 ༼ つ ◕_◕ ༽つ",
+        "v2.2 ༼ つ ◕_◕ ༽つ",
+        "Ping moi :3",
+        "Steal a Brainrot 66666667777777 à 55M/s (nan je déconne ce jeu pue la mrd)"
     ]
     await bot.change_presence(
         activity=Activity(
@@ -283,7 +284,7 @@ async def on_ready():
 async def on_message(message: Message):
     content = message.content
     #ai
-    if not content == "":
+    if not message.author == bot.user:
         author = message.author.display_name
         for mention in message.mentions:
             content = content.replace(
@@ -301,6 +302,7 @@ async def on_message(message: Message):
                 f"<@&{role.id}>",
                 f"@{role.name}"
             )
+
         write_file(author + " : " + content, "messages.txt")
         log("message", author + " : " + content)
         if bot.user in message.mentions and message.author != bot.user:
@@ -311,20 +313,25 @@ async def on_message(message: Message):
                 for msg in read_file("messages.txt"):
                     msg = str(msg)
                     author = msg.split(" : ")[0]
-                    messages.append({"role": "user" if author != "BelloBot" else "assistant", "content":msg if author != "BelloBot" else msg.removeprefix("BelloBot : ")})
+                    messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "assistant", "content":msg if author != "BelloBot(forbellobot)" else msg.removeprefix("BelloBot(forbellobot) : ")})
                 messages = messages[:max_messages]
                 answer = ask_ai(messages, model)
                 await message.reply(answer)
+                write_file("BelloBot(forbellobot) : " + answer, "messages.txt")
+
+            except BadRequestError as e:
+                log("error", e)
+                await message.channel.send("<Erreur : Mauvaise requête>")
+
             except Exception as e:
-                print(e)
-                await message.channel.send("<Erreur !>")
-                log("error", str(e))
+                log("error", e)
+                await message.channel.send("<Erreur>")
     #xp
 
     check_has_data_file(message.author.id)
 
     user_data_xp = read_json(f"xp/{str(message.author.id) + ".json"}")
-    member: Member = await message.guild.fetch_member(message.author.id)
+    member: Member = await guild.fetch_member(message.author.id)
 
     if user_data_xp["mult_xp"] > 1:
         if datetime.fromisoformat(user_data_xp["temp_effects"]["boost_xp"]) < datetime.now(UTC):
@@ -381,20 +388,6 @@ async def on_message(message: Message):
     write_json(user_data_xp, f"xp/{str(message.author.id) + ".json"}")
 
 #----------------------------------BOT COMMANDS----------------------------------------
-
-@bot.tree.command(name="attribute_xp_channel", description="Attribue un salon pour anoncer le gain de niveau.")
-@app_commands.describe(channel="channel")
-@app_commands.checks.has_permissions(administrator=True)
-async def attribute_xp_channel(interaction: Interaction, channel:TextChannel):
-    global xp_channel
-    if channel:
-        data = read_json("config.json")
-        data["xp_channel"] = channel.id
-        write_json(data, "config.json")
-        xp_channel = channel
-        await interaction.response.send_message(f"Salon XP définie sur {channel.mention}", ephemeral=True)
-    else:
-        await interaction.response.send_message(f"Salon invalide !", ephemeral=True)
 
 @bot.tree.command(name="xp", description="Affiche le nombre d'xp")
 @app_commands.describe(user="user")
@@ -694,6 +687,7 @@ async def inventory(interaction: Interaction, user: User|None = None):
     embed = Embed(title=f" Inventaire de {user.display_name} :", description=description, color=Color.green())
     await interaction.response.send_message(embed=embed)
 
+"""
 @bot.tree.command(name="generate", description="Génère une image")
 @app_commands.describe(prompt="prompt", negative_prompt="negative_prompt", width="width", height="height", steps="steps")
 async def generate(interaction: Interaction, prompt: str, negative_prompt: str = "", width: int = 1024, height: int = 1024, steps: int = 30):
@@ -718,6 +712,91 @@ async def generate(interaction: Interaction, prompt: str, negative_prompt: str =
             log("generated_image", prompt)
     else:
         await interaction.followup.send("AAaah j'arrive pas à décider si ça passe ou non jsp quoi faire")
+"""
+
+@bot.tree.command(name="config", description="Configuration du bot")
+@app_commands.describe(key="key", value="value")
+@app_commands.checks.has_permissions(administrator=True)
+async def config(interaction: Interaction, key: Literal["xp_channel", "x2_xp_role", "x2_money_role", "file_role", "soundboard_role", "game_role", "poll_role", "link_role", "extern_role", "priority_voice_role", "bypass_slow_mode_role", "max_messages_in_memory"], value: str):
+    value_types = {
+        "xp_channel": TextChannel,
+        "x2_xp_role": Role,
+        "x2_money_role": Role,
+        "file_role": Role,
+        "soundboard_role": Role,
+        "game_role": Role,
+        "poll_role": Role,
+        "link_role": Role,
+        "extern_role": Role,
+        "priority_voice_role": Role,
+        "bypass_slow_mode_role": Role,
+        "max_messages_in_memory": int
+    }
+    text_types = {
+        TextChannel: "Salon texte",
+        Role: "Rôle",
+        int: "Nombre entier"
+    }
+    if key not in value_types.keys():
+        await interaction.response.send_message(f"Veuillez préciser une clé valide !", ephemeral=True)
+        return
+
+    print(value)
+
+    value_type = value_types[key]
+
+    if value.startswith("<#"):
+        channel_id = int(value.removeprefix("<#").removesuffix(">"))
+        channel = await guild.fetch_channel(channel_id)
+        print(type(channel))
+        value = channel
+    elif value.startswith("<@&"):
+        role_id = int(value.removeprefix("<@&").removesuffix(">"))
+        role = await guild.fetch_role(role_id)
+        print(role)
+        value = role
+    elif value.isdigit():
+        value = int(value)
+    else:
+        text_type = text_types[value_types[key]]
+        await interaction.response.send_message(f"Veuillez préciser une valeur valide ! Ça doit être : {text_type}", ephemeral=True)
+        return
+
+    if not isinstance(value, value_type):
+        text_type = text_types[value_type]
+        await interaction.response.send_message(f"Veuillez préciser une valeur valide ! Ça doit être : {text_type}", ephemeral=True)
+        return
+
+    bot_config = read_json(f"config.json")
+    bot_config[key] = value if not type(value) in [TextChannel, Role] else value.id
+    write_json(bot_config, "config.json")
+
+    if value_type == TextChannel:
+        value_text = value.name
+    elif value_type == Role:
+        value_text = value.name
+    else:
+        value_text = str(value)
+
+    config_text = ""
+    for lkey, lvalue in bot_config.items():
+        lvalue_type = value_types[lkey]
+        if not lvalue_type == int:
+            if lvalue_type == TextChannel:
+                channel_id = lvalue
+                channel = await guild.fetch_channel(channel_id)
+                lvalue = channel.mention
+            elif lvalue_type == Role:
+                role_id = lvalue
+                role = await guild.fetch_role(role_id)
+                lvalue = role.mention
+        config_text += f"\n {lkey} : {lvalue}"
+
+    await interaction.response.send_message(f"La clé {key} a bien pour valeur {value if value_type == int else value.mention} ! Voici la configuration du bot à présent : \n{config_text}", ephemeral=True)
+    if key == "max_messages_in_memory":
+        if value > 100:
+            await interaction.followup.send("ATTENTION : le nombre de messages maximum est recommendé de rester sous la barre des 100 messages : le bot pourrait être surchargé.", ephemeral=True)
+    log("config", f"{key} : {value} ({value_text})")
 
 #--------------------------------------RUN---------------------------------------------
 
