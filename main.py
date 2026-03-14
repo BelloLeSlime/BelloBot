@@ -7,11 +7,14 @@ from huggingface_hub.errors import BadRequestError
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 hg_token = os.getenv('HG_TOKEN')
+giphy_token = os.getenv('GIPHY_TOKEN')
 from discord import *
 from datetime import datetime, timedelta, UTC
 from typing import Literal
 from PIL import Image
 import io
+import requests
+import re
 
 #---------------------------------SET UP-----------------------------------------
 
@@ -204,10 +207,41 @@ async def send_image(interaction: Interaction, image: Image):
     file = File(fp=buffer, filename="generated.png")
     await interaction.followup.send(file=file)
 
+def get_gif(query):
+    url = "https://api.giphy.com/v1/gifs/search"
+
+    params = {
+        "api_key": giphy_token,
+        "q": query,
+        "limit": 1
+    }
+
+    r = requests.get(url, params=params).json()
+
+    if not r["data"]:
+        return None
+
+    return r["data"][0]["images"]["original"]["url"]
+
+def parse_text(text):
+    #gif
+    pattern = r'/gif\s*"([^"]+)"'
+
+    matches = re.findall(pattern, text)
+
+    for m in matches:
+        print(m)
+        gif = get_gif(m)
+        print(gif)
+
+        if gif:
+            text = text.replace(f'/gif "{m}"', gif)
+
+    return text
 
 #---------------------------------VARIABLES------------------------------------------
 
-system = "Tu es BelloBot, un bot Discord. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport."
+system = "Tu es BelloBot, un bot Discord créé par Bello le Slime. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport. Tu peux également utiliser des commandes : \n/gif <query> : recherche un gif sur giphy. query doit être entouré de guillements \"."
 model = "meta-llama/Meta-Llama-3-8B-Instruct"
 image_model = "stabilityai/stable-diffusion-xl-base-1.0"
 guild_id: int = int(os.getenv("GUILD_ID"))
@@ -316,7 +350,8 @@ async def on_message(message: Message):
                     messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "assistant", "content":msg if author != "BelloBot(forbellobot)" else msg.removeprefix("BelloBot(forbellobot) : ")})
                 messages = messages[:max_messages]
                 answer = ask_ai(messages, model)
-                await message.reply(answer)
+                to_send = parse_text(answer)
+                await message.reply(to_send)
                 write_file("BelloBot(forbellobot) : " + answer, "messages.txt")
 
             except BadRequestError as e:
@@ -797,6 +832,14 @@ async def config(interaction: Interaction, key: Literal["xp_channel", "x2_xp_rol
         if value > 100:
             await interaction.followup.send("ATTENTION : le nombre de messages maximum est recommendé de rester sous la barre des 100 messages : le bot pourrait être surchargé.", ephemeral=True)
     log("config", f"{key} : {value} ({value_text})")
+
+
+@bot.tree.command(name="rest_memory", description="Réinitialise la mémoire du bot")
+@app_commands.checks.has_permissions(administrator=True)
+async def reset_memory(interaction: Interaction):
+    with open("messages.txt", "w", encoding="utf-8") as f:
+        f.write("")
+    await interaction.response.send_message(f"Ma mémoire a bien été réinitialisée !", ephemeral=True)
 
 #--------------------------------------RUN---------------------------------------------
 
