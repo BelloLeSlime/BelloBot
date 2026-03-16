@@ -35,90 +35,7 @@ bot = MyClient()
 
 class ShopSelect(ui.Select):
     def __init__(self):
-        options = [
-            SelectOption(
-                label="Petite Potion d'Expérience",
-                description="Double l'XP reçu pendant 1h • 1000₣",
-                value="small_xp_potion",
-                emoji="🧪"
-            ),
-            SelectOption(
-                label="Petite Potion de Cupidité",
-                description="Double l'argent reçu pendant 1h • 2000₣",
-                value="small_money_potion",
-                emoji="🧪"
-            ),
-            SelectOption(
-                label="Back Door",
-                description="Vous permet d'uploader des fichiers pendant 1 mois • 5000₣",
-                value="back_door",
-                emoji="🚪"
-            ),
-            SelectOption(
-                label="Audacity",
-                description="Vous permet d'utiliser des soundboards et d'envoyer des messages vocaux pendant 1 mois • 6000₣",
-                value="audacity",
-                emoji="🎧"
-            ),
-            SelectOption(
-                label="Nintendo Switch 17",
-                description="Permet de lancer une activité dans un vocal pendant 1 mois • 7000₣",
-                value="nintendo_switch_17",
-                emoji="🎮"
-            ),
-            SelectOption(
-                label="Partenariat avec l'IFOP",
-                description="Permet de créer des sondages pendant 1 mois • 7000₣",
-                value="ifop",
-                emoji="🎤"
-            ),
-            SelectOption(
-                label="Site web",
-                description="Permet d'intégrer des liens pendant 1 mois • 7000₣",
-                value="site_web",
-                emoji="🌐"
-            ),
-            SelectOption(
-                label="External Plexus",
-                description="Vous permet d'utiliser des emojis, des autocollants, etc externes pendant 1 mois • 3000₣",
-                value="external_plexus",
-                emoji="🌐"
-            ),
-            SelectOption(
-                label="Microphone",
-                description="Donne la voix prioritaire en vocal pendant 1 mois • 7000₣",
-                value="microphone",
-                emoji="🎤"
-            ),
-            SelectOption(
-                label="Formule 1",
-                description="Permet d'ignorer le mode lent pendant 1 mois • 9000₣",
-                value="formule_1",
-                emoji="🏎️"
-            ),
-            SelectOption(
-                label="Name Tag",
-                description="Permet de renommer quelqu'un une fois (attention, punition si jugé humiliant) • 10000₣",
-                value="name_tag",
-                emoji="🏷️"
-            ),
-            SelectOption(
-                label="Ban Hammer",
-                description="Permet de bannir quelqu'un pendant une durée inférieure à 1 mois • 100000₣",
-                value="ban_hammer",
-                emoji="🔨"
-            ),
-        ]
-
-        super().__init__(
-            placeholder="Choisis un objet à acheter...",
-            min_values=1,
-            max_values=1,
-            options=options
-        )
-
-    async def callback(self, interaction):
-        item = self.values[0]
+        #j'ai bougé les prix ici pour pouvoir les utiliser plus facilement dans toute la classe
         prices = {
             "small_xp_potion": 1000,
             "small_money_potion": 2000,
@@ -133,6 +50,91 @@ class ShopSelect(ui.Select):
             "name_tag": 10000,
             "ban_hammer": 100000,
         }
+        options = [
+            SelectOption(
+                label="Petite Potion d'Expérience",
+                description=f"Double l'XP reçu pendant 1h • {prices['small_xp_potion']}₣",
+                value="small_xp_potion",
+                emoji="🧪"
+            ),
+            SelectOption(
+                label="Petite Potion de Cupidité",
+                description="Double l'argent reçu pendant 1h • 2000₣",
+                value="small_money_potion",
+                emoji="🧪"
+            ),
+            SelectOption(
+                label="Back Door",
+                description=f"Vous permet d'uploader des fichiers pendant 1 mois • {prices['back_door']}₣",
+                value="back_door",
+                emoji="🚪"
+            ),
+            SelectOption(
+                label="Audacity",
+                description=f"Vous permet d'utiliser des soundboards et d'envoyer des messages vocaux pendant 1 mois • {prices['audacity']}₣",
+                value="audacity",
+                emoji="🎧"
+            ),
+            SelectOption(
+                label="Nintendo Switch 17",
+                description=f"Permet de lancer une activité dans un vocal pendant 1 mois • {prices['nintendo_switch_17']}₣",
+                value="nintendo_switch_17",
+                emoji="🎮"
+            ),
+            SelectOption(
+                label="Partenariat avec l'IFOP",
+                description=f"Permet de créer des sondages pendant 1 mois • {prices['ifop']}₣",
+                value="ifop",
+                emoji="🎤"
+            ),
+            SelectOption(
+                label="Site web",
+                description=f"Permet d'intégrer des liens pendant 1 mois • {prices['site_web']}₣",
+                value="site_web",
+                emoji="🌐"
+            ),
+            SelectOption(
+                label="External Plexus",
+                description=f"Vous permet d'utiliser des emojis, des autocollants, etc externes pendant 1 mois • {prices['external_plexus']}₣",
+                value="external_plexus",
+                emoji="🌐"
+            ),
+            SelectOption(
+                label="Microphone",
+                description=f"Donne la voix prioritaire en vocal pendant 1 mois • {prices['microphone']}₣",
+                value="microphone",
+                emoji="🎤"
+            ),
+            SelectOption(
+                label="Formule 1",
+                description=f"Permet d'ignorer le mode lent pendant 1 mois • {prices['formule_1']}₣",
+                value="formule_1",
+                emoji="🏎️"
+            ),
+            SelectOption(
+                label="Name Tag",
+                description=f"Permet de renommer quelqu'un une fois (attention, punition si jugé humiliant) • {prices['name_tag']}₣",
+                value="name_tag",
+                emoji="🏷️"
+            ),
+            SelectOption(
+                label="Ban Hammer",
+                description=f"Permet de bannir quelqu'un pendant une durée inférieure à 1 mois • {prices['ban_hammer']}₣",
+                value="ban_hammer",
+                emoji="🔨"
+            ),
+        ]
+
+        super().__init__(
+            placeholder="Choisis un objet à acheter...",
+            min_values=1,
+            max_values=1,
+            options=options
+        )
+
+    async def callback(self, interaction):
+        item = self.values[0]
+
         price = prices[item]
         user = interaction.user
         user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
@@ -143,7 +145,7 @@ class ShopSelect(ui.Select):
             add_item(interaction.guild.id, user.id, item)
             await interaction.response.send_message("Merci pour votre achat !")
         else:
-            await interaction.response.send_message("Tu n'a pas assez pour acheter ça.\nBah alors, on est pauvre ? ༼ つ XD ༽つ")
+            await interaction.response.send_message("# Tu n'a pas assez pour acheter ça.\nBah alors, on est pauvre ? ༼ つ XD ༽つ")
 
 class ShopView(ui.View):
     def __init__(self):
@@ -410,6 +412,7 @@ async def _on_interaction(interaction: Interaction):
 
 #----------------------------------BOT COMMANDS----------------------------------------
 
+#command:xp
 @bot.tree.command(name="xp", description="Affiche le nombre d'xp")
 @app_commands.describe(user="user")
 async def xp(interaction: Interaction, user:User = None):
@@ -418,12 +421,20 @@ async def xp(interaction: Interaction, user:User = None):
     user_data_xp = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
     self = user == interaction.user
     if user == bot.user:
-        await interaction.response.send_message(f"Je suis au niveau {user_data_xp['level']}, j'ai {user_data_xp['xp']} xp et il me manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} ༼ つ ◕_◕ ༽つ")
+        #new format bello dit moi ce que t'en pense
+        await interaction.response.send_message(f"Bellobot stats:\n level:**{user_data_xp['level']}**\n xp:**{user_data_xp['xp']}**\n **{user_data_xp["level"] * 15 - user_data_xp['xp']}** xp pour passer au niveau {user_data_xp['level'] + 1} \n༼ つ ◕_◕ ༽つ")
+        #old format:
+        #await interaction.response.send_message(f"Je suis au niveau {user_data_xp['level']}, j'ai {user_data_xp['xp']} xp et il me manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} ༼ つ ◕_◕ ༽つ")
     elif self:
-        await interaction.response.send_message(f"Tu es au niveau {user_data_xp['level']}, tu as {user_data_xp['xp']} xp et il te manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level']+1} :p")
+        await interaction.response.send_message(f"{user} stats:\n level:**{user_data_xp['level']}**\n xp:**{user_data_xp['xp']}**\n **{user_data_xp["level"] * 15 - user_data_xp['xp']}** xp pour passer au niveau {user_data_xp['level'] + 1} \n:p")
+        #old format
+        #await interaction.response.send_message(f"Tu es au niveau {user_data_xp['level']}, tu as {user_data_xp['xp']} xp et il te manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level']+1} :p")
     else:
-        await interaction.response.send_message(f"{user.display_name} est au niveau {user_data_xp['level']}, il a {user_data_xp['xp']} xp et il lui manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} :p")
+        await interaction.response.send_message(f"{user} stats:\n level:**{user_data_xp['level']}**\n xp:**{user_data_xp['xp']}**\n **{user_data_xp["level"] * 15 - user_data_xp['xp']}** xp pour passer au niveau {user_data_xp['level'] + 1} \ntu devrais être impressionné! :O ")
+        #old format:
+        #await interaction.response.send_message(f"{user.display_name} est au niveau {user_data_xp['level']}, il a {user_data_xp['xp']} xp et il lui manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} :p")
 
+#command:wallet
 @bot.tree.command(name="wallet", description="Affiche le nombre de Flamcoins")
 @app_commands.describe(user="user")
 async def wallet(interaction: Interaction, user:User = None):
@@ -433,12 +444,14 @@ async def wallet(interaction: Interaction, user:User = None):
     money = user_data_xp["money"]
     self = user == interaction.user
     if user == bot.user:
-        await interaction.response.send_message(f"J'ai actuellement {money}₣.")
+        await interaction.response.send_message(f"J'ai actuellement\n #**{money}₣**.")
     elif self:
-        await interaction.response.send_message(f"Tu as actuellement {money}₣.")
+        await interaction.response.send_message(f"Tu as actuellement\n #**{money}₣**.")
     else:
-        await interaction.response.send_message(f"{user.display_name} a actuellement {money}₣.")
+        await interaction.response.send_message(f"{user.display_name} a actuellement\n #**{money}₣**.")
 
+
+#command:shop
 @bot.tree.command(name="shop", description="Affiche le magasin")
 async def shop(interaction: Interaction):
     embed = Embed(
@@ -451,6 +464,7 @@ async def shop(interaction: Interaction):
         view=ShopView()
     )
 
+#command:give_xp
 @bot.tree.command(name="give_xp", description="Donne un nombre d'xp à un membre")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -462,6 +476,7 @@ async def give_xp(interaction: Interaction, amount: int, user: User = None):
     write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/{user.id}.json")
     await interaction.response.send_message(f"Vous avez bien ajouté {amount} xp à {user.display_name}. Il a maintenant {user_data_xp['xp']} xp.", ephemeral=True)
 
+#command:set_xp
 @bot.tree.command(name="set_xp", description="Met un à membre un nombre d'xp")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -470,9 +485,10 @@ async def set_xp(interaction: Interaction, amount: int, user: User = None):
         user = interaction.user
     user_data_xp = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
     user_data_xp["xp"] = amount
-    write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-    await interaction.response.send_message(f"Vous avez bien mit {amount} xp à {user.display_name}.", ephemeral=True)
+    write_json(user_data_xp, f"xp/{str(user.id)}.json")
+    await interaction.response.send_message(f"Vous avez bien mit **{amount} xp** à **{user.display_name}**.", ephemeral=True)
 
+#command:give_xp
 @bot.tree.command(name="give_money", description="Donne un nombre d'argent à un membre")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -481,9 +497,10 @@ async def give_money(interaction: Interaction, amount: int, user: User = None):
         user = interaction.user
     user_data_xp = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
     user_data_xp["money"] += amount
-    write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-    await interaction.response.send_message(f"Vous avez bien ajouté {amount}₣ à {user.display_name}. Il a maintenant {user_data_xp['money']}₣.", ephemeral=True)
+    write_json(user_data_xp, f"xp/{str(user.id)}.json")
+    await interaction.response.send_message(f"Vous avez bien ajouté {amount}₣ à {user.display_name}. Il a maintenant **{user_data_xp['money']}₣**.", ephemeral=True)
 
+#command:set_xp
 @bot.tree.command(name="set_money", description="Met un à membre un nombre d'argent")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -492,9 +509,10 @@ async def set_money(interaction: Interaction, amount: int, user: User = None):
         user = interaction.user
     user_data_xp = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
     user_data_xp["xp"] = amount
-    write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-    await interaction.response.send_message(f"Vous avez bien mit {amount}₣ à {user.display_name}.", ephemeral=True)
+    write_json(user_data_xp, f"xp/{str(user.id)}.json")
+    await interaction.response.send_message(f"Vous avez bien mit **{amount}₣** à **{user.display_name}**.", ephemeral=True)
 
+#command:give_level
 @bot.tree.command(name="give_level", description="Donne un nombre de niveaux à un membre")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -503,9 +521,10 @@ async def give_level(interaction: Interaction, amount: int, user: User = None):
         user = interaction.user
     user_data_xp = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
     user_data_xp["level"] += amount
-    write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-    await interaction.response.send_message(f"Vous avez bien ajouté {amount} niveaux à {user.display_name}. Il a maintenant niveau {user_data_xp['level']}.", ephemeral=True)
+    write_json(user_data_xp, f"xp/{str(user.id)}.json")
+    await interaction.response.send_message(f"Vous avez bien ajouté **{amount} niveaux** à **{user.display_name}**. Il est maintenant niveau **{user_data_xp['level']} .", ephemeral=True)
 
+#command:set_level
 @bot.tree.command(name="set_level", description="Met un à membre un nombre de niveaux")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -514,10 +533,11 @@ async def set_level(interaction: Interaction, amount: int, user: User = None):
         user = interaction.user
     user_data_xp = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
     user_data_xp["level"] = amount
-    write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-    await interaction.response.send_message(f"Vous avez bien mit {amount} niveaux à {user.display_name}.", ephemeral=True)
+    write_json(user_data_xp, f"xp/{str(user.id)}.json")
+    await interaction.response.send_message(f"Vous avez bien mit **{amount} niveaux** à **{user.display_name}**.", ephemeral=True)
 
-@bot.tree.command(name="reset", description="Remet tout le serveur au niveau 1, avec 0 argent et 0 xp")
+#command:reset
+@bot.tree.command(name="reset", description="Remet tout le serveur au **niveau 1**, avec **0 argent** et **0 xp**")
 @app_commands.checks.has_permissions(administrator=True)
 async def reset(interaction: Interaction):
     for file in os.listdir("./files/user_info/{interaction.guild.id}/"):
@@ -532,6 +552,7 @@ async def reset(interaction: Interaction):
         write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/file")
     await interaction.response.send_message(f"Vous avez bien remit le serveur à 0.", ephemeral=True)
 
+#command:use
 @bot.tree.command(name="use", description="Utilise un item dans l'inventaire")
 @app_commands.describe(item="item", target_user="user", name="name", time_in_hours="time")
 async def use(interaction: Interaction, item: Literal["Petite Potion d'Expérience", "Petite Potion de Cupidité", "Back Door", "Audacity", "Nintendo Switch 17", "Partenariat avec l'IFOP", "Site Web", "External Plexus", "Microphone", "Formule 1", "Name Tag",  "Ban Hammer"], target_user: User|None = None, name: str|None = None, time_in_hours: int|None = None ):
@@ -601,40 +622,40 @@ async def use(interaction: Interaction, item: Literal["Petite Potion d'Expérien
                 user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 user_data["temp_effects"]["soundboard"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
                 await user.add_roles(soundboard_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                await interaction.response.send_message("Vous pouvez maintenant utiliser le soundborad !", ephemeral=True)
+                write_json(user_data, f"xp/{user.id}.json")
+                await interaction.response.send_message("Vous pouvez maintenant #utiliser le soundboard !", ephemeral=True)
 
             elif item == "nintendo_switch_17":
                 user = interaction.user
                 user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 user_data["temp_effects"]["game"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
                 await user.add_roles(game_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                await interaction.response.send_message("Vous pouvez maintenant utiliser les applications !",ephemeral=True)
+                write_json(user_data, f"xp/{user.id}.json")
+                await interaction.response.send_message("Vous pouvez maintenant #utiliser les applications !",ephemeral=True)
 
             elif item == "ifop":
                 user = interaction.user
                 user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 user_data["temp_effects"]["poll"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
                 await user.add_roles(poll_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                await interaction.response.send_message("Vous pouvez maintenant créer des sondages !", ephemeral=True)
+                write_json(user_data, f"xp/{user.id}.json")
+                await interaction.response.send_message("Vous pouvez maintenant #créer des sondages !", ephemeral=True)
 
             elif item == "site_web":
                 user = interaction.user
                 user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 user_data["temp_effects"]["link"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
                 await user.add_roles(link_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                await interaction.response.send_message("Vous pouvez maintenant intégrer des liens !", ephemeral=True)
+                write_json(user_data, f"xp/{user.id}.json")
+                await interaction.response.send_message("Vous pouvez maintenant #intégrer des liens !", ephemeral=True)
 
             elif item == "external_plexus":
                 user = interaction.user
                 user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 user_data["temp_effects"]["extern"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
                 await user.add_roles(extern_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                await interaction.response.send_message("Vous pouvez maintenant utiliser des emojis, autocollants, soundborads et applications externes !", ephemeral=True)
+                write_json(user_data, f"xp/{user.id}.json")
+                await interaction.response.send_message("Vous pouvez maintenant #utiliser des emojis, autocollants, soundborads et applications externes !", ephemeral=True)
 
             elif item == "microphone":
                 user = interaction.user
@@ -649,8 +670,8 @@ async def use(interaction: Interaction, item: Literal["Petite Potion d'Expérien
                 user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 user_data["temp_effects"]["bypass_slow_mode"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
                 await user.add_roles(bypass_slow_mode_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                await interaction.response.send_message("Vous pouvez maintenant contourner le mode lent !", ephemeral=True)
+                write_json(user_data, f"xp/{user.id}.json")
+                await interaction.response.send_message("Vous pouvez maintenant #contourner le mode lent !", ephemeral=True)
 
             elif item == "name_tag":
                 if target_user:
@@ -681,10 +702,11 @@ async def use(interaction: Interaction, item: Literal["Petite Potion d'Expérien
                 else:
                     await interaction.response.send_message(f"Veuillez indiquer un utilisateur.", ephemeral=True)
         else:
-            await interaction.response.send_message(f"Vous n'avez pas cet item :p\n Vous pouvez l'acheter au shop avec /shop", ephemeral=True)
+            await interaction.response.send_message(f"**Vous n'avez pas cet item** :p\n Vous pouvez l'acheter au shop avec #**/shop**", ephemeral=True)
     else:
-        await interaction.response.send_message(f"Vous n'avez pas cet item :p\n Vous pouvez l'acheter au shop avec /shop", ephemeral=True)
+        await interaction.response.send_message(f"**Vous n'avez pas cet item** :p\n Vous pouvez l'acheter au shop avec #**/shop**", ephemeral=True)
 
+#command:inventory
 @bot.tree.command(name="inventory", description="Affiche l'inventaire")
 @app_commands.describe(user="user")
 async def inventory(interaction: Interaction, user: User|None = None):
@@ -740,6 +762,7 @@ async def generate(interaction: Interaction, prompt: str, negative_prompt: str =
         await interaction.followup.send("AAaah j'arrive pas à décider si ça passe ou non jsp quoi faire")
 """
 
+#command:config
 @bot.tree.command(name="config", description="Configuration du bot")
 @app_commands.describe(key="key", value="value")
 @app_commands.checks.has_permissions(administrator=True)
@@ -829,8 +852,8 @@ async def config(interaction: Interaction, key: Literal["xp_channel", "x2_xp_rol
             lvalue = "Rien !"
         config_text += f"\n {lkey} : {lvalue}"
 
-    await interaction.response.send_message(f"La clé {key} a bien pour valeur {value if value_type in [int, bool] else value.mention} ! Voici la configuration du bot à présent : \n{config_text}", ephemeral=True)
-    if key == "max_messages_in_memory" and not read_json(f"files/config/{interaction.guild.id}.json")["disable_warning_messages"]:
+    await interaction.response.send_message(f"La clé **{key}** a bien pour valeur **{value if value_type == int else value.mention}** ! Voici la configuration du bot à présent : \n#**{config_text}**", ephemeral=True)
+    if key == "max_messages_in_memory":
         if value > 100:
             await interaction.followup.send("ATTENTION : le nombre de messages maximum est recommendé de rester sous la barre des 100 messages : le bot pourrait être surchargé.", ephemeral=True)
     log("config", f"{key} : {value} ({value_text})")
