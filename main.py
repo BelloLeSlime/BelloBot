@@ -32,90 +32,7 @@ bot = MyClient()
 
 class ShopSelect(ui.Select):
     def __init__(self):
-        options = [
-            SelectOption(
-                label="Petite Potion d'Expérience",
-                description="Double l'XP reçu pendant 1h • 1000₣",
-                value="small_xp_potion",
-                emoji="🧪"
-            ),
-            SelectOption(
-                label="Petite Potion de Cupidité",
-                description="Double l'argent reçu pendant 1h • 2000₣",
-                value="small_money_potion",
-                emoji="🧪"
-            ),
-            SelectOption(
-                label="Back Door",
-                description="Vous permet d'uploader des fichiers pendant 1 mois • 5000₣",
-                value="back_door",
-                emoji="🚪"
-            ),
-            SelectOption(
-                label="Audacity",
-                description="Vous permet d'utiliser des soundboards et d'envoyer des messages vocaux pendant 1 mois • 6000₣",
-                value="audacity",
-                emoji="🎧"
-            ),
-            SelectOption(
-                label="Nintendo Switch 17",
-                description="Permet de lancer une activité dans un vocal pendant 1 mois • 7000₣",
-                value="nintendo_switch_17",
-                emoji="🎮"
-            ),
-            SelectOption(
-                label="Partenariat avec l'IFOP",
-                description="Permet de créer des sondages pendant 1 mois • 7000₣",
-                value="ifop",
-                emoji="🎤"
-            ),
-            SelectOption(
-                label="Site web",
-                description="Permet d'intégrer des liens pendant 1 mois • 7000₣",
-                value="site_web",
-                emoji="🌐"
-            ),
-            SelectOption(
-                label="External Plexus",
-                description="Vous permet d'utiliser des emojis, des autocollants, etc externes pendant 1 mois • 3000₣",
-                value="external_plexus",
-                emoji="🌐"
-            ),
-            SelectOption(
-                label="Microphone",
-                description="Donne la voix prioritaire en vocal pendant 1 mois • 7000₣",
-                value="microphone",
-                emoji="🎤"
-            ),
-            SelectOption(
-                label="Formule 1",
-                description="Permet d'ignorer le mode lent pendant 1 mois • 9000₣",
-                value="formule_1",
-                emoji="🏎️"
-            ),
-            SelectOption(
-                label="Name Tag",
-                description="Permet de renommer quelqu'un une fois (attention, punition si jugé humiliant) • 10000₣",
-                value="name_tag",
-                emoji="🏷️"
-            ),
-            SelectOption(
-                label="Ban Hammer",
-                description="Permet de bannir quelqu'un pendant une durée inférieure à 1 mois • 100000₣",
-                value="ban_hammer",
-                emoji="🔨"
-            ),
-        ]
-
-        super().__init__(
-            placeholder="Choisis un objet à acheter...",
-            min_values=1,
-            max_values=1,
-            options=options
-        )
-
-    async def callback(self, interaction):
-        item = self.values[0]
+        #j'ai bougé les prix ici pour pouvoir les utiliser plus facilement dans toute la classe
         prices = {
             "small_xp_potion": 1000,
             "small_money_potion": 2000,
@@ -130,15 +47,100 @@ class ShopSelect(ui.Select):
             "name_tag": 10000,
             "ban_hammer": 100000,
         }
+        options = [
+            SelectOption(
+                label="Petite Potion d'Expérience",
+                description=f"Double l'XP reçu pendant 1h • {prices['small_xp_potion']}₣",
+                value="small_xp_potion",
+                emoji="🧪"
+            ),
+            SelectOption(
+                label="Petite Potion de Cupidité",
+                description="Double l'argent reçu pendant 1h • 2000₣",
+                value="small_money_potion",
+                emoji="🧪"
+            ),
+            SelectOption(
+                label="Back Door",
+                description=f"Vous permet d'uploader des fichiers pendant 1 mois • {prices['back_door']}₣",
+                value="back_door",
+                emoji="🚪"
+            ),
+            SelectOption(
+                label="Audacity",
+                description=f"Vous permet d'utiliser des soundboards et d'envoyer des messages vocaux pendant 1 mois • {prices['audacity']}₣",
+                value="audacity",
+                emoji="🎧"
+            ),
+            SelectOption(
+                label="Nintendo Switch 17",
+                description=f"Permet de lancer une activité dans un vocal pendant 1 mois • {prices['nintendo_switch_17']}₣",
+                value="nintendo_switch_17",
+                emoji="🎮"
+            ),
+            SelectOption(
+                label="Partenariat avec l'IFOP",
+                description=f"Permet de créer des sondages pendant 1 mois • {prices['ifop']}₣",
+                value="ifop",
+                emoji="🎤"
+            ),
+            SelectOption(
+                label="Site web",
+                description=f"Permet d'intégrer des liens pendant 1 mois • {prices['site_web']}₣",
+                value="site_web",
+                emoji="🌐"
+            ),
+            SelectOption(
+                label="External Plexus",
+                description=f"Vous permet d'utiliser des emojis, des autocollants, etc externes pendant 1 mois • {prices['external_plexus']}₣",
+                value="external_plexus",
+                emoji="🌐"
+            ),
+            SelectOption(
+                label="Microphone",
+                description=f"Donne la voix prioritaire en vocal pendant 1 mois • {prices['microphone']}₣",
+                value="microphone",
+                emoji="🎤"
+            ),
+            SelectOption(
+                label="Formule 1",
+                description=f"Permet d'ignorer le mode lent pendant 1 mois • {prices['formule_1']}₣",
+                value="formule_1",
+                emoji="🏎️"
+            ),
+            SelectOption(
+                label="Name Tag",
+                description=f"Permet de renommer quelqu'un une fois (attention, punition si jugé humiliant) • {prices['name_tag']}₣",
+                value="name_tag",
+                emoji="🏷️"
+            ),
+            SelectOption(
+                label="Ban Hammer",
+                description=f"Permet de bannir quelqu'un pendant une durée inférieure à 1 mois • {prices['ban_hammer']}₣",
+                value="ban_hammer",
+                emoji="🔨"
+            ),
+        ]
+
+        super().__init__(
+            placeholder="Choisis un objet à acheter...",
+            min_values=1,
+            max_values=1,
+            options=options
+        )
+
+    async def callback(self, interaction):
+        item = self.values[0]
+
         price = prices[item]
         user = interaction.user
         user_data = read_json(f"xp/{user.id}.json")
         wallet = user_data["money"]
         if wallet > price:
             add_item(user.id, item)
-            await interaction.response.send_message("Merci pour votre achat !")
+            await interaction.response.send_message("# Merci pour votre achat !")
         else:
-            await interaction.response.send_message("Tu n'a pas assez pour acheter ça.\nBah alors, on est pauvre ? ༼ つ XD ༽つ")
+            await interaction.response.send_message("# Tu n'a pas assez pour acheter ça.\nBah alors, on est pauvre ? ༼ つ XD ༽つ")
 
 class ShopView(ui.View):
     def __init__(self):
@@ -414,11 +416,11 @@ async def wallet(interaction: Interaction, user:User = None):
     money = user_data_xp["money"]
     self = user == interaction.user
     if user == bot.user:
-        await interaction.response.send_message(f"J'ai actuellement {money}₣.")
+        await interaction.response.send_message(f"J'ai actuellement **{money}₣**.")
     elif self:
-        await interaction.response.send_message(f"Tu as actuellement {money}₣.")
+        await interaction.response.send_message(f"Tu as actuellement **{money}₣**.")
     else:
-        await interaction.response.send_message(f"{user.display_name} a actuellement {money}₣.")
+        await interaction.response.send_message(f"{user.display_name} a actuellement **{money}₣**.")
 
 @bot.tree.command(name="shop", description="Affiche le magasin")
 async def shop(interaction: Interaction):
@@ -454,7 +456,7 @@ async def set_xp(interaction: Interaction, amount: int, user: User = None):
     user_data_xp = read_json(f"xp/{str(user.id)}.json")
     user_data_xp["xp"] = amount
     write_json(user_data_xp, f"xp/{str(user.id)}.json")
-    await interaction.response.send_message(f"Vous avez bien mit {amount} xp à {user.display_name}.", ephemeral=True)
+    await interaction.response.send_message(f"Vous avez bien mit **{amount} xp** à **{user.display_name}**.", ephemeral=True)
 
 @bot.tree.command(name="give_money", description="Donne un nombre d'argent à un membre")
 @app_commands.describe(amount="amount", user="user")
@@ -466,7 +468,7 @@ async def give_money(interaction: Interaction, amount: int, user: User = None):
     user_data_xp = read_json(f"xp/{str(user.id)}.json")
     user_data_xp["money"] += amount
     write_json(user_data_xp, f"xp/{str(user.id)}.json")
-    await interaction.response.send_message(f"Vous avez bien ajouté {amount}₣ à {user.display_name}. Il a maintenant {user_data_xp['money']}₣.", ephemeral=True)
+    await interaction.response.send_message(f"Vous avez bien ajouté {amount}₣ à {user.display_name}. Il a maintenant **{user_data_xp['money']}₣**.", ephemeral=True)
 
 @bot.tree.command(name="set_money", description="Met un à membre un nombre d'argent")
 @app_commands.describe(amount="amount", user="user")
@@ -478,7 +480,7 @@ async def set_money(interaction: Interaction, amount: int, user: User = None):
     user_data_xp = read_json(f"xp/{str(user.id)}.json")
     user_data_xp["xp"] = amount
     write_json(user_data_xp, f"xp/{str(user.id)}.json")
-    await interaction.response.send_message(f"Vous avez bien mit {amount}₣ à {user.display_name}.", ephemeral=True)
+    await interaction.response.send_message(f"Vous avez bien mit **{amount}₣** à **{user.display_name}**.", ephemeral=True)
 
 @bot.tree.command(name="give_level", description="Donne un nombre de niveaux à un membre")
 @app_commands.describe(amount="amount", user="user")
@@ -490,7 +492,7 @@ async def give_level(interaction: Interaction, amount: int, user: User = None):
     user_data_xp = read_json(f"xp/{str(user.id)}.json")
     user_data_xp["level"] += amount
     write_json(user_data_xp, f"xp/{str(user.id)}.json")
-    await interaction.response.send_message(f"Vous avez bien ajouté {amount} niveaux à {user.display_name}. Il a maintenant niveau {user_data_xp['level']}.", ephemeral=True)
+    await interaction.response.send_message(f"Vous avez bien ajouté **{amount} niveaux** à **{user.display_name}**. Il est maintenant niveau **{user_data_xp['level']}.", ephemeral=True)
 
 @bot.tree.command(name="set_level", description="Met un à membre un nombre de niveaux")
 @app_commands.describe(amount="amount", user="user")
