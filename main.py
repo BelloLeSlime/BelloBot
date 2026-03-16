@@ -391,6 +391,7 @@ async def on_message(message: Message):
 
 #----------------------------------BOT COMMANDS----------------------------------------
 
+#command:xp
 @bot.tree.command(name="xp", description="Affiche le nombre d'xp")
 @app_commands.describe(user="user")
 async def xp(interaction: Interaction, user:User = None):
@@ -413,6 +414,7 @@ async def xp(interaction: Interaction, user:User = None):
         #old format:
         #await interaction.response.send_message(f"{user.display_name} est au niveau {user_data_xp['level']}, il a {user_data_xp['xp']} xp et il lui manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} :p")
 
+#command:wallet
 @bot.tree.command(name="wallet", description="Affiche le nombre de Flamcoins")
 @app_commands.describe(user="user")
 async def wallet(interaction: Interaction, user:User = None):
@@ -429,6 +431,8 @@ async def wallet(interaction: Interaction, user:User = None):
     else:
         await interaction.response.send_message(f"{user.display_name} a actuellement\n #**{money}₣**.")
 
+
+#command:shop
 @bot.tree.command(name="shop", description="Affiche le magasin")
 async def shop(interaction: Interaction):
     embed = Embed(
@@ -441,6 +445,7 @@ async def shop(interaction: Interaction):
         view=ShopView()
     )
 
+#command:give_xp
 @bot.tree.command(name="give_xp", description="Donne un nombre d'xp à un membre")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -453,6 +458,7 @@ async def give_xp(interaction: Interaction, amount: int, user: User = None):
     write_json(user_data_xp, f"xp/{str(user.id)}.json")
     await interaction.response.send_message(f"Vous avez bien ajouté {amount} xp à {user.display_name}. Il a maintenant {user_data_xp['xp']} xp.", ephemeral=True)
 
+#command:set_xp
 @bot.tree.command(name="set_xp", description="Met un à membre un nombre d'xp")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -465,6 +471,7 @@ async def set_xp(interaction: Interaction, amount: int, user: User = None):
     write_json(user_data_xp, f"xp/{str(user.id)}.json")
     await interaction.response.send_message(f"Vous avez bien mit **{amount} xp** à **{user.display_name}**.", ephemeral=True)
 
+#command:give_xp
 @bot.tree.command(name="give_money", description="Donne un nombre d'argent à un membre")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -477,6 +484,7 @@ async def give_money(interaction: Interaction, amount: int, user: User = None):
     write_json(user_data_xp, f"xp/{str(user.id)}.json")
     await interaction.response.send_message(f"Vous avez bien ajouté {amount}₣ à {user.display_name}. Il a maintenant **{user_data_xp['money']}₣**.", ephemeral=True)
 
+#command:set_xp
 @bot.tree.command(name="set_money", description="Met un à membre un nombre d'argent")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -489,6 +497,7 @@ async def set_money(interaction: Interaction, amount: int, user: User = None):
     write_json(user_data_xp, f"xp/{str(user.id)}.json")
     await interaction.response.send_message(f"Vous avez bien mit **{amount}₣** à **{user.display_name}**.", ephemeral=True)
 
+#command:give_level
 @bot.tree.command(name="give_level", description="Donne un nombre de niveaux à un membre")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -501,6 +510,7 @@ async def give_level(interaction: Interaction, amount: int, user: User = None):
     write_json(user_data_xp, f"xp/{str(user.id)}.json")
     await interaction.response.send_message(f"Vous avez bien ajouté **{amount} niveaux** à **{user.display_name}**. Il est maintenant niveau **{user_data_xp['level']} .", ephemeral=True)
 
+#command:set_level
 @bot.tree.command(name="set_level", description="Met un à membre un nombre de niveaux")
 @app_commands.describe(amount="amount", user="user")
 @app_commands.checks.has_permissions(administrator=True)
@@ -513,6 +523,7 @@ async def set_level(interaction: Interaction, amount: int, user: User = None):
     write_json(user_data_xp, f"xp/{str(user.id)}.json")
     await interaction.response.send_message(f"Vous avez bien mit **{amount} niveaux** à **{user.display_name}**.", ephemeral=True)
 
+#command:reset
 @bot.tree.command(name="reset", description="Remet tout le serveur au **niveau 1**, avec **0 argent** et **0 xp**")
 @app_commands.checks.has_permissions(administrator=True)
 async def reset(interaction: Interaction):
@@ -528,6 +539,7 @@ async def reset(interaction: Interaction):
         write_json(user_data_xp, f"xp/{file}")
     await interaction.response.send_message(f"Vous avez bien remit le serveur à 0.", ephemeral=True)
 
+#command:use
 @bot.tree.command(name="use", description="Utilise un item dans l'inventaire")
 @app_commands.describe(item="item", target_user="user", name="name", time_in_hours="time")
 async def use(interaction: Interaction, item: Literal["Petite Potion d'Expérience", "Petite Potion de Cupidité", "Back Door", "Audacity", "Nintendo Switch 17", "Partenariat avec l'IFOP", "Site Web", "External Plexus", "Microphone", "Formule 1", "Name Tag",  "Ban Hammer"], target_user: User|None = None, name: str|None = None, time_in_hours: int|None = None ):
@@ -667,6 +679,7 @@ async def use(interaction: Interaction, item: Literal["Petite Potion d'Expérien
     else:
         await interaction.response.send_message(f"**Vous n'avez pas cet item** :p\n Vous pouvez l'acheter au shop avec #**/shop**", ephemeral=True)
 
+#command:inventory
 @bot.tree.command(name="inventory", description="Affiche l'inventaire")
 @app_commands.describe(user="user")
 async def inventory(interaction: Interaction, user: User|None = None):
@@ -723,6 +736,7 @@ async def generate(interaction: Interaction, prompt: str, negative_prompt: str =
         await interaction.followup.send("AAaah j'arrive pas à décider si ça passe ou non jsp quoi faire")
 """
 
+#command:config
 @bot.tree.command(name="config", description="Configuration du bot")
 @app_commands.describe(key="key", value="value")
 @app_commands.checks.has_permissions(administrator=True)
