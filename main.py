@@ -400,8 +400,7 @@ async def on_message(message: Message):
                 await xp_channel.send(f"GG à {message.author.mention} pour avoir passé le niveau {user_data_xp["level"]} ! 🥳🎉 Tu gagnes {50 * user_data_xp["level"]}₣ 💰💰💰 Continue de gagner des niveaux... 🔥🔥🔥")
         write_json(user_data_xp, f"files/user_info/{message.guild.id}/{message.author.id}.json")
     except HTTPException:
-        if not message.author == bot.user and not read_json(f"files/config/{message.guild.id}.json")["disable_warning_messages"]:
-            await message.reply(f"Les rôles achetables ne sont pas définies ! Veuillez les assigner avec /config.")
+        pass
 
 @bot.event
 async def _on_interaction(interaction: Interaction):
@@ -841,6 +840,26 @@ async def reset_memory(interaction: Interaction):
     with open(f"files/messages/{interaction.guild.id}.txt", "w", encoding="utf-8") as f:
         f.write("")
     await interaction.response.send_message(f"Ma mémoire a bien été réinitialisée !", ephemeral=True)
+
+@bot.tree.command(name="create_music", description="Crée une musique ma foi fort douteuse étant donné qu'elle a été entrainée avec 5 musiques.")
+@app_commands.describe(prompt="prompt")
+async def create_music(interaction: Interaction, prompt: str):
+    await interaction.response.defer(ephemeral=True)
+    music_info = {}
+    global_info_str = ask_ai([{"role": "system", "content": "On t'a chargé de créer une musique. Ici tu dois déterminer l'encodage (4/4 ou 3/4), la tonalité et le tempo du morceau. Tu dois suivre une syntaxe précise : exemple : '4/4 - AbM - 102'. Le bémol est 'b', le dièse est '#', mineur est 'm', majeur est 'M', et la note doit être anottée en anglas (A-G). ATTENTION : il est primordial de suivre cette syntaxe, sinon je pourrais pas créer ta musique."}, {"role": "user", "content": prompt}], model)
+
+    infos = global_info_str.split(" - ")
+    for i, info in enumerate(infos):
+        if i == 0:
+            music_info["encoding"] = "4/4"
+        if i == 1:
+            music_info["tone"] = info.strip()
+        if i == 2:
+            music_info["bpm"] = int(info.removesuffix("'").strip())
+
+    beatline_str = ask_ai([{"role": "system", "content": f"On t'a chargé de créer une musique. Ici tu dois déterminer la beatline. Elle se répète au long du morceau. Elle fait une mesure simple. Pour l'instant, l'encodage est {music_info["encoding"]}, la tonalité est {music_info["tone"]} et le tempo est {music_info["bpm"]} BPM. Tu devras faire ça sous cette forme : 'K-H-S-H-K-H-S-H'. Il doit y avoir 8 caractères précisement. Un - représente rien, un K un kick, un H un hit-hat, et un S un snare. ATTENTION : il est primordial de suivre cette syntaxe, sinon je pourrais pas créer ta musique."}, {"role": "user", "content": prompt}], model)
+    await interaction.followup.send(beatline_str, ephemeral=True)
+
 
 #--------------------------------------RUN---------------------------------------------
 
