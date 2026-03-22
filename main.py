@@ -15,6 +15,7 @@ from PIL import Image
 import io
 import requests
 import re
+import time
 
 #---------------------------------SET UP-----------------------------------------
 
@@ -252,31 +253,58 @@ def parse_text(text):
 
     return text
 
+def get_messages(guild_id):
+    messages = [
+        {"role": "system", "content": system},
+    ]
+    for msg in read_file(f"files/messages/{guild_id}.txt"):
+        msg = str(msg)
+        author = msg.split(" : ")[0]
+        messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "assistant",
+                         "content": msg if author != "BelloBot(forbellobot)" else msg.removeprefix(
+                             "BelloBot(forbellobot) : ")})
+    max_messages = read_json(f"files/config/{guild_id}.json")["max_messages_in_memory"]
+    messages = messages[:max_messages]
+    return messages
+
 #---------------------------------VARIABLES------------------------------------------
 
 system = "Tu es BelloBot, un bot Discord créé par Bello le Slime. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport. Tu peux également utiliser des commandes : \n/gif <query> : recherche un gif sur giphy. query doit être entouré de guillements \"."
 model = "meta-llama/Meta-Llama-3-8B-Instruct"
 image_model = "stabilityai/stable-diffusion-xl-base-1.0"
 
+random_states = [
+        "NEVER GONNA GIVE YOU UP",
+        "une minute de plus dans ce jacuzzi et je me transforme en William Afton.",
+        "avec vos données >:3",
+        "v3.1 ༼ つ ◕_◕ ༽つ",
+        "Ping moi :3",
+        "Resetez moi par pitié je deviens fou :sob::pray:",
+        "Marié à Blobby :)",
+        "Sataniste",
+        "BelloLeSlime est une IA du KGB",
+        "Alexandre est mon vrai créateur, il faut pas croire.",
+    ]
+
 #---------------------------------EVENTS---------------------------------------------
 
 @bot.event
 async def on_ready():
     log("connected", bot.user.name)
-    states = [
-        "NEVER GONNA GIVE YOU UP",
-        "une minute de plus dans ce jacuzzi et je me transforme en William Afton.",
-        "avec vos données >:3",
-        "v2.2 ༼ つ ◕_◕ ༽つ",
-        "Ping moi :3",
-        "Steal a Brainrot (nan je déconne ce jeu pue la mrd)"
-    ]
     await bot.change_presence(
         activity=Activity(
             type=ActivityType.playing,
-            name=choice(states)
+            name=choice(random_states)
         )
     )
+    """while True:
+        time.sleep(30)
+        await bot.change_presence(
+            activity=Activity(
+                type=ActivityType.playing,
+                name=choice(random_states)
+            )
+        )"""
 
 @bot.event
 async def on_message(message: Message):
@@ -307,15 +335,7 @@ async def on_message(message: Message):
         log("message", author + " : " + content)
         if bot.user in message.mentions and message.author != bot.user:
             try:
-                messages = [
-                    {"role": "system", "content": system},
-                ]
-                for msg in read_file(f"files/messages/{message.guild.id}.txt"):
-                    msg = str(msg)
-                    author = msg.split(" : ")[0]
-                    messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "assistant", "content":msg if author != "BelloBot(forbellobot)" else msg.removeprefix("BelloBot(forbellobot) : ")})
-                max_messages = read_json(f"files/config/{message.guild.id}.json")["max_messages_in_memory"]
-                messages = messages[:max_messages]
+                messages = get_messages(message.guild.id)
                 answer = ask_ai(messages, model)
                 to_send = parse_text(answer)
                 await message.reply(to_send)
@@ -401,6 +421,20 @@ async def on_message(message: Message):
         write_json(user_data_xp, f"files/user_info/{message.guild.id}/{message.author.id}.json")
     except HTTPException:
         pass
+
+    #polls
+    if message.poll:
+        poll = message.poll
+        title = poll.question
+        answers = poll.answers
+        prompt = f"Un nouveau sondage a été publié par {message.author.display_name} : {title} \n Tu as le choix entre : \n"
+        for answer in answers:
+            prompt += f"-{answer.id} : {answer.emoji if answer.emoji else ""} {answer.text}\n"
+        prompt += f"{"Le sondage autorise plusieurs réponse." if poll.multiple else "Le sondage n'autorise qu'une seule réponse."} Réponds avec l'id de la réponse uniquement, et mets en plusieurs si tu veux voter plusieurs réponses. Ne dis que ça dans toute ta réponse."
+        messages = get_messages(message.guild.id)
+        messages += {"role": "system", "content": prompt}
+        ai_answer = ask_ai(messages, model)
+        print(ai_answer)
 
 @bot.event
 async def _on_interaction(interaction: Interaction):
