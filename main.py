@@ -7,7 +7,10 @@ from huggingface_hub.errors import BadRequestError
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 hg_token = os.getenv('HG_TOKEN')
-giphy_token = os.getenv('GIPHY_TOKEN')
+try:
+    giphy_token = os.getenv('GIPHY_TOKEN')
+except:
+    pass
 from discord import *
 from datetime import datetime, timedelta, UTC
 from typing import Literal
@@ -15,7 +18,6 @@ from PIL import Image
 import io
 import requests
 import re
-import time
 
 #---------------------------------SET UP-----------------------------------------
 
@@ -39,73 +41,73 @@ class ShopSelect(ui.Select):
         options = [
             SelectOption(
                 label="Petite Potion d'Expérience",
-                description="Double l'XP reçu pendant 1h • 1000₣",
+                description="Double l'XP reçu pendant 1 jour • 500",
                 value="small_xp_potion",
                 emoji="🧪"
             ),
             SelectOption(
                 label="Petite Potion de Cupidité",
-                description="Double l'argent reçu pendant 1h • 2000₣",
+                description="Double l'argent reçu pendant 1 jour • 1000",
                 value="small_money_potion",
                 emoji="🧪"
             ),
             SelectOption(
                 label="Back Door",
-                description="Vous permet d'uploader des fichiers pendant 1 mois • 5000₣",
+                description="Vous permet d'uploader des fichiers pendant 3 mois • 1000₣",
                 value="back_door",
                 emoji="🚪"
             ),
             SelectOption(
                 label="Audacity",
-                description="Vous permet d'utiliser des soundboards et d'envoyer des messages vocaux pendant 1 mois • 6000₣",
+                description="Vous permet d'utiliser des soundboards et d'envoyer des messages vocaux pendant 3 mois • 1000₣",
                 value="audacity",
                 emoji="🎧"
             ),
             SelectOption(
                 label="Nintendo Switch 17",
-                description="Permet de lancer une activité dans un vocal pendant 1 mois • 7000₣",
+                description="Permet de lancer une activité dans un vocal pendant 3 mois • 2000₣",
                 value="nintendo_switch_17",
                 emoji="🎮"
             ),
             SelectOption(
                 label="Partenariat avec l'IFOP",
-                description="Permet de créer des sondages pendant 1 mois • 7000₣",
+                description="Permet de créer des sondages pendant 3 mois • 1000₣",
                 value="ifop",
                 emoji="🎤"
             ),
             SelectOption(
                 label="Site web",
-                description="Permet d'intégrer des liens pendant 1 mois • 7000₣",
+                description="Permet d'intégrer des liens pendant 3 mois • 500₣",
                 value="site_web",
                 emoji="🌐"
             ),
             SelectOption(
                 label="External Plexus",
-                description="Vous permet d'utiliser des emojis, des autocollants, etc externes pendant 1 mois • 3000₣",
+                description="Vous permet d'utiliser des emojis, des autocollants, etc externes pendant 3 mois • 250₣",
                 value="external_plexus",
                 emoji="🌐"
             ),
             SelectOption(
                 label="Microphone",
-                description="Donne la voix prioritaire en vocal pendant 1 mois • 7000₣",
+                description="Donne la voix prioritaire en vocal pendant 3 mois • 4000₣",
                 value="microphone",
                 emoji="🎤"
             ),
             SelectOption(
                 label="Formule 1",
-                description="Permet d'ignorer le mode lent pendant 1 mois • 9000₣",
+                description="Permet d'ignorer le mode lent pendant 3 mois • 5000₣",
                 value="formule_1",
                 emoji="🏎️"
             ),
             SelectOption(
                 label="Name Tag",
-                description="Permet de renommer quelqu'un une fois (attention, punition si jugé humiliant) • 10000₣",
+                description="Permet de renommer quelqu'un une fois (attention, punition si jugé humiliant) • 8000₣",
                 value="name_tag",
                 emoji="🏷️"
             ),
             SelectOption(
                 label="Ban Hammer",
-                description="Permet de bannir quelqu'un pendant une durée inférieure à 1 mois • 100000₣",
+                description="Permet de bannir quelqu'un pendant une durée inférieure à 1 jour • 50 000₣",
                 value="ban_hammer",
                 emoji="🔨"
             ),
@@ -121,18 +123,18 @@ class ShopSelect(ui.Select):
     async def callback(self, interaction):
         item = self.values[0]
         prices = {
-            "small_xp_potion": 1000,
-            "small_money_potion": 2000,
-            "back_door": 5000,
-            "audacity": 6000,
-            "nintendo_switch_17": 7000,
-            "ifop": 7000,
-            "site_web": 7000,
-            "external_plexus": 3000,
-            "microphone": 7000,
-            "formule_1": 9000,
-            "name_tag": 10000,
-            "ban_hammer": 100000,
+            "small_xp_potion": 500,
+            "small_money_potion": 1000,
+            "back_door": 1000,
+            "audacity": 1000,
+            "nintendo_switch_17": 2000,
+            "ifop": 1000,
+            "site_web": 5000,
+            "external_plexus": 250,
+            "microphone": 4000,
+            "formule_1": 5000,
+            "name_tag": 8000,
+            "ban_hammer": 50000,
         }
         price = prices[item]
         user = interaction.user
@@ -142,9 +144,11 @@ class ShopSelect(ui.Select):
             user_data["money"] -= price
             write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
             add_item(interaction.guild.id, user.id, item)
-            await interaction.response.send_message("Merci pour votre achat !")
+            embed = Embed(color = Color.blue(), title="Merci pour votre achat !", description="Revenez plus tard !")
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
-            await interaction.response.send_message("Tu n'a pas assez pour acheter ça.\nBah alors, on est pauvre ? ༼ つ XD ༽つ")
+            embed = Embed(color=Color.red(), title="Vous n'avez pas assez d'argent pour acheter ça", description="Bah alors ? On est pauvre ? ༼ つ XD ༽つ")
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
 class ShopView(ui.View):
     def __init__(self):
@@ -213,13 +217,13 @@ async def check_guild_has_presence(guild_id):
         print("ok")
         os.makedirs(f"./files/user_info/{guild_id}/", exist_ok=True)
 
-async def send_image(interaction: Interaction, image: Image):
+async def send_image(interaction: Interaction, image: Image, text=""):
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     buffer.seek(0)
 
     file = File(fp=buffer, filename="generated.png")
-    await interaction.followup.send(file=file)
+    await interaction.followup.send(text, file=file)
 
 def get_gif(query):
     url = "https://api.giphy.com/v1/gifs/search"
@@ -237,7 +241,7 @@ def get_gif(query):
 
     return r["data"][0]["images"]["original"]["url"]
 
-def parse_text(text):
+def parse_text(text, origin_message):
     #gif
     pattern = r'/gif\s*"([^"]+)"'
 
@@ -250,6 +254,10 @@ def parse_text(text):
 
         if gif:
             text = text.replace(f'/gif "{m}"', gif)
+
+    #user parse
+    if text.strip().__contains__(origin_message.author.display_name + " :"):
+        text.replace(origin_message.author.display_name + " : ", "")
 
     return text
 
@@ -266,6 +274,14 @@ def get_messages(guild_id):
     max_messages = read_json(f"files/config/{guild_id}.json")["max_messages_in_memory"]
     messages = messages[:max_messages]
     return messages
+
+async def change_activity():
+    await bot.change_presence(
+        activity=Activity(
+            type=ActivityType.playing,
+            name=choice(random_states)
+        )
+    )
 
 #---------------------------------VARIABLES------------------------------------------
 
@@ -291,26 +307,14 @@ random_states = [
 @bot.event
 async def on_ready():
     log("connected", bot.user.name)
-    await bot.change_presence(
-        activity=Activity(
-            type=ActivityType.playing,
-            name=choice(random_states)
-        )
-    )
-    """while True:
-        time.sleep(30)
-        await bot.change_presence(
-            activity=Activity(
-                type=ActivityType.playing,
-                name=choice(random_states)
-            )
-        )"""
+    await change_activity()
 
 @bot.event
 async def on_message(message: Message):
     await check_guild_has_presence(message.guild.id)
     await check_has_data_file(message.author.id, message.guild.id)
     content = message.content
+
     #ai
     if not message.author == bot.user:
         author = message.author.display_name
@@ -337,7 +341,7 @@ async def on_message(message: Message):
             try:
                 messages = get_messages(message.guild.id)
                 answer = ask_ai(messages, model)
-                to_send = parse_text(answer)
+                to_send = parse_text(answer, message)
                 await message.reply(to_send)
                 write_file("BelloBot(forbellobot) : " + answer, f"files/messages/{message.guild.id}.txt")
 
@@ -347,9 +351,10 @@ async def on_message(message: Message):
 
             except Exception as e:
                 log("error", e)
-                await message.channel.send("<Erreur>")
-    #xp
+                embed = Embed(color=Colour.red(), title="Error", description=str(e))
+                await message.reply(embed=embed)
 
+    #xp
     user_data_xp = read_json(f"files/user_info/{message.guild.id}/{message.author.id}.json")
     member: Member = await message.guild.fetch_member(message.author.id)
 
@@ -415,9 +420,11 @@ async def on_message(message: Message):
             user_data_xp["money"] += 50 * user_data_xp["level"]
             xp_channel = await message.guild.fetch_channel(read_json(f"files/config/{message.guild.id}.json")["xp_channel"])
             if message.author == bot.user:
-                await xp_channel.send(f"Moi, {bot.user.mention}, a passé le niveau {user_data_xp["level"]} ! 🥳🎉 GG à moi-même ༼ つ ಠ◡ಠ ༽つ Je gagne {50 * user_data_xp["level"]}₣ 💰💰💰")
+                embed = Embed(color=Colour.green(), title=f"Moi, {bot.user.mention}, a passé le niveau {user_data_xp["level"]} ! 🥳🎉 ", description=f"GG à moi-même ༼ つ ಠ◡ಠ ༽つ Je gagne {50 * user_data_xp["level"]}₣ 💰💰💰")
+                await xp_channel.send(embed=embed)
             else:
-                await xp_channel.send(f"GG à {message.author.mention} pour avoir passé le niveau {user_data_xp["level"]} ! 🥳🎉 Tu gagnes {50 * user_data_xp["level"]}₣ 💰💰💰 Continue de gagner des niveaux... 🔥🔥🔥")
+                embed = Embed(color=Color.green(), title=f"GG à {message.author.mention} pour avoir passé le niveau {user_data_xp["level"]} ! 🥳🎉", description=f"Tu gagnes {50 * user_data_xp["level"]}₣ 💰💰💰 Continue de gagner des niveaux... 🔥🔥🔥")
+                await xp_channel.send(embed=embed)
         write_json(user_data_xp, f"files/user_info/{message.guild.id}/{message.author.id}.json")
     except HTTPException:
         pass
@@ -430,11 +437,16 @@ async def on_message(message: Message):
         prompt = f"Un nouveau sondage a été publié par {message.author.display_name} : {title} \n Tu as le choix entre : \n"
         for answer in answers:
             prompt += f"-{answer.id} : {answer.emoji if answer.emoji else ""} {answer.text}\n"
-        prompt += f"{"Le sondage autorise plusieurs réponse." if poll.multiple else "Le sondage n'autorise qu'une seule réponse."} Réponds avec l'id de la réponse uniquement, et mets en plusieurs si tu veux voter plusieurs réponses. Ne dis que ça dans toute ta réponse."
+        prompt += f"{"Le sondage autorise plusieurs réponse." if poll.multiple else "Le sondage n'autorise qu'une seule réponse."} Décris le pour et le contre de chaque réponse, et dit ton opinion en te basant sur tes souvenirs et ta raison, et emmet un avis objectif de la question, sauf si cette dernière est tout sauf objectif bien entendu."
         messages = get_messages(message.guild.id)
-        messages += {"role": "system", "content": prompt}
+        messages.append({"role": "system", "content": prompt})
         ai_answer = ask_ai(messages, model)
-        print(ai_answer)
+        thread: Thread = await message.create_thread(
+            name=f"📊 Discussion : {poll.question}",
+            auto_archive_duration=1440
+        )
+        await thread.send(ai_answer)
+        write_file("BelloBot(forbellobot) : " + ai_answer, f"files/messages/{message.guild.id}.txt")
 
 @bot.event
 async def _on_interaction(interaction: Interaction):
@@ -450,12 +462,16 @@ async def xp(interaction: Interaction, user:User = None):
         user = interaction.user
     user_data_xp = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
     self = user == interaction.user
+    embed = Embed(color=Color.blue(), title=f"Niveau et XP de {user.display_name}")
     if user == bot.user:
-        await interaction.response.send_message(f"Je suis au niveau {user_data_xp['level']}, j'ai {user_data_xp['xp']} xp et il me manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} ༼ つ ◕_◕ ༽つ")
+        embed.description = f"Je suis au niveau {user_data_xp['level']}, j'ai {user_data_xp['xp']} xp et il me manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} ༼ つ ◕_◕ ༽つ"
+        await interaction.response.send_message(embed=embed)
     elif self:
-        await interaction.response.send_message(f"Tu es au niveau {user_data_xp['level']}, tu as {user_data_xp['xp']} xp et il te manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level']+1} :p")
+        embed.description = f"Tu es au niveau {user_data_xp['level']}, tu as {user_data_xp['xp']} xp et il te manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level']+1} :p"
+        await interaction.response.send_message(embed=embed)
     else:
-        await interaction.response.send_message(f"{user.display_name} est au niveau {user_data_xp['level']}, il a {user_data_xp['xp']} xp et il lui manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} :p")
+        embed.description = f"{user.display_name} est au niveau {user_data_xp['level']}, il a {user_data_xp['xp']} xp et il lui manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} :p"
+        await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="wallet", description="Affiche le nombre de Flamcoins")
 @app_commands.describe(user="user")
@@ -465,12 +481,16 @@ async def wallet(interaction: Interaction, user:User = None):
     user_data_xp = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
     money = user_data_xp["money"]
     self = user == interaction.user
+    embed = Embed(color=Color.green(), title=f"Porte-feuilles de {user.display_name}")
     if user == bot.user:
-        await interaction.response.send_message(f"J'ai actuellement {money}₣.")
+        embed.description = f"J'ai actuellement {money}₣."
+        await interaction.response.send_message(embed=embed)
     elif self:
-        await interaction.response.send_message(f"Tu as actuellement {money}₣.")
+        embed.description = f"Tu as actuellement {money}₣."
+        await interaction.response.send_message(embed=embed)
     else:
-        await interaction.response.send_message(f"{user.display_name} a actuellement {money}₣.")
+        embed.description = f"{user.display_name} a actuellement {money}₣."
+        await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="shop", description="Affiche le magasin")
 async def shop(interaction: Interaction):
@@ -604,85 +624,55 @@ async def use(interaction: Interaction, item: Literal["Petite Potion d'Expérien
             bypass_slow_mode_role = await interaction.guild.fetch_role(
                 read_json(f"files/config/{interaction.guild.id}.json")["bypass_slow_mode_role"])
             if item == "small_xp_potion":
-                user = interaction.user
-                user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                user_data["mult_xp"] = 2
-                user_data["temp_effects"]["boost_xp"] = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
+                data["mult_xp"] = 2
+                data["temp_effects"]["boost_xp"] = (datetime.now(UTC) + timedelta(days=1)).isoformat()
                 await interaction.user.add_roles(x2_xp_role)
-                await interaction.response.send_message("X2 XP pendant 1 heure !", ephemeral=True)
+                await interaction.response.send_message("X2 XP pendant 1 jour !", ephemeral=True)
 
             elif item == "small_money_potion":
-                user = interaction.user
-                user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                user_data["mult_money"] = 2
-                user_data["temp_effects"]["boost_money"] = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
+                data["mult_money"] = 2
+                data["temp_effects"]["boost_money"] = (datetime.now(UTC) + timedelta(days=1)).isoformat()
                 await interaction.user.add_roles(x2_money_role)
-                await interaction.response.send_message("X2 Argent pendant 1 heure !", ephemeral=True)
+                await interaction.response.send_message("X2 Argent pendant 1 jour !", ephemeral=True)
 
             elif item == "back_door":
-                user = interaction.user
-                user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                user_data["temp_effects"]["file"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
+                data["temp_effects"]["file"] = (datetime.now(UTC) + timedelta(days=31*3)).isoformat()
                 await user.add_roles(file_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 await interaction.response.send_message("Vous pouvez maintenant envoyer des fichiers !", ephemeral=True)
 
             elif item == "audacity ":
-                user = interaction.user
-                user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                user_data["temp_effects"]["soundboard"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
+                data["temp_effects"]["soundboard"] = (datetime.now(UTC) + timedelta(days=31*3)).isoformat()
                 await user.add_roles(soundboard_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 await interaction.response.send_message("Vous pouvez maintenant utiliser le soundborad !", ephemeral=True)
 
             elif item == "nintendo_switch_17":
-                user = interaction.user
-                user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                user_data["temp_effects"]["game"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
+                data["temp_effects"]["game"] = (datetime.now(UTC) + timedelta(days=31*3)).isoformat()
                 await user.add_roles(game_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 await interaction.response.send_message("Vous pouvez maintenant utiliser les applications !",ephemeral=True)
 
             elif item == "ifop":
-                user = interaction.user
-                user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                user_data["temp_effects"]["poll"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
+                data["temp_effects"]["poll"] = (datetime.now(UTC) + timedelta(days=31*3)).isoformat()
                 await user.add_roles(poll_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 await interaction.response.send_message("Vous pouvez maintenant créer des sondages !", ephemeral=True)
 
             elif item == "site_web":
-                user = interaction.user
-                user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                user_data["temp_effects"]["link"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
+                data["temp_effects"]["link"] = (datetime.now(UTC) + timedelta(days=31*3)).isoformat()
                 await user.add_roles(link_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 await interaction.response.send_message("Vous pouvez maintenant intégrer des liens !", ephemeral=True)
 
             elif item == "external_plexus":
-                user = interaction.user
-                user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                user_data["temp_effects"]["extern"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
+                data["temp_effects"]["extern"] = (datetime.now(UTC) + timedelta(days=31*3)).isoformat()
                 await user.add_roles(extern_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 await interaction.response.send_message("Vous pouvez maintenant utiliser des emojis, autocollants, soundborads et applications externes !", ephemeral=True)
 
             elif item == "microphone":
-                user = interaction.user
-                user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                user_data["temp_effects"]["priority_voice"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
+                data["temp_effects"]["priority_voice"] = (datetime.now(UTC) + timedelta(days=31*3)).isoformat()
                 await user.add_roles(priority_voice_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 await interaction.response.send_message("Vous avez maintenant la voix prioritaire en vocal !", ephemeral=True)
 
             elif item == "formule_1":
-                user = interaction.user
-                user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
-                user_data["temp_effects"]["bypass_slow_mode"] = (datetime.now(UTC) + timedelta(days=31)).isoformat()
+                data["temp_effects"]["bypass_slow_mode"] = (datetime.now(UTC) + timedelta(days=31*3)).isoformat()
                 await user.add_roles(bypass_slow_mode_role)
-                write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
                 await interaction.response.send_message("Vous pouvez maintenant contourner le mode lent !", ephemeral=True)
 
             elif item == "name_tag":
@@ -706,13 +696,14 @@ async def use(interaction: Interaction, item: Literal["Petite Potion d'Expérien
             elif item == "ban_hammer":
                 if target_user:
                     member = await interaction.guild.fetch_member(target_user.id)
-                    if 0.16666666666666667 < time_in_hours < 24:
+                    if 0.16666666666666667777777777777777 < time_in_hours < 24:
                         await member.timeout(timedelta(hours=time_in_hours), reason="Ban hammer")
                         await interaction.response.send_message(f"Vous avez bien mute {target_user.mention} pendant {time_in_hours} heures ! Baha noob")
                     else:
                         await interaction.response.send_message(f"Le temps doit être entre 10min et 1h", ephemeral=True)
                 else:
                     await interaction.response.send_message(f"Veuillez indiquer un utilisateur.", ephemeral=True)
+            write_json(data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
         else:
             await interaction.response.send_message(f"Vous n'avez pas cet item :p\n Vous pouvez l'acheter au shop avec /shop", ephemeral=True)
     else:
@@ -746,32 +737,38 @@ async def inventory(interaction: Interaction, user: User|None = None):
     embed = Embed(title=f" Inventaire de {user.display_name} :", description=description, color=Color.green())
     await interaction.response.send_message(embed=embed)
 
-"""
-@bot.tree.command(name="generate", description="Génère une image")
+
+@bot.tree.command(name="generate", description="Génère une image pour la modique somme de 500₣")
 @app_commands.describe(prompt="prompt", negative_prompt="negative_prompt", width="width", height="height", steps="steps")
 async def generate(interaction: Interaction, prompt: str, negative_prompt: str = "", width: int = 1024, height: int = 1024, steps: int = 30):
     await interaction.response.defer()
 
-    nude_str: str = ask_ai([{"role": "system", "content": "Tu dois déterminer si le prompt suivant pour générer une image est adéquat. Ex: pas de nude, d'image sexualisée, de gore, ou de contenu pouvant choquer. Tu répondra qu'avec 'Y' ou 'N'. Y pour ça passe et N pour empêcher l'utilisateur"}, {"role": "user", "content": prompt}], model)
+    user_data = read_json(f"files/user_info/{interaction.guild.id}/{interaction.user.id}.json")
+    if user_data["money"] >= 500+steps:
 
-    if nude_str.__contains__("Y"):
-        nude = False
-    elif nude_str.__contains__("N"):
-        nude = True
-    else:
-        nude = None
+        nude_str: str = ask_ai([{"role": "system", "content": "Tu dois déterminer si le prompt suivant pour générer une image est adéquat. Ex: pas de nude, d'image sexualisée, de gore, ou de contenu pouvant choquer. Tu répondra qu'avec 'Y' ou 'N'. Y pour ça passe et N pour empêcher l'utilisateur"}, {"role": "user", "content": prompt}], model)
 
-    if not nude is None:
-        if nude:
-            await interaction.followup.send(f"Regardez, {interaction.user.mention} a essayé de générer une image de {prompt} mais a pas réussi ce nul XD \n Allez 1 jour de mute pour toi :p")
-            await interaction.user.timeout(timedelta(days=1), reason="Essaie de générer une image suspicieuse")
+        if nude_str.__contains__("Y"):
+            nude = False
+        elif nude_str.__contains__("N"):
+            nude = True
         else:
-            image = text_to_image(prompt, image_model, negative_prompt, width, height, steps)
-            await send_image(interaction, image)
-            log("generated_image", prompt)
+            nude = None
+
+        if not nude is None:
+            if nude:
+                await interaction.followup.send(f"Regardez, {interaction.user.mention} a essayé de générer une image de {prompt} mais a pas réussi ce nul XD \n Allez 1 jour de mute pour toi :p")
+                await interaction.user.timeout(timedelta(days=1), reason="Essaie de générer une image suspicieuse")
+            else:
+                user_data["money"] -= 500
+                write_json(user_data, f"files/user_info/{interaction.guild.id}/{interaction.user.id}.json")
+                image = text_to_image(prompt, image_model, negative_prompt, width, height, steps)
+                await send_image(interaction, image)
+                log("generated_image", prompt)
+        else:
+            await interaction.followup.send("AAaah j'arrive pas à décider si ça passe ou non jsp quoi faire")
     else:
-        await interaction.followup.send("AAaah j'arrive pas à décider si ça passe ou non jsp quoi faire")
-"""
+        await interaction.followup.send(f"Tu n'a pas assez d'argent pour générer une image ! La génération d'image coûte 500₣ + le nombre d'étapes (ici {steps}) pour éviter le spam et la déchéance économique de Bello le Slime.")
 
 @bot.tree.command(name="config", description="Configuration du bot")
 @app_commands.describe(key="key", value="value")
@@ -862,10 +859,17 @@ async def config(interaction: Interaction, key: Literal["xp_channel", "x2_xp_rol
             lvalue = "Rien !"
         config_text += f"\n {lkey} : {lvalue}"
 
-    await interaction.response.send_message(f"La clé {key} a bien pour valeur {value if value_type in [int, bool] else value.mention} ! Voici la configuration du bot à présent : \n{config_text}", ephemeral=True)
+    embed = Embed(color=Colour.blue())
+    embed.title = "Configuration du bot par serveur :"
+    embed.description = f"La clé {key} a bien pour valeur {value if value_type in [int, bool] else value.mention} ! Voici la configuration du bot à présent : \n{config_text}"
+
+    await interaction.response.send_message(embed=embed, ephemeral=True)
     if key == "max_messages_in_memory" and not read_json(f"files/config/{interaction.guild.id}.json")["disable_warning_messages"]:
-        if value > 100:
-            await interaction.followup.send("ATTENTION : le nombre de messages maximum est recommendé de rester sous la barre des 100 messages : le bot pourrait être surchargé.", ephemeral=True)
+        if value > 50:
+            embed = Embed(color=Colour.red())
+            embed.title = "ATTENTION"
+            embed.description = "Le nombre de messages maximum est recommendé de rester sous la barre des 50 messages : le bot pourrait être surchargé."
+            await interaction.followup.send(embed=embed, ephemeral=True)
     log("config", f"{key} : {value} ({value_text})")
 
 @bot.tree.command(name="reset_memory", description="Réinitialise la mémoire du bot")
@@ -875,6 +879,7 @@ async def reset_memory(interaction: Interaction):
         f.write("")
     await interaction.response.send_message(f"Ma mémoire a bien été réinitialisée !", ephemeral=True)
 
+"""
 @bot.tree.command(name="create_music", description="Crée une musique ma foi fort douteuse étant donné qu'elle a été entrainée avec 5 musiques.")
 @app_commands.describe(prompt="prompt")
 async def create_music(interaction: Interaction, prompt: str):
@@ -891,9 +896,69 @@ async def create_music(interaction: Interaction, prompt: str):
         if i == 2:
             music_info["bpm"] = int(info.removesuffix("'").strip())
 
-    beatline_str = ask_ai([{"role": "system", "content": f"On t'a chargé de créer une musique. Ici tu dois déterminer la beatline. Elle se répète au long du morceau. Elle fait une mesure simple. Pour l'instant, l'encodage est {music_info["encoding"]}, la tonalité est {music_info["tone"]} et le tempo est {music_info["bpm"]} BPM. Tu devras faire ça sous cette forme : 'K-H-S-H-K-H-S-H'. Il doit y avoir 8 caractères précisement. Un - représente rien, un K un kick, un H un hit-hat, et un S un snare. ATTENTION : il est primordial de suivre cette syntaxe, sinon je pourrais pas créer ta musique."}, {"role": "user", "content": prompt}], model)
+    beatline_str = ask_ai([{"role": "system", "content": f"On t'a chargé de créer une musique. Ici tu dois déterminer la beatline. Elle se répète au long du morceau. Elle fait une mesure simple. Pour l'instant, l'encodage est {music_info["encoding"]}, la tonalité est {music_info["tone"]} et le tempo est {music_info["bpm"]} BPM. Tu devras faire ça sous cette forme : 'K-H-S-H-K-H-S-H-'. Il doit y avoir {16 if music_info["encoding"] == "4/4" else 12} caractères précisement. Un - représente rien, un K un kick, un H un hit-hat, et un S un snare. ATTENTION : il est primordial de suivre cette syntaxe, sinon je pourrais pas créer ta musique."}, {"role": "user", "content": prompt}], model)
     await interaction.followup.send(beatline_str, ephemeral=True)
+"""
 
+@bot.tree.command(name="stats", description="Affiche les statistiques d'un utilisateur")
+@app_commands.describe(user="user")
+async def stats(interaction: Interaction, user: User|None = None):
+    user = interaction.user if user == None else user
+    user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
+    level = user_data["level"]
+    xp = user_data["xp"]
+    money = user_data["money"]
+    effects = user_data["temp_effects"]
+    inventory = user_data["items"]
+
+    effect_dic = {
+        "boost_xp": "X2 XP",
+        "boost_money": "X2 Argent",
+        "file": "Upload de fichiers",
+        "soundboard": "Utilisation du soundboard et envoi du messages vocaux",
+        "game": "Utilisation des activités",
+        "poll": "Création de sondages",
+        "link": "Intégration de liens",
+        "extern": "Utilisation d'émojis, d'autocollants et autres trucs externes",
+        "priority_voice": "Voix prioritaire",
+        "bypass_slow_mode": "Ignorer le mode lent"
+    }
+
+    item_trad = {
+        "small_xp_potion": "Petite Potion d'Expérience",
+        "small_money_potion": "Petite Potion de Cupidité",
+        "back_door": "Back Door",
+        "audacity": "Audacity",
+        "nintendo_switch_17": "Nintendo Switch 17",
+        "ifop": "Partenariat avec l'IFOP",
+        "site_web": "Site Web",
+        "external_plexus": "External Plexus",
+        "microphone": "Microphone",
+        "formule_1": "Formule 1",
+        "name_tag": "Name Tag",
+        "ban_hammer": "Ban Hammer",
+    }
+
+    embed = Embed()
+    embed.title = f"Stats de {user.display_name} :"
+    embed.colour = Color.green()
+    descr = ""
+    descr += f"**Niveau** : **{level}**\n"
+    descr += f"**XP** : **{xp}**/**{level*15}** (il manque **{level*15-xp}** pour le prochain niveau)\n"
+    descr += f"**Argent** : **{money}₣**\n"
+    descr += f"**Effets temporaires** : \n"
+    for effect in effects.keys():
+        dt = datetime.fromisoformat(effects[effect])
+        expires_at = dt.strftime("%d/%m/%Y à %H:%M")
+        descr += f">  -**{effect_dic[effect]}** : expire le {expires_at}\n"
+    descr += f"**Inventaire** : \n"
+    for item in inventory.keys():
+        item_str = item_trad[item]
+        descr += f">  **{item_str}** : {inventory[item]}\n"
+
+    embed.description = descr
+
+    await interaction.response.send_message(embed=embed)
 
 #--------------------------------------RUN---------------------------------------------
 
@@ -902,4 +967,7 @@ try:
 except Exception as e:
     log("critical error", str(e))
 finally:
-    log("exiting", bot.user.name)
+    try:
+        log("exiting", bot.user.name)
+    except Exception:
+        print("Discord ne répond pas, sûrement car tu es dans le lycée de con. Fait un partage de co avec ton téléphone. (RIP la 4G)")
