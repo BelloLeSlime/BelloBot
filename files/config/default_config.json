@@ -1,0 +1,15 @@
+{
+  "xp_channel": null,
+  "x2_xp_role": null,
+  "x2_money_role": null,
+  "file_role": null,
+  "soundboard_role": null,
+  "game_role": null,
+  "poll_role": null,
+  "link_role": null,
+  "extern_role": null,
+  "priority_voice_role": null,
+  "bypass_slow_mode_role": null,
+  "max_messages_in_memory": 20,
+  "disable_warning_messages": true
+}

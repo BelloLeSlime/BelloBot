@@ -9,19 +9,21 @@
 BelloBot est un bot discord qui répond quand on le ping. Il marche avec une API gratuite du nom de huggingface, avec le modèle Llama-3.1-8B-Instruct car plus rapide. Il peut également gérer le système d'expérience et d'argent qui se gagne en étant actif sur le serveur. L'argent sert à acheter des objets dans le magasin pour obtenir plus de droits, comme intégrer des fichiers, des liens, ignorer le mode lent, et même expulser quelqu'un pendant 1 jour max (coûte beaucoup d'argent), avec la monnaie Flamcoins.
 
 
-
 ##### Comment le mettre sur mon serveur :
 
--Créer un .env tel que .env.example avec une clé API hugging face obtenable gratuitement sur https://huggingface.co/settings/tokens (pensez à cocher Make calls to Inference Providers, Make calls to your Inference Endpoints et Manage your Inference Endpoints), avec la clé API d'un bot discord que vous avez créé, et avec l'id de votre serveur.
+-Créer un .env tel que .env.example avec une clé API hugging face obtenable gratuitement sur https://huggingface.co/settings/tokens (pensez à cocher Make calls to Inference Providers, Make calls to your Inference Endpoints et Manage your Inference Endpoints), avec la clé API d'un bot discord que vous avez créé, et avec une clé API giphy pour les GIFs.
+
 -Installer les dépendances nécessaires de requirements.txt (huggingface-hub, python-dotenv et discord)
 
--Créer un dossier xp à la racine du bot
+-L'inviter sur votre serveur avec le droit d'envoyer des messages dans les salons et les fils, de gérer les pseudos, les rôles, d'intégrer des liens et d'ignorer le mode lent.
 
--L'inviter sur votre serveur avec  le droit d'envoyer des messages dnas les salons et les fils, de gérer les pseudos, les rôles, d'intégrer des liens et d'ignorer le mode lent.
 
+##### Le but :
+
+-Dépasser en tous points **TOUS** les bots Discord du **MONDE** en ajoutant le plus de features possible.
 
 
 ##### Vie privée :
 
-Attention, le bot gardera en mémoire **TOUT** ce que n'importe qui dit dans n'importe salon du serveur. Les messages sont enregistrés dans messages.txt. Vous êtes prévenus.
+Attention, le bot gardera en mémoire **TOUT** ce que n'importe qui dit dans n'importe salon du serveur, ainsi que les messages supprimés. Les messages sont enregistrés dans *files/messages/{**ID du serveur**}.txt*. Vous êtes prévenus.
 

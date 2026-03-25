@@ -7,7 +7,10 @@ from huggingface_hub.errors import BadRequestError
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 hg_token = os.getenv('HG_TOKEN')
-giphy_token = os.getenv('GIPHY_TOKEN')
+try:
+    giphy_token = os.getenv('GIPHY_TOKEN')
+except:
+    pass
 from discord import *
 from datetime import datetime, timedelta, UTC
 from typing import Literal
@@ -15,7 +18,6 @@ from PIL import Image
 import io
 import requests
 import re
-import time
 
 #---------------------------------SET UP-----------------------------------------
 
@@ -424,17 +426,26 @@ async def on_message(message: Message):
 
     #polls
     if message.poll:
+        print("poll")
         poll = message.poll
         title = poll.question
         answers = poll.answers
+        print(title)
         prompt = f"Un nouveau sondage a été publié par {message.author.display_name} : {title} \n Tu as le choix entre : \n"
         for answer in answers:
             prompt += f"-{answer.id} : {answer.emoji if answer.emoji else ""} {answer.text}\n"
-        prompt += f"{"Le sondage autorise plusieurs réponse." if poll.multiple else "Le sondage n'autorise qu'une seule réponse."} Réponds avec l'id de la réponse uniquement, et mets en plusieurs si tu veux voter plusieurs réponses. Ne dis que ça dans toute ta réponse."
+            print(f"{answer.id}: {answer.emoji}{answer.text}")
+        prompt += f"{"Le sondage autorise plusieurs réponse." if poll.multiple else "Le sondage n'autorise qu'une seule réponse."} Décris le pour et le contre de chaque réponse, et dit ton opinion en te basant sur tes souvenirs et ta raison, et emmet un avis objectif de la question, sauf si cette dernière est tout sauf objectif bien entendu."
         messages = get_messages(message.guild.id)
-        messages += {"role": "system", "content": prompt}
+        messages.append({"role": "system", "content": prompt})
+        print(messages)
         ai_answer = ask_ai(messages, model)
-        print(ai_answer)
+        thread: Thread = await message.create_thread(
+            name=f"📊 Discussion : {poll.question}",
+            auto_archive_duration=1440
+        )
+        await thread.send(ai_answer)
+        write_file("BelloBot(forbellobot) : " + ai_answer, f"files/messages/{message.guild.id}.txt")
 
 @bot.event
 async def _on_interaction(interaction: Interaction):
@@ -746,32 +757,38 @@ async def inventory(interaction: Interaction, user: User|None = None):
     embed = Embed(title=f" Inventaire de {user.display_name} :", description=description, color=Color.green())
     await interaction.response.send_message(embed=embed)
 
-"""
-@bot.tree.command(name="generate", description="Génère une image")
+
+@bot.tree.command(name="generate", description="Génère une image pour la modique somme de 500₣")
 @app_commands.describe(prompt="prompt", negative_prompt="negative_prompt", width="width", height="height", steps="steps")
 async def generate(interaction: Interaction, prompt: str, negative_prompt: str = "", width: int = 1024, height: int = 1024, steps: int = 30):
     await interaction.response.defer()
 
-    nude_str: str = ask_ai([{"role": "system", "content": "Tu dois déterminer si le prompt suivant pour générer une image est adéquat. Ex: pas de nude, d'image sexualisée, de gore, ou de contenu pouvant choquer. Tu répondra qu'avec 'Y' ou 'N'. Y pour ça passe et N pour empêcher l'utilisateur"}, {"role": "user", "content": prompt}], model)
+    user_data = read_json(f"files/user_info/{interaction.guild.id}/{interaction.user.id}.json")
+    if user_data["money"] >= 500+steps:
 
-    if nude_str.__contains__("Y"):
-        nude = False
-    elif nude_str.__contains__("N"):
-        nude = True
-    else:
-        nude = None
+        nude_str: str = ask_ai([{"role": "system", "content": "Tu dois déterminer si le prompt suivant pour générer une image est adéquat. Ex: pas de nude, d'image sexualisée, de gore, ou de contenu pouvant choquer. Tu répondra qu'avec 'Y' ou 'N'. Y pour ça passe et N pour empêcher l'utilisateur"}, {"role": "user", "content": prompt}], model)
 
-    if not nude is None:
-        if nude:
-            await interaction.followup.send(f"Regardez, {interaction.user.mention} a essayé de générer une image de {prompt} mais a pas réussi ce nul XD \n Allez 1 jour de mute pour toi :p")
-            await interaction.user.timeout(timedelta(days=1), reason="Essaie de générer une image suspicieuse")
+        if nude_str.__contains__("Y"):
+            nude = False
+        elif nude_str.__contains__("N"):
+            nude = True
         else:
-            image = text_to_image(prompt, image_model, negative_prompt, width, height, steps)
-            await send_image(interaction, image)
-            log("generated_image", prompt)
+            nude = None
+
+        if not nude is None:
+            if nude:
+                await interaction.followup.send(f"Regardez, {interaction.user.mention} a essayé de générer une image de {prompt} mais a pas réussi ce nul XD \n Allez 1 jour de mute pour toi :p")
+                await interaction.user.timeout(timedelta(days=1), reason="Essaie de générer une image suspicieuse")
+            else:
+                user_data["money"] -= 500
+                write_json(user_data, f"files/user_info/{interaction.guild.id}/{interaction.user.id}.json")
+                image = text_to_image(prompt, image_model, negative_prompt, width, height, steps)
+                await send_image(interaction, image)
+                log("generated_image", prompt)
+        else:
+            await interaction.followup.send("AAaah j'arrive pas à décider si ça passe ou non jsp quoi faire")
     else:
-        await interaction.followup.send("AAaah j'arrive pas à décider si ça passe ou non jsp quoi faire")
-"""
+        await interaction.followup.send(f"Tu n'a pas assez d'argent pour générer une image ! La génération d'image coûte 500₣ + le nombre d'étapes (ici {steps}) pour éviter le spam et la déchéance économique de Bello le Slime.")
 
 @bot.tree.command(name="config", description="Configuration du bot")
 @app_commands.describe(key="key", value="value")
@@ -875,6 +892,7 @@ async def reset_memory(interaction: Interaction):
         f.write("")
     await interaction.response.send_message(f"Ma mémoire a bien été réinitialisée !", ephemeral=True)
 
+"""
 @bot.tree.command(name="create_music", description="Crée une musique ma foi fort douteuse étant donné qu'elle a été entrainée avec 5 musiques.")
 @app_commands.describe(prompt="prompt")
 async def create_music(interaction: Interaction, prompt: str):
@@ -891,9 +909,35 @@ async def create_music(interaction: Interaction, prompt: str):
         if i == 2:
             music_info["bpm"] = int(info.removesuffix("'").strip())
 
-    beatline_str = ask_ai([{"role": "system", "content": f"On t'a chargé de créer une musique. Ici tu dois déterminer la beatline. Elle se répète au long du morceau. Elle fait une mesure simple. Pour l'instant, l'encodage est {music_info["encoding"]}, la tonalité est {music_info["tone"]} et le tempo est {music_info["bpm"]} BPM. Tu devras faire ça sous cette forme : 'K-H-S-H-K-H-S-H'. Il doit y avoir 8 caractères précisement. Un - représente rien, un K un kick, un H un hit-hat, et un S un snare. ATTENTION : il est primordial de suivre cette syntaxe, sinon je pourrais pas créer ta musique."}, {"role": "user", "content": prompt}], model)
+    beatline_str = ask_ai([{"role": "system", "content": f"On t'a chargé de créer une musique. Ici tu dois déterminer la beatline. Elle se répète au long du morceau. Elle fait une mesure simple. Pour l'instant, l'encodage est {music_info["encoding"]}, la tonalité est {music_info["tone"]} et le tempo est {music_info["bpm"]} BPM. Tu devras faire ça sous cette forme : 'K-H-S-H-K-H-S-H-'. Il doit y avoir {16 if music_info["encoding"] == "4/4" else 12} caractères précisement. Un - représente rien, un K un kick, un H un hit-hat, et un S un snare. ATTENTION : il est primordial de suivre cette syntaxe, sinon je pourrais pas créer ta musique."}, {"role": "user", "content": prompt}], model)
     await interaction.followup.send(beatline_str, ephemeral=True)
+"""
 
+@bot.tree.command(name="stats", description="Affiche les statistiques d'un utilisateur")
+@app_commands.describe(user="user")
+async def stats(interaction: Interaction, user: User|None = None):
+    user = interaction.user if user == None else user
+    user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
+    level = user_data["level"]
+    xp = user_data["xp"]
+    money = user_data["money"]
+    effects = user_data["temp_effects"]
+    inventory = user_data["items"]
+
+    effect_dic = {
+
+    }
+
+    embed = Embed()
+    embed.title = f"Stats de {user.display_name} :"
+    embed.color = Color.green()
+    descr = ""
+    descr += f"Niveau : **{level}**\n"
+    descr += f"XP : **{xp}**/{level*15} (il manque {level*15-xp} pour le prochain niveau)\n"
+    descr += f"Argent : **{money}₣**\n"
+    descr += f"Effets temporaires : \n"
+    for effect in effects.keys():
+        descr += f">  -{effect}"
 
 #--------------------------------------RUN---------------------------------------------
 
@@ -902,4 +946,7 @@ try:
 except Exception as e:
     log("critical error", str(e))
 finally:
-    log("exiting", bot.user.name)
+    try:
+        log("exiting", bot.user.name)
+    except Exception:
+        print("Discord ne répond pas, sûrement car tu es dans le lycée de con. Fait un partage de co avec ton téléphone. (RIP la 4G)")
