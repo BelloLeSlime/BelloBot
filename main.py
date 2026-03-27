@@ -159,8 +159,7 @@ class ShopSelect(ui.Select):
 class ShopView(ui.View):
     def __init__(self):
         super().__init__()
-        self.add_item(ShopSelect())
-
+        self.add_item()
 
 # ---------------------------------FUNCTIONS-----------------------------------------
 
@@ -1096,6 +1095,25 @@ async def help(interaction: Interaction):
     """
     await interaction.response.send_message(embed=embed)
 
+@bot.tree.command(name="alarm", description="Affiche le panel d'alarmes")
+async def alarm_view(interaction: Interaction):
+    alarms = read_json(f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
+    embed = Embed(color=Color.green(), title=f"Alarmes de {interaction.user.display_name}")
+    descr = ""
+    for alarm in alarms:
+        name = alarm["name"]
+        time = alarm["time"]
+        days = alarm["days"]
+        time_str = "19h 30min"
+        days_str = "Samedi, Dimanche"
+        descr += f"""
+**{name}** :
+> Sonne à {time_str}
+> Se répête {days_str}
+
+"""
+    embed.description = descr
+    await interaction.response.send_message(embed=embed, ephemeral=True) 
 
 # --------------------------------------RUN---------------------------------------------
 
