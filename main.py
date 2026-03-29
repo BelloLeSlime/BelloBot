@@ -19,6 +19,7 @@ from PIL import Image
 import io
 import requests
 import re
+import time
 
 # ---------------------------------SET UP-----------------------------------------
 
@@ -337,6 +338,7 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: Message):
+    time.sleep(0.01)
     await check_guild_has_presence(message.guild.id)
     await check_has_data_file(message.author.id, message.guild.id)
     content = message.content
@@ -1100,20 +1102,145 @@ async def alarm_view(interaction: Interaction):
     alarms = read_json(f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
     embed = Embed(color=Color.green(), title=f"Alarmes de {interaction.user.display_name}")
     descr = ""
+    days_trad = {
+        0: "Lundi",
+        1: "Mardi",
+        2: "Mercredi",
+        3: "Jeudi",
+        4: "Vendredi",
+        5: "Samedi",
+        6: "Dimanche"
+    }
     for alarm in alarms:
-        name = alarm["name"]
-        time = alarm["time"]
-        days = alarm["days"]
-        time_str = "19h 30min"
-        days_str = "Samedi, Dimanche"
+        id = alarm
+        name = alarms[alarm]["name"]
+        time = alarms[alarm]["time"]
+        days = alarms[alarm]["days"]
+        days_str = ""
+        for day in days:
+            day_str = days_trad[day]
+            days_str += day_str + ", "
+        days_str.removesuffix(", ")
+        one_shot = alarms[alarm]["one_shot"]
+        enabled = alarms[alarm]["enabled"]
         descr += f"""
-**{name}** :
-> Sonne à {time_str}
-> Se répête {days_str}
+**{id} : {name}** :
+> Sonne à {time}
+{f"> Se répête {days_str}\n" if not one_shot else ""}{"> Sonne qu'une seule fois\n" if one_shot else ""}{"> Activé" if enabled else "> Désactivé"}
 
 """
     embed.description = descr
     await interaction.response.send_message(embed=embed, ephemeral=True) 
+
+@bot.tree.command(name="create_alarm", description="Crée une alarme")
+@app_commands.describe(name="name", hour="hour", minutes="minutes", repeat="repeat", enabled="enabled", lundi="lundi", mardi="mardi", mercredi="mercredi", jeudi="jeudi", vendredi="vendredi", samedi="samedi", dimanche="dimanche")
+async def create_alarm(interaction: Interaction, name: str, hour: int, minutes: int, repeat: bool = False, enabled: bool = True, lundi: bool = False, mardi: bool = False, mercredi: bool = False, jeudi: bool = False, vendredi: bool = False, samedi: bool = False, dimanche: bool = False):
+    alarms = read_json(f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
+    next_id = min(alarms.keys()) + 1 if alarms else 0
+    if repeat and not (lundi or mardi or mercredi or jeudi or vendredi or samedi or dimanche):
+        await interaction.response.send_message("Vous devez soit ne pas répéter l'alarme, soit entrer au moins un jour !", ephemeral=True)
+        return
+    if (hour < 0 or hour > 23) or (minutes < 0 or minutes > 59):
+        await interaction.response.send_message("Merci d'envoyer une heure valide !", ephemeral=True)
+        return
+    days = []
+    if lundi:
+        days.append(0)
+    if mardi:
+        days.append(1)
+    if mercredi:
+        days.append(2)
+    if jeudi:
+        days.append(3)
+    if vendredi:
+        days.append(4)
+    if samedi:
+        days.append(5)
+    if dimanche:
+        days.append(6)
+
+    alarm = {
+        "name": name,
+        "time": f"{hour:02d}:{minutes:02d}",
+        "days": days,
+        "one_shot": not repeat,
+        "enabled": enabled,
+    }
+
+    alarms[next_id] = alarm
+
+    write_json(alarms, f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
+    await interaction.response.send_message(f"Alarme {name} créée !", ephemeral=True)
+
+@bot.tree.command(name="edit_alarm", description="Édite une alarme")
+@app_commands.describe(id="id", name="name", hour="hour", minutes="minutes", repeat="repeat", enabled="enabled", lundi="lundi", mardi="mardi", mercredi="mercredi", jeudi="jeudi", vendredi="vendredi", samedi="samedi", dimanche="dimanche")
+async def edit_alarm(interaction: Interaction, id: int, name: str = None, hour: int = None, minutes: int = None, repeat: bool = None, enabled: bool = None, lundi: bool = None, mardi: bool = None, mercredi: bool = None, jeudi: bool = None, vendredi: bool = None, samedi: bool = None, dimanche: bool = None):
+    alarms = read_json(f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
+    if not str(id) in alarms.keys():
+        await interaction.response.send_message(f"Vous n'avez aucune alarme avec l'ID {id}.", ephemeral=True)
+        return
+
+    alarm = alarms[str(id)]
+    if name is None:
+        name = alarm["name"]
+    if hour is None:
+        hour = int(alarm["time"].split(":")[0])
+    if minutes is None:
+        minutes = int(alarm["time"].split(":")[1])
+    if repeat is None:
+        repeat = not alarm["one_shot"]
+    if enabled is None:
+        enabled = alarm["enabled"]
+    if lundi is None:
+        lundi = 0 in alarm["days"]
+    if mardi is None:
+        mardi = 1 in alarm["days"]
+    if mercredi is None:
+        mercredi = 2 in alarm["days"]
+    if jeudi is None:
+        jeudi = 3 in alarm["days"]
+    if vendredi is None:
+        vendredi = 4 in alarm["days"]
+    if samedi is None:
+        samedi = 5 in alarm["days"]
+    if dimanche is None:
+        dimanche = 6 in alarm["days"]
+
+    if repeat and not (lundi or mardi or mercredi or jeudi or vendredi or samedi or dimanche):
+        await interaction.response.send_message(
+            "Vous devez soit ne pas répéter l'alarme, soit entrer au moins un jour !", ephemeral=True)
+        return
+    if (hour < 0 or hour > 23) or (minutes < 0 or minutes > 59):
+        await interaction.response.send_message("Merci d'envoyer une heure valide !", ephemeral=True)
+        return
+    days = []
+    if lundi:
+        days.append(0)
+    if mardi:
+        days.append(1)
+    if mercredi:
+        days.append(2)
+    if jeudi:
+        days.append(3)
+    if vendredi:
+        days.append(4)
+    if samedi:
+        days.append(5)
+    if dimanche:
+        days.append(6)
+
+    alarm = {
+        "name": name,
+        "time": f"{hour:02d}:{minutes:02d}",
+        "days": days,
+        "one_shot": not repeat,
+        "enabled": enabled,
+    }
+
+    alarms[str(id)] = alarm
+
+    write_json(alarms, f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
+    await interaction.response.send_message(f"Alarme {name} éditée !", ephemeral=True)
 
 # --------------------------------------RUN---------------------------------------------
 
