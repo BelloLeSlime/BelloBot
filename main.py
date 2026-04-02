@@ -13,18 +13,19 @@ try:
 except:
     pass
 from discord import *
+from discord.ext import tasks
 from datetime import datetime, timedelta, UTC
 from typing import Literal
 from PIL import Image
 import io
 import requests
 import re
-import time
 
 # ---------------------------------SET UP-----------------------------------------
 
 intents = Intents.default()
 intents.message_content = True
+intents.presences = True
 
 
 class MyClient(Client):
@@ -156,7 +157,6 @@ class ShopSelect(ui.Select):
                           description="Bah alors ? On est pauvre ? ༼ つ XD ༽つ")
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
-
 class ShopView(ui.View):
     def __init__(self):
         super().__init__()
@@ -172,13 +172,11 @@ def ask_ai(messages, model):
     )
     return response.choices[0].message.content
 
-
 def text_to_image(prompt, model, negative_prompt, width=1024, height=1024, steps=30):
     client = InferenceClient(token=hg_token)
     image = client.text_to_image(prompt=prompt, model=model, negative_prompt=negative_prompt, width=width,
                                  height=height, num_inference_steps=steps)
     return image
-
 
 def log(type, message):
     to_write = f"{type} - {message} - {datetime.now()}"
@@ -186,12 +184,10 @@ def log(type, message):
     with open("log.txt", "a", encoding="utf-8") as file:
         file.write(to_write + "\n")
 
-
 def write_file(message, path):
     message = message.replace("\n", " ")
     with open(path, "a", encoding="utf-8") as file:
         file.write(message + "\n")
-
 
 def read_file(path):
     lines = []
@@ -200,17 +196,14 @@ def read_file(path):
             lines.append(line)
     return lines
 
-
 def write_json(data, path):
     with open(path, "w", encoding="utf-8") as file:
         file.write(json.dumps(data, indent=2))
-
 
 def read_json(path):
     with open(path, "r", encoding="utf-8") as file:
         data = json.loads(file.read())
         return data
-
 
 def add_item(guild_id: int, user_id: int, item: str):
     log("shop", str(user_id) + item)
@@ -218,23 +211,30 @@ def add_item(guild_id: int, user_id: int, item: str):
     data["items"][item] = data["items"][item] + 1 if item in data["items"] else 1
     write_json(data, f"files/user_info/{guild_id}/{user_id}.json")
 
-
-async def check_has_data_file(user_id, guild_id):
-    await check_guild_has_presence(guild_id)
+def check_has_data_file(user_id, guild_id):
+    check_guild_has_presence(guild_id)
     if not str(guild_id) in os.listdir("files/user_info/"):
         os.makedirs(f"files/user_info/{guild_id}")
-    if not str(user_id) + ".json" in os.listdir(f"./files/user_info/{guild_id}/"):
-        write_json({"xp": 0, "level": 1, "money": 0, "mult_xp": 1, "mult_money": 1, "temp_effects": {}, "items": {}},
-                   f"files/user_info/{guild_id}/{user_id}.json")
+    try:
+        if not str(user_id) + ".json" in os.listdir(f"./files/user_info/{guild_id}/"):
+            write_json({"xp": 0, "level": 1, "money": 0, "mult_xp": 1, "mult_money": 1, "temp_effects": {}, "items": {}},
+                       f"files/user_info/{guild_id}/{user_id}.json")
+    except:
+        pass
+    try:
+        if not str(user_id) + ".json" in os.listdir(f"./files/alarms/{guild_id}/"):
+            write_json({}, f"files/alarms/{guild_id}/{user_id}.json")
+    except:
+        pass
 
-
-async def check_guild_has_presence(guild_id):
+def check_guild_has_presence(guild_id):
     if not str(guild_id) + ".json" in os.listdir(f"./files/config/"):
         write_json(read_json(f"files/config/default_config.json"), f"files/config/{guild_id}.json")
         write_file("", f"files/messages/{guild_id}.txt")
         print("ok")
         os.makedirs(f"./files/user_info/{guild_id}/", exist_ok=True)
-
+    if not str(guild_id) in os.listdir(f"./files/alarms/"):
+        os.makedirs(f"./files/alarms/{guild_id}/", exist_ok=True)
 
 async def send_image(interaction: Interaction, image: Image, text=""):
     buffer = io.BytesIO()
@@ -243,7 +243,6 @@ async def send_image(interaction: Interaction, image: Image, text=""):
 
     file = File(fp=buffer, filename="generated.png")
     await interaction.followup.send(text, file=file)
-
 
 def get_gif(query):
     url = "https://api.giphy.com/v1/gifs/search"
@@ -260,7 +259,6 @@ def get_gif(query):
         return None
 
     return r["data"][0]["images"]["original"]["url"]
-
 
 def parse_text(text, origin_message):
     # gif
@@ -282,7 +280,6 @@ def parse_text(text, origin_message):
 
     return text
 
-
 def get_messages(guild_id):
     messages = [
         {"role": "system", "content": system},
@@ -297,7 +294,6 @@ def get_messages(guild_id):
     messages = messages[:max_messages]
     return messages
 
-
 async def change_activity():
     await bot.change_presence(
         activity=Activity(
@@ -305,7 +301,6 @@ async def change_activity():
             name=choice(random_states)
         )
     )
-
 
 # ---------------------------------VARIABLES------------------------------------------
 
@@ -327,6 +322,44 @@ random_states = [
 ]
 flamcoin_symbol = "₣"
 
+#----------------------------------TASKS----------------------------------------------
+
+@tasks.loop(seconds=30)
+async def loop():
+    await change_activity()
+
+    #alarm
+    for alarm_guild_id in os.listdir("files/alarms/"):
+        if alarm_guild_id == ".gitignore":
+            continue
+        for alarm_user_id in os.listdir(f"files/alarms/{alarm_guild_id}/"):
+            alarms = read_json(f"files/alarms/{alarm_guild_id}/{alarm_user_id}")
+            for alarm_id in alarms:
+                alarm = alarms[alarm_id]
+                day = datetime.now().weekday()
+                if (day in alarm["days"]) or (alarm["one_shot"]):
+                    target = datetime.strptime(alarm["time"], "%H:%M")
+                    now = datetime.now()
+
+                    start = target.replace(year=now.year, month=now.month, day=now.day)
+                    end = start + timedelta(seconds=29)
+
+                    if start <= now <= end:
+                        alarm_channel_id = read_json(f"files/config/{alarm_guild_id}.json")["alarm_channel"]
+                        alarm_guild = await bot.fetch_guild(int(alarm_guild_id))
+                        if alarm_guild is None:
+                            print("no guild")
+                            continue
+                        alarm_channel = await alarm_guild.fetch_channel(alarm_channel_id)
+                        if alarm_channel is None:
+                            print("no channel")
+                            continue
+                        embed = Embed(color=Color.blurple(), title="C'est l'heure", description=f"{alarm["name"]}")
+                        await alarm_channel.send(f"<@{alarm_user_id.removesuffix(".json")}>", embed=embed)
+                        if alarm["one_shot"]:
+                            alarm["enabled"] = False
+                            alarms[alarm_id] = alarm
+                            write_json(alarms, f"files/alarms/{alarm_guild_id}/{alarm_user_id}")
 
 # ---------------------------------EVENTS---------------------------------------------
 
@@ -334,13 +367,13 @@ flamcoin_symbol = "₣"
 async def on_ready():
     log("connected", bot.user.name)
     await change_activity()
-
+    if not loop.is_running():
+        loop.start()
 
 @bot.event
 async def on_message(message: Message):
-    time.sleep(0.01)
-    await check_guild_has_presence(message.guild.id)
-    await check_has_data_file(message.author.id, message.guild.id)
+    check_guild_has_presence(message.guild.id)
+    check_has_data_file(message.author.id, message.guild.id)
     content = message.content
 
     # ai
@@ -383,24 +416,25 @@ async def on_message(message: Message):
                 await message.reply(embed=embed)
 
     # xp
-    user_data_xp = read_json(f"files/user_info/{message.guild.id}/{message.author.id}.json")
-    member: Member = await message.guild.fetch_member(message.author.id)
-
-    if user_data_xp["mult_xp"] > 1:
-        if datetime.fromisoformat(user_data_xp["temp_effects"]["boost_xp"]) < datetime.now(UTC):
-            del user_data_xp["temp_effects"]["boost_xp"]
-            user_data_xp["mult_xp"] = 1
-            x2_xp_role = await message.guild.fetch_role(
-                read_json(f"files/config/{message.guild.id}.json")["x2_xp_role"])
-            await message.author.remove_roles(x2_xp_role)
-    if user_data_xp["mult_money"] > 1:
-        if datetime.fromisoformat(user_data_xp["temp_effects"]["boost_money"]) < datetime.now(UTC):
-            del user_data_xp["temp_effects"]["boost_money"]
-            user_data_xp["mult_money"] = 1
-            x2_money_role = await message.guild.fetch_role(
-                read_json(f"files/config/{message.guild.id}.json")["x2_money_role"])
-            await message.author.remove_roles(x2_money_role)
     try:
+        user_data_xp = read_json(f"files/user_info/{message.guild.id}/{message.author.id}.json")
+        member: Member = await message.guild.fetch_member(message.author.id)
+
+        if user_data_xp["mult_xp"] > 1:
+            if datetime.fromisoformat(user_data_xp["temp_effects"]["boost_xp"]) < datetime.now(UTC):
+                del user_data_xp["temp_effects"]["boost_xp"]
+                user_data_xp["mult_xp"] = 1
+                x2_xp_role = await message.guild.fetch_role(
+                    read_json(f"files/config/{message.guild.id}.json")["x2_xp_role"])
+                await message.author.remove_roles(x2_xp_role)
+        if user_data_xp["mult_money"] > 1:
+            if datetime.fromisoformat(user_data_xp["temp_effects"]["boost_money"]) < datetime.now(UTC):
+                del user_data_xp["temp_effects"]["boost_money"]
+                user_data_xp["mult_money"] = 1
+                x2_money_role = await message.guild.fetch_role(
+                    read_json(f"files/config/{message.guild.id}.json")["x2_money_role"])
+                await message.author.remove_roles(x2_money_role)
+
         file_role = await message.guild.fetch_role(read_json(f"files/config/{message.guild.id}.json")["file_role"])
         soundboard_role = await message.guild.fetch_role(
             read_json(f"files/config/{message.guild.id}.json")["soundboard_role"])
@@ -485,17 +519,15 @@ async def on_message(message: Message):
         await thread.send(ai_answer)
         write_file("BelloBot(forbellobot) : " + ai_answer, f"files/messages/{message.guild.id}.txt")
 
-
 @bot.event
 async def _on_interaction(interaction: Interaction):
     await check_guild_has_presence(interaction.guild.id)
     await check_has_data_file(interaction.user.id, interaction.guild.id)
 
-
 # ----------------------------------BOT COMMANDS----------------------------------------
 
 @bot.tree.command(name="xp", description="Affiche le nombre d'xp")
-@app_commands.describe(user="user")
+@app_commands.describe(user="utilisateur")
 async def xp(interaction: Interaction, user: User = None):
     if user is None:
         user = interaction.user
@@ -512,9 +544,8 @@ async def xp(interaction: Interaction, user: User = None):
         embed.description = f"{user.display_name} est au niveau {user_data_xp['level']}, il a {user_data_xp['xp']} xp et il lui manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} :p"
         await interaction.response.send_message(embed=embed)
 
-
 @bot.tree.command(name="wallet", description="Affiche le nombre de Flamcoins")
-@app_commands.describe(user="user")
+@app_commands.describe(user="utilisateur")
 async def wallet(interaction: Interaction, user: User = None):
     if user is None:
         user = interaction.user
@@ -532,7 +563,6 @@ async def wallet(interaction: Interaction, user: User = None):
         embed.description = f"{user.display_name} a actuellement {money}₣."
         await interaction.response.send_message(embed=embed)
 
-
 @bot.tree.command(name="shop", description="Affiche le magasin")
 async def shop(interaction: Interaction):
     embed = Embed(
@@ -545,9 +575,8 @@ async def shop(interaction: Interaction):
         view=ShopView()
     )
 
-
 @bot.tree.command(name="give_xp", description="Donne un nombre d'xp à un membre")
-@app_commands.describe(amount="amount", user="user")
+@app_commands.describe(amount="nombre d'xp", user="utilisateur")
 @app_commands.checks.has_permissions(administrator=True)
 async def give_xp(interaction: Interaction, amount: int, user: User = None):
     if user is None:
@@ -559,9 +588,8 @@ async def give_xp(interaction: Interaction, amount: int, user: User = None):
         f"Vous avez bien ajouté {amount} xp à {user.display_name}. Il a maintenant {user_data_xp['xp']} xp.",
         ephemeral=True)
 
-
 @bot.tree.command(name="set_xp", description="Met un à membre un nombre d'xp")
-@app_commands.describe(amount="amount", user="user")
+@app_commands.describe(amount="nombre d'xp", user="utilisateur")
 @app_commands.checks.has_permissions(administrator=True)
 async def set_xp(interaction: Interaction, amount: int, user: User = None):
     if user is None:
@@ -571,9 +599,8 @@ async def set_xp(interaction: Interaction, amount: int, user: User = None):
     write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/{user.id}.json")
     await interaction.response.send_message(f"Vous avez bien mit {amount} xp à {user.display_name}.", ephemeral=True)
 
-
 @bot.tree.command(name="give_money", description="Donne un nombre d'argent à un membre")
-@app_commands.describe(amount="amount", user="user")
+@app_commands.describe(amount="nombre d'argent", user="utilisateur")
 @app_commands.checks.has_permissions(administrator=True)
 async def give_money(interaction: Interaction, amount: int, user: User = None):
     if user is None:
@@ -585,9 +612,8 @@ async def give_money(interaction: Interaction, amount: int, user: User = None):
         f"Vous avez bien ajouté {amount}₣ à {user.display_name}. Il a maintenant {user_data_xp['money']}₣.",
         ephemeral=True)
 
-
 @bot.tree.command(name="set_money", description="Met un à membre un nombre d'argent")
-@app_commands.describe(amount="amount", user="user")
+@app_commands.describe(amount="nombre d'argent", user="utilisateur")
 @app_commands.checks.has_permissions(administrator=True)
 async def set_money(interaction: Interaction, amount: int, user: User = None):
     if user is None:
@@ -597,9 +623,8 @@ async def set_money(interaction: Interaction, amount: int, user: User = None):
     write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/{user.id}.json")
     await interaction.response.send_message(f"Vous avez bien mit {amount}₣ à {user.display_name}.", ephemeral=True)
 
-
 @bot.tree.command(name="give_level", description="Donne un nombre de niveaux à un membre")
-@app_commands.describe(amount="amount", user="user")
+@app_commands.describe(amount="nombre de niveaux", user="utilisateur")
 @app_commands.checks.has_permissions(administrator=True)
 async def give_level(interaction: Interaction, amount: int, user: User = None):
     if user is None:
@@ -611,9 +636,8 @@ async def give_level(interaction: Interaction, amount: int, user: User = None):
         f"Vous avez bien ajouté {amount} niveaux à {user.display_name}. Il a maintenant niveau {user_data_xp['level']}.",
         ephemeral=True)
 
-
 @bot.tree.command(name="set_level", description="Met un à membre un nombre de niveaux")
-@app_commands.describe(amount="amount", user="user")
+@app_commands.describe(amount="nombre de niveaux", user="utilisateur")
 @app_commands.checks.has_permissions(administrator=True)
 async def set_level(interaction: Interaction, amount: int, user: User = None):
     if user is None:
@@ -623,7 +647,6 @@ async def set_level(interaction: Interaction, amount: int, user: User = None):
     write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/{user.id}.json")
     await interaction.response.send_message(f"Vous avez bien mit {amount} niveaux à {user.display_name}.",
                                             ephemeral=True)
-
 
 @bot.tree.command(name="reset", description="Remet tout le serveur au niveau 1, avec 0 argent et 0 xp")
 @app_commands.checks.has_permissions(administrator=True)
@@ -640,9 +663,8 @@ async def reset(interaction: Interaction):
         write_json(user_data_xp, f"files/user_info/{interaction.guild.id}/file")
     await interaction.response.send_message(f"Vous avez bien remit le serveur à 0.", ephemeral=True)
 
-
 @bot.tree.command(name="use", description="Utilise un item dans l'inventaire")
-@app_commands.describe(item="item", target_user="user", name="name", time_in_hours="time")
+@app_commands.describe(item="objet à utiliser", target_user="utilisateur ciblé", name="nom pour renommer", time_in_hours="temps de ban en heures")
 async def use(interaction: Interaction, item: Literal[
     "Petite Potion d'Expérience", "Petite Potion de Cupidité", "Back Door", "Audacity", "Nintendo Switch 17", "Partenariat avec l'IFOP", "Site Web", "External Plexus", "Microphone", "Formule 1", "Name Tag", "Ban Hammer"],
               target_user: User | None = None, name: str | None = None, time_in_hours: int | None = None):
@@ -782,9 +804,8 @@ async def use(interaction: Interaction, item: Literal[
         await interaction.response.send_message(
             f"Vous n'avez pas cet item :p\n Vous pouvez l'acheter au shop avec /shop", ephemeral=True)
 
-
 @bot.tree.command(name="inventory", description="Affiche l'inventaire")
-@app_commands.describe(user="user")
+@app_commands.describe(user="utilisateur")
 async def inventory(interaction: Interaction, user: User | None = None):
     if user is None:
         user = interaction.user
@@ -811,10 +832,9 @@ async def inventory(interaction: Interaction, user: User | None = None):
     embed = Embed(title=f" Inventaire de {user.display_name} :", description=description, color=Color.green())
     await interaction.response.send_message(embed=embed)
 
-
 @bot.tree.command(name="generate", description="Génère une image pour la modique somme de 500₣")
-@app_commands.describe(prompt="prompt", negative_prompt="negative_prompt", width="width", height="height",
-                       steps="steps")
+@app_commands.describe(prompt="ce qu'il y a dans l'image", negative_prompt="ce qu'il n'y a pas dans l'image", width="longueur", height="largeur",
+                       steps="nombre d'étapes (+ il y en a + c'est détaillé, mais abusez pas svp)")
 async def generate(interaction: Interaction, prompt: str, negative_prompt: str = "", width: int = 1024,
                    height: int = 1024, steps: int = 30):
     await interaction.response.defer()
@@ -850,15 +870,15 @@ async def generate(interaction: Interaction, prompt: str, negative_prompt: str =
         await interaction.followup.send(
             f"Tu n'a pas assez d'argent pour générer une image ! La génération d'image coûte 500₣ + le nombre d'étapes (ici {steps}) pour éviter le spam et la déchéance économique de Bello le Slime.")
 
-
 @bot.tree.command(name="config", description="Configuration du bot")
-@app_commands.describe(key="key", value="value")
+@app_commands.describe(key="clé", value="valeur")
 @app_commands.checks.has_permissions(administrator=True)
 async def config(interaction: Interaction, key: Literal[
-    "xp_channel", "x2_xp_role", "x2_money_role", "file_role", "soundboard_role", "game_role", "poll_role", "link_role", "extern_role", "priority_voice_role", "bypass_slow_mode_role", "max_messages_in_memory", "disable_warning_messages"],
+    "xp_channel", "alarm_channel", "x2_xp_role", "x2_money_role", "file_role", "soundboard_role", "game_role", "poll_role", "link_role", "extern_role", "priority_voice_role", "bypass_slow_mode_role", "max_messages_in_memory", "disable_warning_messages"],
                  value: str):
     value_types = {
         "xp_channel": TextChannel,
+        "alarm_channel": TextChannel,
         "x2_xp_role": Role,
         "x2_money_role": Role,
         "file_role": Role,
@@ -958,14 +978,12 @@ async def config(interaction: Interaction, key: Literal[
             await interaction.followup.send(embed=embed, ephemeral=True)
     log("config", f"{key} : {value} ({value_text})")
 
-
 @bot.tree.command(name="reset_memory", description="Réinitialise la mémoire du bot")
 @app_commands.checks.has_permissions(administrator=True)
 async def reset_memory(interaction: Interaction):
     with open(f"files/messages/{interaction.guild.id}.txt", "w", encoding="utf-8") as f:
         f.write("")
     await interaction.response.send_message(f"Ma mémoire a bien été réinitialisée !", ephemeral=True)
-
 
 """
 @bot.tree.command(name="create_music", description="Crée une musique ma foi fort douteuse étant donné qu'elle a été entrainée avec 5 musiques.")
@@ -988,9 +1006,8 @@ async def create_music(interaction: Interaction, prompt: str):
     await interaction.followup.send(beatline_str, ephemeral=True)
 """
 
-
 @bot.tree.command(name="stats", description="Affiche les statistiques d'un utilisateur")
-@app_commands.describe(user="user")
+@app_commands.describe(user="utilisateur")
 async def stats(interaction: Interaction, user: User | None = None):
     user = interaction.user if user == None else user
     user_data = read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
@@ -1049,7 +1066,6 @@ async def stats(interaction: Interaction, user: User | None = None):
 
     await interaction.response.send_message(embed=embed)
 
-
 @bot.tree.command(name="help", description="Affiche le message d'aide")
 async def help(interaction: Interaction):
     embed = Embed(color=Color.green())
@@ -1069,6 +1085,10 @@ async def help(interaction: Interaction):
     -`/use <item> (<target_user> <name> <time_in_hour>)` : utilise un objet <item>. <target_user> est utilisé pour le Nametag et le Ban hammer. <name> est utilisé par le Nametag. <time_in_hour> est utilisé par le Ban hammer 
     -`/inventory (<user>)` : affiche l'inventaire d'un utilisateur <user>
     -`/generate <prompt> (<negative_prompt> <width> = 1024 <height> = 1024 <steps> = 30)` : génère une image par IA pour la modique somme de 500 + <steps> Flamcoins
+    -`/alarm` : ouvre le panel d'alarme
+    -`/create_alarm <name> <hour> <minute> (<reapeat> <enabled> <[jours de la semaine]>)` : crée une alarme. <reapeat> est si l'alarme se répète <jours> chanque semaine.
+    -`/edit_alarm <id> (<name> <etc>)` : édite une alarme d'id <id> (c'est le numéro devant le nom sur le panel d'alarmes)
+    -`/delete_alarm <id>` : supprime une alarme <id>
 
     ## XP ET ARGENT
     L'XP et l'argent se gagnent tous deux en étant simplement actif sur le serveur. 5 XP / msg, et 10 Flamcoins / msg.
@@ -1077,8 +1097,8 @@ async def help(interaction: Interaction):
 
     ## COMMANDES ADMIN
     -`/config <key> <value>` : configure le bot. Il y a différents types de valer attendues. Par exemple, la clé xp_channel (pour le salon où le bot envoie les passages de niveau) n'accepte que les salons.
-    -`/give_level <amount> (<user>) : donne <amount> niveaux à un utilisateur <user>
-    -`/set_level <amount> (<user>) : met le nombre de niveaux de l'utilisateur <user> à <amount>
+    -`/give_level <amount> (<user>)` : donne <amount> niveaux à un utilisateur <user>
+    -`/set_level <amount> (<user>)` : met le nombre de niveaux de l'utilisateur <user> à <amount>
     -`/give_xp, /set_xp, /give_money et /set_money` : exactement pareil, mais pour l'XP et l'argent
     -`/reset`: reset tout le serveur en XP, niveaux et argent
     -`/reset_memory` : supprime la mémoire de l'IA (très pratique quand le bot pert la tête ma foi)
@@ -1133,10 +1153,11 @@ async def alarm_view(interaction: Interaction):
     await interaction.response.send_message(embed=embed, ephemeral=True) 
 
 @bot.tree.command(name="create_alarm", description="Crée une alarme")
-@app_commands.describe(name="name", hour="hour", minutes="minutes", repeat="repeat", enabled="enabled", lundi="lundi", mardi="mardi", mercredi="mercredi", jeudi="jeudi", vendredi="vendredi", samedi="samedi", dimanche="dimanche")
+@app_commands.describe(name="nom", hour="heures", minutes="minutes", repeat="si l'alarme se répète selon les jours", enabled="activé ou pas", lundi="lundi", mardi="mardi", mercredi="mercredi", jeudi="jeudi", vendredi="vendredi", samedi="samedi", dimanche="dimanche")
 async def create_alarm(interaction: Interaction, name: str, hour: int, minutes: int, repeat: bool = False, enabled: bool = True, lundi: bool = False, mardi: bool = False, mercredi: bool = False, jeudi: bool = False, vendredi: bool = False, samedi: bool = False, dimanche: bool = False):
     alarms = read_json(f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
-    next_id = min(alarms.keys()) + 1 if alarms else 0
+    ints = [int(key) for key in alarms.keys()]
+    next_id = max(ints) + 1 if alarms else 0
     if repeat and not (lundi or mardi or mercredi or jeudi or vendredi or samedi or dimanche):
         await interaction.response.send_message("Vous devez soit ne pas répéter l'alarme, soit entrer au moins un jour !", ephemeral=True)
         return
@@ -1173,7 +1194,7 @@ async def create_alarm(interaction: Interaction, name: str, hour: int, minutes: 
     await interaction.response.send_message(f"Alarme {name} créée !", ephemeral=True)
 
 @bot.tree.command(name="edit_alarm", description="Édite une alarme")
-@app_commands.describe(id="id", name="name", hour="hour", minutes="minutes", repeat="repeat", enabled="enabled", lundi="lundi", mardi="mardi", mercredi="mercredi", jeudi="jeudi", vendredi="vendredi", samedi="samedi", dimanche="dimanche")
+@app_commands.describe(id="id de l'alarme", name="nom", hour="heures", minutes="minutes", repeat="si l'alarme se répète selon les jours", enabled="activé ou pas", lundi="lundi", mardi="mardi", mercredi="mercredi", jeudi="jeudi", vendredi="vendredi", samedi="samedi", dimanche="dimanche")
 async def edit_alarm(interaction: Interaction, id: int, name: str = None, hour: int = None, minutes: int = None, repeat: bool = None, enabled: bool = None, lundi: bool = None, mardi: bool = None, mercredi: bool = None, jeudi: bool = None, vendredi: bool = None, samedi: bool = None, dimanche: bool = None):
     alarms = read_json(f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
     if not str(id) in alarms.keys():
@@ -1241,6 +1262,17 @@ async def edit_alarm(interaction: Interaction, id: int, name: str = None, hour: 
 
     write_json(alarms, f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
     await interaction.response.send_message(f"Alarme {name} éditée !", ephemeral=True)
+
+@bot.tree.command(name="delete_alarm", description="Supprime une alarme")
+@app_commands.describe(id="id de l'alarme")
+async def delete_alarm(interaction: Interaction, id: int):
+    alarms = read_json(f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
+    if str(id) not in alarms.keys():
+        await interaction.response.send_message(f"Vous n'avez pas d'alarme avec l'ID {id}.", ephemeral=True)
+        return
+    del alarms[str(id)]
+    write_json(alarms, f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
+    await interaction.response.send_message(f"L'alarme {id} supprimé !", ephemeral=True)
 
 # --------------------------------------RUN---------------------------------------------
 
