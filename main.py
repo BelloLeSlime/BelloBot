@@ -20,6 +20,7 @@ from PIL import Image
 import io
 import requests
 import re
+import asyncio
 
 # ---------------------------------SET UP-----------------------------------------
 
@@ -1273,6 +1274,42 @@ async def delete_alarm(interaction: Interaction, id: int):
     del alarms[str(id)]
     write_json(alarms, f"files/alarms/{interaction.guild.id}/{interaction.user.id}.json")
     await interaction.response.send_message(f"L'alarme {id} supprimé !", ephemeral=True)
+
+@bot.tree.command(name="vote_reset_memory", description="Crée un vote pour supprimer la mémoire du bot")
+async def vote_reset_memory(interaction: Interaction):
+    await interaction.response.send_message("Vote organisé !", ephemeral=True)
+    embed = Embed(color=Color.orange(), title="Voulez-vous réinitialiser ma mémoire car je deviens fou ?", description="Réagir 👍 pour oui.").set_footer(text="Fin du vote dans 1min !")
+    msg = await interaction.channel.send(embed=embed)
+    await msg.add_reaction("👍")
+    await msg.add_reaction("👎")
+
+    await asyncio.sleep(60)
+    msg = await interaction.channel.fetch_message(msg.id)
+
+    yes_users = set()
+    no_users = set()
+    for reaction in msg.reactions:
+        print(f"Reaction: {reaction.emoji}, count: {reaction.count}")
+        if str(reaction.emoji) == "👍":
+            async for user in reaction.users():
+                if not user.bot:
+                    yes_users.add(user.id)
+        elif str(reaction.emoji) == "👎":
+            async for user in reaction.users():
+                if not user.bot:
+                    no_users.add(user.id)
+
+    yes_count = len(yes_users)
+    no_count = len(no_users)
+
+    print(f"👍: {yes_count}, 👎: {no_count}")
+
+    if yes_count > no_count:
+        await interaction.channel.send("Ma mémoire va être réinitialisée...")
+        with open(f"files/messages/{interaction.guild.id}.txt", "w", encoding="utf-8") as f:
+            f.write("")
+    else:
+        await interaction.channel.send("Ma mémoire ne sera pas réinitialisée !")
 
 # --------------------------------------RUN---------------------------------------------
 
