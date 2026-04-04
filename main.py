@@ -489,14 +489,14 @@ async def on_message(message: Message):
                 read_json(f"files/config/{message.guild.id}.json")["xp_channel"])
             if message.author == bot.user:
                 embed = Embed(color=Colour.green(),
-                              title=f"Moi, {bot.user.mention}, a passé le niveau {user_data_xp["level"]} ! 🥳🎉 ",
+                              title=f"Moi, {bot.user.display_name}, a passé le niveau {user_data_xp["level"]} ! 🥳🎉 ",
                               description=f"GG à moi-même ༼ つ ಠ◡ಠ ༽つ Je gagne {50 * user_data_xp["level"]}₣ 💰💰💰")
                 await xp_channel.send(embed=embed)
             else:
                 embed = Embed(color=Color.green(),
-                              title=f"GG à {message.author.mention} pour avoir passé le niveau {user_data_xp["level"]} ! 🥳🎉",
+                              title=f"GG à {message.author.display_name} pour avoir passé le niveau {user_data_xp["level"]} ! 🥳🎉",
                               description=f"Tu gagnes {50 * user_data_xp["level"]}₣ 💰💰💰 Continue de gagner des niveaux... 🔥🔥🔥")
-                await xp_channel.send(embed=embed)
+                await xp_channel.send(f"||{message.author.mention}||", embed=embed)
         write_json(user_data_xp, f"files/user_info/{message.guild.id}/{message.author.id}.json")
     except HTTPException:
         pass
@@ -522,8 +522,8 @@ async def on_message(message: Message):
 
 @bot.event
 async def _on_interaction(interaction: Interaction):
-    await check_guild_has_presence(interaction.guild.id)
-    await check_has_data_file(interaction.user.id, interaction.guild.id)
+    check_guild_has_presence(interaction.guild.id)
+    check_has_data_file(interaction.user.id, interaction.guild.id)
 
 # ----------------------------------BOT COMMANDS----------------------------------------
 
@@ -877,6 +877,7 @@ async def generate(interaction: Interaction, prompt: str, negative_prompt: str =
 async def config(interaction: Interaction, key: Literal[
     "xp_channel", "alarm_channel", "x2_xp_role", "x2_money_role", "file_role", "soundboard_role", "game_role", "poll_role", "link_role", "extern_role", "priority_voice_role", "bypass_slow_mode_role", "max_messages_in_memory", "disable_warning_messages"],
                  value: str):
+    await interaction.response.defer(ephemeral=True)
     value_types = {
         "xp_channel": TextChannel,
         "alarm_channel": TextChannel,
@@ -900,7 +901,7 @@ async def config(interaction: Interaction, key: Literal[
         bool: "Booléen (soit \"True\", soit \"False\")",
     }
     if key not in value_types.keys():
-        await interaction.response.send_message(f"Veuillez préciser une clé valide !", ephemeral=True)
+        await interaction.followup.send(f"Veuillez préciser une clé valide !", ephemeral=True)
         return
 
     print(value)
@@ -926,13 +927,13 @@ async def config(interaction: Interaction, key: Literal[
             value = False
     else:
         text_type = text_types[value_types[key]]
-        await interaction.response.send_message(f"Veuillez préciser une valeur valide ! Ça doit être : {text_type}",
+        await interaction.followup.send(f"Veuillez préciser une valeur valide ! Ça doit être : {text_type}",
                                                 ephemeral=True)
         return
 
     if not isinstance(value, value_type):
         text_type = text_types[value_type]
-        await interaction.response.send_message(f"Veuillez préciser une valeur valide ! Ça doit être : {text_type}",
+        await interaction.followup.send(f"Veuillez préciser une valeur valide ! Ça doit être : {text_type}",
                                                 ephemeral=True)
         return
 
@@ -969,7 +970,7 @@ async def config(interaction: Interaction, key: Literal[
     embed.title = "Configuration du bot par serveur :"
     embed.description = f"La clé {key} a bien pour valeur {value if value_type in [int, bool] else value.mention} ! Voici la configuration du bot à présent : \n{config_text}"
 
-    await interaction.response.send_message(embed=embed, ephemeral=True)
+    await interaction.followup.send(embed=embed, ephemeral=True)
     if key == "max_messages_in_memory" and not read_json(f"files/config/{interaction.guild.id}.json")[
         "disable_warning_messages"]:
         if value > 50:
