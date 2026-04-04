@@ -1078,7 +1078,7 @@ async def help(interaction: Interaction):
     Pour utiliser la fonctionnalité IA, tu as juste à me ping normalement, comme un vrai utilisateur. Je réponds à tes questions, et je vois également les messages qui ne me sont pas addressé pour plus de contexte.
     
     ## MES COMMANDES
-    J\'ai plusieurs commandes :
+    J'ai plusieurs commandes :
     -`/xp (<user>)` : affiche l'xp et le niveau d'un utilisateur <user>
     -`/wallet (<user>)` : affiche le montant d'argent d'un utilisateur <user>
     -`/stats (<user>)` : affiche les statistiques d'un utilisateur (xp, argent, inventaire, effets temporaires, ect
@@ -1110,52 +1110,6 @@ async def help(interaction: Interaction):
     ## CONTACTER BELLO LE SLIME
     Vous pouvez me contacter sur Discord : bello_leslime
     
-    > Si vous avez d'autres questions, vous pouvez les poser à Bello le Slime.
-    """
-    await interaction.response.send_message(embed=embed)
-
-#--------------------------------------RUN---------------------------------------------
-
-    ## COMMENT M'UTILISER
-    Pour utiliser la fonctionnalité IA, tu as juste à me ping normalement, comme un vrai utilisateur. Je réponds à tes questions, et je vois également les messages qui ne me sont pas addressé pour plus de contexte.
-
-    ## MES COMMANDES
-    J'ai plusieurs commandes :
-    -`/xp (<user>)` : affiche l'xp et le niveau d'un utilisateur <user>
-    -`/wallet (<user>)` : affiche le montant d'argent d'un utilisateur <user>
-    -`/stats (<user>)` : affiche les statistiques d'un utilisateur (xp, argent, inventaire, effets temporaires, ect
-    -`/shop` : affiche le magasin où on peut acheter plusieurs objets
-    -`/use <item> (<target_user> <name> <time_in_hour>)` : utilise un objet <item>. <target_user> est utilisé pour le Nametag et le Ban hammer. <name> est utilisé par le Nametag. <time_in_hour> est utilisé par le Ban hammer 
-    -`/inventory (<user>)` : affiche l'inventaire d'un utilisateur <user>
-    -`/generate <prompt> (<negative_prompt> <width> = 1024 <height> = 1024 <steps> = 30)` : génère une image par IA pour la modique somme de 500 + <steps> Flamcoins
-    -`/alarm` : ouvre le panel d'alarme
-    -`/create_alarm <name> <hour> <minute> (<reapeat> <enabled> <[jours de la semaine]>)` : crée une alarme. <reapeat> est si l'alarme se répète <jours> chanque semaine.
-    -`/edit_alarm <id> (<name> <etc>)` : édite une alarme d'id <id> (c'est le numéro devant le nom sur le panel d'alarmes)
-    -`/delete_alarm <id>` : supprime une alarme <id>
-
-    ## XP ET ARGENT
-    L'XP et l'argent se gagnent tous deux en étant simplement actif sur le serveur. 5 XP / msg, et 10 Flamcoins / msg.
-    L'XP ne sert à absolument rien si ce n'est flex devant les gens du serveur.
-    L'argent du bot s'appelle le Flamcoin, dit {flamcoin_symbol}, il permet d'acheter des objets au shop.
-
-    ## COMMANDES ADMIN
-    -`/config <key> <value>` : configure le bot. Il y a différents types de valer attendues. Par exemple, la clé xp_channel (pour le salon où le bot envoie les passages de niveau) n'accepte que les salons.
-    -`/give_level <amount> (<user>)` : donne <amount> niveaux à un utilisateur <user>
-    -`/set_level <amount> (<user>)` : met le nombre de niveaux de l'utilisateur <user> à <amount>
-    -`/give_xp, /set_xp, /give_money et /set_money` : exactement pareil, mais pour l'XP et l'argent
-    -`/reset`: reset tout le serveur en XP, niveaux et argent
-    -`/reset_memory` : supprime la mémoire de l'IA (très pratique quand le bot pert la tête ma foi)
-
-    ## À L'AIDE !
-    Si le bot a un problème, n'hésitez pas à demander en MP à son crétaeur, bello_leslime, pour qu'il regarde les logs. Le problème est souvent :
-    -**Un bug niveau code**
-    -**Vous n'avez pas assigné chaque rôle achetable et le salon XP** (demander à un admin de la configurer. Si vous n'en voulez pas, assignez les à des rôles et salons bidons.)
-    -**Je n'ai plus de crédits pour l'IA** : étant donné que j'utilise le plan gratuit d'HuggingFace, je n'ai que 10c gratuit / mois, et c'est probable que trop de requêtes ont été faites que l'IA ne puisse pas répondre.
-    -**Je n'ai plus de crédits pour la bot** : étant donné que j'utilise la version gratuite de TheoHeberg, je n'ai que 27 jours d'hébergement par mois.
-
-    ## CONTACTER BELLO LE SLIME
-    Vous pouvez me contacter sur Discord : bello_leslime
-
     > Si vous avez d'autres questions, vous pouvez les poser à Bello le Slime.
     """
     await interaction.response.send_message(embed=embed)
