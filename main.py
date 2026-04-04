@@ -1078,7 +1078,7 @@ async def help(interaction: Interaction):
     Pour utiliser la fonctionnalité IA, tu as juste à me ping normalement, comme un vrai utilisateur. Je réponds à tes questions, et je vois également les messages qui ne me sont pas addressé pour plus de contexte.
     
     ## MES COMMANDES
-    J'ai plusieurs commandes :
+    J\'ai plusieurs commandes :
     -`/xp (<user>)` : affiche l'xp et le niveau d'un utilisateur <user>
     -`/wallet (<user>)` : affiche le montant d'argent d'un utilisateur <user>
     -`/stats (<user>)` : affiche les statistiques d'un utilisateur (xp, argent, inventaire, effets temporaires, ect
