@@ -22,7 +22,7 @@ import requests
 import re
 import asyncio
 
-VERSION = "3.3"
+VERSION = "3.3.1"
 
 # ---------------------------------SET UP-----------------------------------------
 
@@ -162,7 +162,7 @@ class ShopSelect(ui.Select):
 class ShopView(ui.View):
     def __init__(self):
         super().__init__()
-        self.add_item()
+        self.add_item(ShopSelect())
 
 # ---------------------------------FUNCTIONS-----------------------------------------
 
