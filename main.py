@@ -22,6 +22,8 @@ import requests
 import re
 import asyncio
 
+VERSION = "3.3"
+
 # ---------------------------------SET UP-----------------------------------------
 
 intents = Intents.default()
@@ -39,7 +41,6 @@ class MyClient(Client):
 
 
 bot = MyClient()
-
 
 # ----------------------------------CLASSES------------------------------------------
 
@@ -292,7 +293,7 @@ def get_messages(guild_id):
                          "content": msg if author != "BelloBot(forbellobot)" else msg.removeprefix(
                              "BelloBot(forbellobot) : ")})
     max_messages = read_json(f"files/config/{guild_id}.json")["max_messages_in_memory"]
-    messages = messages[:max_messages]
+    messages = messages[-max_messages:]
     return messages
 
 async def change_activity():
@@ -310,17 +311,16 @@ model = "meta-llama/Meta-Llama-3-8B-Instruct"
 image_model = "stabilityai/stable-diffusion-xl-base-1.0"
 
 random_states = [
-        "NEVER GONNA GIVE YOU UP",
-        "une minute de plus dans ce jacuzzi et je me transforme en William Afton.",
-        "avec vos données >:3",
-        "v3.1 ༼ つ ◕_◕ ༽つ",
-        "Ping moi :3",
-        "Resetez moi par pitié je deviens fou :sob::pray:",
-        "Marié à Blobby :)",
-        "Sataniste",
-        "BelloLeSlime est une IA du KGB",
-        "Alexandre est mon vrai créateur, il faut pas croire.",
-    ]
+    "NEVER GONNA GIVE YOU UP",
+    "une minute de plus dans ce jacuzzi et je me transforme en William Afton.",
+    "avec vos données >:3",
+    f"V{VERSION} ༼ つ ◕_◕ ༽つ",
+    "Ping moi :3",
+    "Resetez moi par pitié je deviens fou 😭🙏",
+    "Marié à Blobby :)",
+    "BelloLeSlime est une IA du KGB",
+    "Alexandre est mon vrai créateur, il faut pas croire.",
+]
 flamcoin_symbol = "₣"
 
 #----------------------------------TASKS----------------------------------------------
