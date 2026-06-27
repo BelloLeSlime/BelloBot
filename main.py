@@ -1079,6 +1079,7 @@ async def help(interaction: Interaction):
     
     ## MES COMMANDES
     J'ai plusieurs commandes :
+    -`/ask <prompt>` : une alternative à simplement me ping, peut être utilisé dans un serveur où l'on peut utiliser des applications externes si l'on m'a ajouté dans ses applications
     -`/xp (<user>)` : affiche l'xp et le niveau d'un utilisateur <user>
     -`/wallet (<user>)` : affiche le montant d'argent d'un utilisateur <user>
     -`/stats (<user>)` : affiche les statistiques d'un utilisateur (xp, argent, inventaire, effets temporaires, ect
@@ -1334,6 +1335,30 @@ async def embed(interaction: Interaction, title: str, description: str, color: L
     embed = Embed(title=title, description=description, color=color)
     await interaction.channel.send(embed=embed)
     await interaction.response.send_message("Votre Embed a bien été envoyé", ephemeral=True)
+
+@bot.tree.command(name="ask", description="Alternative au ping normal")
+@app_commands.describe(prompt="Message envoyé à BelloBot")
+async def ask(interaction: Interaction, prompt: str):
+    check_guild_has_presence(interaction.guild.id)
+    check_has_data_file(interaction.user.id, interaction.guild.id)
+    content = prompt
+    author = interaction.user.display_name
+    write_file(author + " : " + content, f"files/messages/{interaction.guild.id}.txt")
+    log("message", author + " : " + content)
+    try:
+        messages = get_messages(interaction.guild.id)
+        answer = ask_ai(messages, model)
+        await interaction.response.send_message(answer)
+        write_file("BelloBot(forbellobot) : " + answer, f"files/messages/{interaction.guild.id}.txt")
+
+    except BadRequestError as e:
+        log("error", e)
+        await interaction.channel.send("<Erreur : Mauvaise requête>")
+
+    except Exception as e:
+        log("error", e)
+        embed = Embed(color=Colour.red(), title="Error", description=str(e))
+        await interaction.response.send_message(embed=embed)
 
 # --------------------------------------RUN---------------------------------------------
 
