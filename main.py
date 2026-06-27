@@ -16,7 +16,6 @@ from discord import *
 from discord.ext import tasks
 from datetime import datetime, timedelta, UTC
 from typing import Literal
-from PIL import Image
 import io
 import requests
 import re
@@ -238,7 +237,7 @@ def check_guild_has_presence(guild_id):
     if not str(guild_id) in os.listdir(f"./files/alarms/"):
         os.makedirs(f"./files/alarms/{guild_id}/", exist_ok=True)
 
-async def send_image(interaction: Interaction, image: Image, text=""):
+async def send_image(interaction: Interaction, image, text=""):
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     buffer.seek(0)
@@ -338,7 +337,7 @@ async def loop():
             for alarm_id in alarms:
                 alarm = alarms[alarm_id]
                 day = datetime.now().weekday()
-                if (day in alarm["days"]) or (alarm["one_shot"]):
+                if (day in alarm["days"]) or (alarm["one_shot"]) and alarm["enabled"]:
                     target = datetime.strptime(alarm["time"], "%H:%M")
                     now = datetime.now()
 
@@ -355,8 +354,8 @@ async def loop():
                         if alarm_channel is None:
                             print("no channel")
                             continue
-                        embed = Embed(color=Color.blurple(), title="C'est l'heure", description=f"{alarm["name"]}")
-                        await alarm_channel.send(f"<@{alarm_user_id.removesuffix(".json")}>", embed=embed)
+                        embed = Embed(color=Color.blurple(), title=f"C'est l'heure : Alarme {alarm_id}", description=f"{alarm["name"]}")
+                        await alarm_channel.send(f"{alarm["name"]} <@{alarm_user_id.removesuffix(".json")}>", embed=embed)
                         if alarm["one_shot"]:
                             alarm["enabled"] = False
                             alarms[alarm_id] = alarm
@@ -1087,6 +1086,10 @@ async def help(interaction: Interaction):
     -`/use <item> (<target_user> <name> <time_in_hour>)` : utilise un objet <item>. <target_user> est utilisé pour le Nametag et le Ban hammer. <name> est utilisé par le Nametag. <time_in_hour> est utilisé par le Ban hammer 
     -`/inventory (<user>)` : affiche l'inventaire d'un utilisateur <user>
     -`/generate <prompt> (<negative_prompt> <width> = 1024 <height> = 1024 <steps> = 30)` : génère une image par IA pour la modique somme de 500 + <steps> Flamcoins
+    -`/alarm` : ouvre le panel des alarmes, où on peut y retrouver toutes les alarmes de l'utilisateur
+    -`/create_alarm <name> <hour> <minutes> (<enabled> = True <repeat> = False <lundi> = False <mardi> = False <mercredi> = False <jeudi> = False <vendredi> = False <samedi> = False <dimanche> = False)` : crée une alarme qui vous ping quand c'est l'heure (et si elle est activée). Pour le système des jours, je sais, c'est shlag, mais Bello ce nœuille a pas réussi à faire un truc mieux que ça donc c'est brainrot.
+    -`/edit_alarm <id> (<name> <hour> <minutes> <enabled> <repeat> <lundi> <mardi> <mercredi> <jeudi> <vendredi> <samedi> <dimanche>)` : modifie une alarme selon son ID. Son ID est le numéro qui s'affiche à côté du nom de l'alarme dans le `/alarm`. Chaque argument modifié changement celui d'origine
+    -`/delete_alarm <id>` : supprime une alarme selon son ID
     
     ## XP ET ARGENT
     L'XP et l'argent se gagnent tous deux en étant simplement actif sur le serveur. 5 XP / msg, et 10 Flamcoins / msg.
@@ -1095,25 +1098,31 @@ async def help(interaction: Interaction):
     
     ## COMMANDES ADMIN
     -`/config <key> <value>` : configure le bot. Il y a différents types de valer attendues. Par exemple, la clé xp_channel (pour le salon où le bot envoie les passages de niveau) n'accepte que les salons.
-    -`/give_level <amount> (<user>) : donne <amount> niveaux à un utilisateur <user>
-    -`/set_level <amount> (<user>) : met le nombre de niveaux de l'utilisateur <user> à <amount>
+    -`/give_level <amount> (<user>)` : donne <amount> niveaux à un utilisateur <user>
+    -`/set_level <amount> (<user>)` : met le nombre de niveaux de l'utilisateur <user> à <amount>
     -`/give_xp, /set_xp, /give_money et /set_money` : exactement pareil, mais pour l'XP et l'argent
     -`/reset`: reset tout le serveur en XP, niveaux et argent
     -`/reset_memory` : supprime la mémoire de l'IA (très pratique quand le bot pert la tête ma foi)
-    
+    -`/embed <title> <description> <color>` : fait dire au bot ce que vous voulez dans un embed
+    """
+    await interaction.response.send_message(embed=embed)
+
+    embed = Embed(title= "", description=
+    """
     ## À L'AIDE !
     Si le bot a un problème, n'hésitez pas à demander en MP à son crétaeur, bello_leslime, pour qu'il regarde les logs. Le problème est souvent :
     -**Un bug niveau code**
     -**Vous n'avez pas assigné chaque rôle achetable et le salon XP** (demander à un admin de la configurer. Si vous n'en voulez pas, assignez les à des rôles et salons bidons.)
     -**Je n'ai plus de crédits pour l'IA** : étant donné que j'utilise le plan gratuit d'HuggingFace, je n'ai que 10c gratuit / mois, et c'est probable que trop de requêtes ont été faites que l'IA ne puisse pas répondre.
-    -**Je n'ai plus de crédits pour la bot** : étant donné que j'utilise la version gratuite de TheoHeberg, je n'ai que 27 jours d'hébergement par mois.
+    -**Bello ce chien m'a coupé et a oublié de me rallumer**
+    -**Le Raspbberry Pi sur lequel je tourne a cramé à cause de la canicule**, et donc vous ne verrez plus JAMAIS votre argent ou votre XP.
     
     ## CONTACTER BELLO LE SLIME
-    Vous pouvez me contacter sur Discord : bello_leslime
+    Vous pouvez contacter ce sussy baka sur Discord : bello_leslime
     
-    > Si vous avez d'autres questions, vous pouvez les poser à Bello le Slime.
-    """
-    await interaction.response.send_message(embed=embed)
+    > Si vous avez d'autres questions, vous pouvez les poser à Bello le Slime.)
+    """)
+    await interaction.followup.send(embed=embed)
 
 @bot.tree.command(name="alarm", description="Affiche le panel d'alarmes")
 async def alarm_view(interaction: Interaction):
@@ -1307,6 +1316,23 @@ async def vote_reset_memory(interaction: Interaction):
             f.write("")
     else:
         await interaction.channel.send("Ma mémoire ne sera pas réinitialisée !")
+
+@bot.tree.command(name="embed", description="Crée un message embed")
+@app_commands.describe(title="Titre", description="Contenu de l'embed", color="Couleur de l'embed")
+@app_commands.checks.has_permissions(administrator=True)
+async def embed(interaction: Interaction, title: str, description: str, color: Literal["green", "blue", "red", "gold", "orange", "fuchsia"]):
+    color_dict = {
+        "green": Color.green(),
+        "blue": Color.blue(),
+        "red": Color.red(),
+        "gold" : Color.gold(),
+        "orange": Color.orange(),
+        "fuchsia": Color.fuchsia()
+    }
+    color = color_dict[color]
+    embed = Embed(title=title, description=description, color=color)
+    await interaction.channel.send(embed=embed)
+    await interaction.response.send_message("Votre Embed a bien été envoyé", ephemeral=True)
 
 # --------------------------------------RUN---------------------------------------------
 
