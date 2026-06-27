@@ -1121,7 +1121,7 @@ async def help(interaction: Interaction):
     Vous pouvez contacter ce sussy baka sur Discord : bello_leslime
     
     > Si vous avez d'autres questions, vous pouvez les poser à Bello le Slime.)
-    """)
+    """, color=Color.green())
     await interaction.followup.send(embed=embed)
 
 @bot.tree.command(name="alarm", description="Affiche le panel d'alarmes")
@@ -1318,7 +1318,7 @@ async def vote_reset_memory(interaction: Interaction):
         await interaction.channel.send("Ma mémoire ne sera pas réinitialisée !")
 
 @bot.tree.command(name="embed", description="Crée un message embed")
-@app_commands.describe(title="Titre", description="Contenu de l'embed", color="Couleur de l'embed")
+@app_commands.describe(title="Titre", description="Contenu de l'embed (utiliser \\n pour sauter une ligne)", color="Couleur de l'embed")
 @app_commands.checks.has_permissions(administrator=True)
 async def embed(interaction: Interaction, title: str, description: str, color: Literal["green", "blue", "red", "gold", "orange", "fuchsia"]):
     color_dict = {
@@ -1330,6 +1330,7 @@ async def embed(interaction: Interaction, title: str, description: str, color: L
         "fuchsia": Color.fuchsia()
     }
     color = color_dict[color]
+    description = description.replace("\\n", "\n")
     embed = Embed(title=title, description=description, color=color)
     await interaction.channel.send(embed=embed)
     await interaction.response.send_message("Votre Embed a bien été envoyé", ephemeral=True)
