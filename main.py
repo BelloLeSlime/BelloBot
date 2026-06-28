@@ -308,17 +308,26 @@ async def change_activity():
 system = "Tu es BelloBot, un bot Discord créé par Bello le Slime. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport. Tu peux également utiliser des commandes : \n/gif <query> : recherche un gif sur giphy. query doit être entouré de guillements \"."
 model = "meta-llama/Meta-Llama-3-8B-Instruct"
 image_model = "stabilityai/stable-diffusion-xl-base-1.0"
+server_count = 0
 
 random_states = [
     "NEVER GONNA GIVE YOU UP",
-    "une minute de plus dans ce jacuzzi et je me transforme en William Afton.",
-    "avec vos données >:3",
+    "Une minute de plus dans ce jacuzzi et je me transforme en William Afton.",
     f"V{VERSION} ༼ つ ◕_◕ ༽つ",
     "Ping moi :3",
     "Resetez moi par pitié je deviens fou 😭🙏",
     "Marié à Blobby :)",
     "BelloLeSlime est une IA du KGB",
     "Alexandre est mon vrai créateur, il faut pas croire.",
+    "MintIA est une fraude intercontinentale, il est même pas connecté H24",
+    "Je suis rentré dans BaudoBoyz, let's go !",
+    "Le Raspberry Pi qui crâme",
+    "Ça donne soif tout ça",
+    "L'eau, dans 20-30 ans y'en aura plus, j'aurais tout bu",
+    "Je me noie dans mes 1.000.000.000.000 ₣",
+    "Quoi ? Je suis un Mii dans Tomodachi Life ?!",
+    f"{server_count} serveurs !",
+    "Posez-moi des questions utiles par pitié"
 ]
 flamcoin_symbol = "₣"
 
@@ -365,7 +374,11 @@ async def loop():
 
 @bot.event
 async def on_ready():
+    global server_count
     log("connected", bot.user.name)
+    for _guild in bot.guilds:
+        server_count += 1
+    print(f"Serveurs : {server_count}")
     await change_activity()
     if not loop.is_running():
         loop.start()
