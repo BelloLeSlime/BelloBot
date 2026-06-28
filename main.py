@@ -21,7 +21,7 @@ import requests
 import re
 import asyncio
 
-VERSION = "3.3.1"
+VERSION = "3.3.2"
 
 # ---------------------------------SET UP-----------------------------------------
 
@@ -231,8 +231,11 @@ def check_has_data_file(user_id, guild_id):
 def check_guild_has_presence(guild_id):
     if not str(guild_id) + ".json" in os.listdir(f"./files/config/"):
         write_json(read_json(f"files/config/default_config.json"), f"files/config/{guild_id}.json")
+    if not str(guild_id) + ".txt" in os.listdir(f"./files/messages/"):
         write_file("", f"files/messages/{guild_id}.txt")
-        print("ok")
+    if not str(guild_id) + ".json" in os.listdir(f"./files/remembers/"):
+        write_json({}, f"files/remembers/{guild_id}.json")
+    if not str(guild_id) in os.listdir("./files/user_info/"):
         os.makedirs(f"./files/user_info/{guild_id}/", exist_ok=True)
     if not str(guild_id) in os.listdir(f"./files/alarms/"):
         os.makedirs(f"./files/alarms/{guild_id}/", exist_ok=True)
@@ -285,6 +288,9 @@ def get_messages(guild_id):
     messages = [
         {"role": "system", "content": system},
     ]
+    remembers = read_json(f"files/remembers/{guild_id}.json")
+    for message in remembers.values():
+        messages.append({"role": "system", "content": message})
     for msg in read_file(f"files/messages/{guild_id}.txt"):
         msg = str(msg)
         author = msg.split(" : ")[0]
@@ -293,6 +299,7 @@ def get_messages(guild_id):
                              "BelloBot(forbellobot) : ")})
     max_messages = read_json(f"files/config/{guild_id}.json")["max_messages_in_memory"]
     messages = messages[-max_messages:]
+    print(messages)
     return messages
 
 async def change_activity():
@@ -378,13 +385,18 @@ async def on_ready():
     log("connected", bot.user.name)
     for _guild in bot.guilds:
         server_count += 1
+    random_states[15] = f"{server_count} serveurs !"
     print(f"Serveurs : {server_count}")
     await change_activity()
     if not loop.is_running():
         loop.start()
 
+
+# noinspection PyTypeChecker
 @bot.event
 async def on_message(message: Message):
+    if message.guild is None:
+        return
     check_guild_has_presence(message.guild.id)
     check_has_data_file(message.author.id, message.guild.id)
     content = message.content
@@ -1118,6 +1130,9 @@ async def help(interaction: Interaction):
     -`/reset`: reset tout le serveur en XP, niveaux et argent
     -`/reset_memory` : supprime la mémoire de l'IA (très pratique quand le bot pert la tête ma foi)
     -`/embed <title> <description> <color>` : fait dire au bot ce que vous voulez dans un embed
+    -`/remembers` : affiche le panel des souvenirs. Un souvenir est un message que je n'oublierai jamais, comme une règle où quelque comme ça
+    -`/add_remember <message>` : ajoute un souvenir à ceux du bot
+    -`/delete_remember <id>` : supprime un souvenir selon son ID. L'ID est le nombre à côté du message du souvenir dans le `/remembers`
     """
     await interaction.response.send_message(embed=embed)
 
@@ -1372,6 +1387,43 @@ async def ask(interaction: Interaction, prompt: str):
         log("error", e)
         embed = Embed(color=Colour.red(), title="Error", description=str(e))
         await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="add_remember", description="Ajoute un souvenir au bot qu'il n'oubliera pas")
+@app_commands.describe(message="Souvenir du bot (mettre \\n pour sauter une ligne)")
+@app_commands.checks.has_permissions(administrator=True)
+async def add_remember(interaction: Interaction, message: str):
+    message = message.replace("\\n", "\n")
+    remembers = read_json(f"files/remembers/{interaction.guild.id}.json")
+    ints = [int(key) for key in remembers.keys()]
+    next_id = max(ints) + 1 if remembers else 0
+    remembers[next_id] = message
+    write_json(remembers, f"files/remembers/{interaction.guild.id}.json")
+    await interaction.response.send_message(f"Votre souvenir \"*{message}*\" a bien été enregistré !", ephemeral=True)
+
+@bot.tree.command(name="remembers", description="Ouvre le panel des souvenirs du bot")
+@app_commands.checks.has_permissions(administrator=True)
+async def remembers(interaction: Interaction):
+    remembers = read_json(f"files/remembers/{interaction.guild.id}.json")
+    embed = Embed(title="Souvenirs du bot", color=Color.orange())
+    descr = ""
+    for key in remembers.keys():
+        message = remembers[key]
+        descr += key + " - **" + message + "**\n\n"
+    descr = descr.strip()
+    embed.description = descr
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+@bot.tree.command(name="delete_remember", description="Supprime un souvenir du bot")
+@app_commands.describe(id="ID du souvenir")
+@app_commands.checks.has_permissions(administrator=True)
+async def delete_remember(interaction: Interaction, id:int):
+    remembers = read_json(f"files/remembers/{interaction.guild.id}.json")
+    if str(id) not in remembers.keys():
+        await interaction.response.send_message(f"Vous n'avez pas de souvenir avec l'ID {id}.", ephemeral=True)
+        return
+    del remembers[str(id)]
+    write_json(remembers, f"files/remembers/{interaction.guild.id}.json")
+    await interaction.response.send_message(f"Le souvenir {id} supprimé !", ephemeral=True)
 
 # --------------------------------------RUN---------------------------------------------
 
