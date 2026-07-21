@@ -312,7 +312,7 @@ async def change_activity():
 # ---------------------------------VARIABLES------------------------------------------
 
 system = "Tu es BelloBot, un bot Discord créé par Bello le Slime. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport. Tu peux également utiliser des commandes : \n/gif <query> : recherche un gif sur giphy. query doit être entouré de guillements \"."
-model = "meta-llama/Meta-Llama-3-8B-Instruct"
+model = "meta-llama/Llama-3.1-8B-Instruct"
 image_model = "stabilityai/stable-diffusion-xl-base-1.0"
 server_count = 0
 
