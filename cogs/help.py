@@ -58,8 +58,13 @@ class Help(commands.Cog):
         L'XP et l'argent se gagnent tous deux en étant simplement actif sur le serveur. 5 XP / msg, et 10{flamcoin_symbol} / msg.
         L'XP ne sert à absolument rien si ce n'est flex devant les gens du serveur.
         L'argent du bot s'appelle le Flamcoin, dit {flamcoin_symbol}, il permet d'acheter des objets au shop.
+        """
+        await ctx.send(embed=embed)
 
+        embed = discord.Embed(title="", description=
+        """
         ## COMMANDES ADMIN
+        
         - PRATIQUE
         -`/config <key> <value>` : configure le bot. Il y a différents types de valer attendues. Par exemple, la clé xp_channel (pour le salon où le bot envoie les passages de niveau) n'accepte que les salons texte.
         -`/embed <title> <description> <color>` : fait dire au bot ce que vous voulez dans un embed
@@ -73,11 +78,7 @@ class Help(commands.Cog):
         -`/remembers` : affiche le panel des souvenirs. Un souvenir est un message que je n'oublierai jamais, comme une règle où quelque comme ça
         -`/add_remember <message>` : ajoute un souvenir à ceux du bot
         -`/delete_remember <id>` : supprime un souvenir selon son ID. L'ID est le nombre à côté du message du souvenir dans le `/remembers`
-        """
-        await ctx.send(embed=embed)
-
-        embed = discord.Embed(title="", description=
-        """
+        
         ## À L'AIDE !
         Si le bot a un problème, n'hésitez pas à demander en MP à son crétaeur, bello_leslime, pour qu'il regarde les logs. Le problème est souvent :
         -**Un bug niveau code**
