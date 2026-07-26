@@ -86,27 +86,39 @@ async def send_image(ctx: commands.Context, image, text=""):
     await ctx.send(text, file=file)
 
 def get_user_data(user_id, guild_id):
+    check_guild_has_presence(guild_id)
+    check_has_data_file(user_id, guild_id)
     return read_json(f"files/user_info/{guild_id}/{user_id}.json")
 
 def set_user_data(user_id, guild_id, data):
+    check_guild_has_presence(guild_id)
+    check_has_data_file(user_id, guild_id)
     write_json(data, f"files/user_info/{guild_id}/{user_id}.json")
 
 def get_config(guild_id):
+    check_guild_has_presence(guild_id)
     return read_json(f"files/config/{guild_id}.json")
 
 def set_config(guild_id, data):
+    check_guild_has_presence(guild_id)
     write_json(data, f"files/config/{guild_id}.json")
 
 def get_alarms(user_id, guild_id):
+    check_guild_has_presence(guild_id)
+    check_has_data_file(user_id, guild_id)
     return read_json(f"files/alarms/{guild_id}/{user_id}.json")
 
 def set_alarms(user_id, guild_id, data):
+    check_guild_has_presence(guild_id)
+    check_has_data_file(user_id, guild_id)
     write_json(data, f"files/alarms/{guild_id}/{user_id}.json")
 
 def get_remembers(guild_id):
+    check_guild_has_presence(guild_id)
     return read_json(f"files/remembers/{guild_id}.json")
 
 def set_remembers(guild_id, data):
+    check_guild_has_presence(guild_id)
     write_json(data, f"files/remembers/{guild_id}.json")
 
 def get_gif(query):
