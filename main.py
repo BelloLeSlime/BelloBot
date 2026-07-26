@@ -299,6 +299,7 @@ def get_messages(guild_id):
                              "BelloBot(forbellobot) : ")})
     max_messages = read_json(f"files/config/{guild_id}.json")["max_messages_in_memory"]
     messages = messages[-max_messages:]
+    print(messages)
     return messages
 
 async def change_activity():
