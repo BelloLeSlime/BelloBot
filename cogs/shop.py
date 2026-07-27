@@ -85,8 +85,6 @@ class ShopSelect(discord.ui.Select):
 
         super().__init__(
             placeholder="Choisis un objet à acheter...",
-            min_values=1,
-            max_values=1,
             options=options
         )
 

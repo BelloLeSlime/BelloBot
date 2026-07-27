@@ -54,16 +54,22 @@ def check_has_data_file(user_id, guild_id):
     if not str(guild_id) in os.listdir("files/user_info/"):
         os.makedirs(f"files/user_info/{guild_id}")
     try:
-        if not str(user_id) + ".json" in os.listdir(f"./files/user_info/{guild_id}/"):
+        if not str(user_id) + ".json" in os.listdir(f"files/user_info/{guild_id}/"):
             write_json({"xp": 0, "level": 1, "money": 0, "mult_xp": 1, "mult_money": 1, "temp_effects": {}, "items": {}},
                        f"files/user_info/{guild_id}/{user_id}.json")
     except:
         pass
     try:
-        if not str(user_id) + ".json" in os.listdir(f"./files/alarms/{guild_id}/"):
+        if not str(user_id) + ".json" in os.listdir(f"files/alarms/{guild_id}/"):
             write_json({}, f"files/alarms/{guild_id}/{user_id}.json")
     except:
         pass
+    if not str(user_id) + ".json" in os.listdir(f"files/slimania_inventory/"):
+        write_json({
+            "last_roll": 0,
+            "inventory": {}
+        },
+        f"files/slimania_inventory/{user_id}.json")
 
 def check_guild_has_presence(guild_id):
     if not str(guild_id) + ".json" in os.listdir(f"./files/config/"):
@@ -120,6 +126,22 @@ def get_remembers(guild_id):
 def set_remembers(guild_id, data):
     check_guild_has_presence(guild_id)
     write_json(data, f"files/remembers/{guild_id}.json")
+
+def get_slime_list():
+    return read_json("files/slime_list.json")
+
+def get_slime_per_rank():
+    return read_json("files/slime_per_rank.json")
+
+def get_slimania_inventory(user_id, guild_id):
+    check_guild_has_presence(guild_id)
+    check_has_data_file(user_id, guild_id)
+    return read_json(f"files/slimania_inventory/{guild_id}/{user_id}.json")
+
+def set_slimania_inventory(user_id, guild_id, data):
+    check_guild_has_presence(guild_id)
+    check_has_data_file(user_id, guild_id)
+    write_json(data, f"files/slimania_inventory/{guild_id}/{user_id}.json")
 
 def get_gif(query):
     url = "https://api.giphy.com/v1/gifs/search"
@@ -346,6 +368,7 @@ async def dm_process(bot, message: discord.Message):
 async def on_message(bot, message: discord.Message):
     if message.guild is None:
         await dm_process(bot, message)
+        return
     check_guild_has_presence(message.guild.id)
     check_has_data_file(message.author.id, message.guild.id)
 

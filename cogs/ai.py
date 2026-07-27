@@ -74,10 +74,10 @@ class Ai(commands.Cog):
         else:
             await ctx.channel.send("Ma mémoire ne sera pas réinitialisée !")
 
-    @commands.command(name="generate_image")
+    @commands.hybrid_command(name="generate_image")
     async def generate_image(self, ctx: commands.Context, prompt: str, negative_prompt: str = "", width: int = 1024, height: int = 1024, steps: int = 30):
-        f"""
-        Génère une image pour la modique somme de 500{flamcoin_symbol} + le nombre d'étapes
+        """
+        Génère une image pour la modique somme de 500₣ + le nombre d'étapes
         :param ctx: 
         :param prompt: Description de l'image
         :param negative_prompt: Ce qu'il n'y a pas dans l'image
