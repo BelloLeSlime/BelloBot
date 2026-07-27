@@ -1,0 +1,602 @@
+{
+  "1": {
+    "name": "Bello",
+    "rank": "F"
+  },
+  "2": {
+    "name": "Flambo",
+    "rank": "Z"
+  },
+  "3": {
+    "name": "Blobby",
+    "rank": "B"
+  },
+  "4": {
+    "name": "Ceraris",
+    "rank": "D"
+  },
+  "5": {
+    "name": "Drieux",
+    "rank": "UZ"
+  },
+  "6": {
+    "name": "Roi Cookie 1er",
+    "rank": "Z"
+  },
+  "7": {
+    "name": "Bald\u00e9o",
+    "rank": "Z"
+  },
+  "8": {
+    "name": "Dylan",
+    "rank": "S"
+  },
+  "9": {
+    "name": "Capitaine Ifris",
+    "rank": "S"
+  },
+  "10": {
+    "name": "Paavot",
+    "rank": "C"
+  },
+  "11": {
+    "name": "Bao",
+    "rank": "UZ"
+  },
+  "12": {
+    "name": "Satatros",
+    "rank": "Z"
+  },
+  "13": {
+    "name": "S.A.",
+    "rank": "A"
+  },
+  "14": {
+    "name": "Abyl",
+    "rank": "A"
+  },
+  "15": {
+    "name": "Jibril",
+    "rank": "Z"
+  },
+  "16": {
+    "name": "Monica",
+    "rank": "S"
+  },
+  "17": {
+    "name": "Tatami",
+    "rank": "S"
+  },
+  "18": {
+    "name": "G\u00e9lashyas",
+    "rank": "E"
+  },
+  "19": {
+    "name": "Maestro",
+    "rank": "E"
+  },
+  "20": {
+    "name": "Splat",
+    "rank": "C"
+  },
+  "21": {
+    "name": "Gluey",
+    "rank": "C"
+  },
+  "22": {
+    "name": "Tristan",
+    "rank": "B"
+  },
+  "23": {
+    "name": "Censure Boy",
+    "rank": "S"
+  },
+  "24": {
+    "name": "Boing",
+    "rank": "D"
+  },
+  "25": {
+    "name": "Blobby",
+    "rank": "S"
+  },
+  "26": {
+    "name": "BelloBot",
+    "rank": "S"
+  },
+  "27": {
+    "name": "Julie",
+    "rank": "D"
+  },
+  "28": {
+    "name": "Akaruka",
+    "rank": "D"
+  },
+  "29": {
+    "name": "Robespingouin",
+    "rank": "B"
+  },
+  "30": {
+    "name": "Christine",
+    "rank": "C"
+  },
+  "31": {
+    "name": "Clara",
+    "rank": "C"
+  },
+  "32": {
+    "name": "Jean",
+    "rank": "A"
+  },
+  "33": {
+    "name": "Clayd",
+    "rank": "A"
+  },
+  "34": {
+    "name": "Robin",
+    "rank": "A"
+  },
+  "35": {
+    "name": "Slim",
+    "rank": "B"
+  },
+  "36": {
+    "name": "Chronos",
+    "rank": "A"
+  },
+  "37": {
+    "name": "Vipe",
+    "rank": "B"
+  },
+  "38": {
+    "name": "Arania",
+    "rank": "C"
+  },
+  "39": {
+    "name": "Spooky",
+    "rank": "E"
+  },
+  "40": {
+    "name": "Mechaslime",
+    "rank": "D"
+  },
+  "41": {
+    "name": "asphqylm",
+    "rank": "C"
+  },
+  "42": {
+    "name": "Bloodlord",
+    "rank": "C"
+  },
+  "43": {
+    "name": "Starr",
+    "rank": "B"
+  },
+  "44": {
+    "name": "Achille",
+    "rank": "B"
+  },
+  "45": {
+    "name": "Lumos",
+    "rank": "E"
+  },
+  "46": {
+    "name": "Jules / Jibril 2",
+    "rank": "E"
+  },
+  "47": {
+    "name": "Happy",
+    "rank": "E"
+  },
+  "48": {
+    "name": "Sandra",
+    "rank": "C"
+  },
+  "49": {
+    "name": "Roi Cookie 2\u00e8me",
+    "rank": "S"
+  },
+  "50": {
+    "name": "Kozu",
+    "rank": "C"
+  },
+  "51": {
+    "name": "Tobby",
+    "rank": "E"
+  },
+  "52": {
+    "name": "Bouncy",
+    "rank": "B"
+  },
+  "53": {
+    "name": "Peffyl",
+    "rank": "B"
+  },
+  "54": {
+    "name": "N14",
+    "rank": "B"
+  },
+  "55": {
+    "name": "Bidou",
+    "rank": "C"
+  },
+  "56": {
+    "name": "Veggie",
+    "rank": "E"
+  },
+  "57": {
+    "name": "Furiblitz",
+    "rank": "C"
+  },
+  "58": {
+    "name": "Nazkila",
+    "rank": "E"
+  },
+  "59": {
+    "name": "Magn\u00e9to",
+    "rank": "D"
+  },
+  "60": {
+    "name": "\u00c9clair",
+    "rank": "E"
+  },
+  "61": {
+    "name": "Popacool",
+    "rank": "D"
+  },
+  "62": {
+    "name": "Doplphy",
+    "rank": "D"
+  },
+  "63": {
+    "name": "Electrochoc",
+    "rank": "E"
+  },
+  "64": {
+    "name": "Atomus",
+    "rank": "D"
+  },
+  "65": {
+    "name": "T3C#N0SL1M3",
+    "rank": "D"
+  },
+  "66": {
+    "name": "Livr\u00e9rium",
+    "rank": "E"
+  },
+  "67": {
+    "name": "Colnot",
+    "rank": "D"
+  },
+  "68": {
+    "name": "Looove",
+    "rank": "D"
+  },
+  "69": {
+    "name": "Jello",
+    "rank": "E"
+  },
+  "70": {
+    "name": "Flambi",
+    "rank": "C"
+  },
+  "71": {
+    "name": "Tommy",
+    "rank": "E"
+  },
+  "72": {
+    "name": "Jimmy",
+    "rank": "E"
+  },
+  "73": {
+    "name": "UwUgirl",
+    "rank": "D"
+  },
+  "74": {
+    "name": "Nathan / Jibril 3",
+    "rank": "E"
+  },
+  "75": {
+    "name": "Tictic",
+    "rank": "D"
+  },
+  "76": {
+    "name": "Ecto",
+    "rank": "D"
+  },
+  "77": {
+    "name": "Alpha",
+    "rank": "D"
+  },
+  "78": {
+    "name": "B\u00eata",
+    "rank": "D"
+  },
+  "79": {
+    "name": "Gamma",
+    "rank": "D"
+  },
+  "80": {
+    "name": "Delta",
+    "rank": "D"
+  },
+  "81": {
+    "name": "Epsilon",
+    "rank": "E"
+  },
+  "82": {
+    "name": "Dz\u00eata",
+    "rank": "A"
+  },
+  "83": {
+    "name": "Th\u00eata",
+    "rank": "E"
+  },
+  "84": {
+    "name": "I\u00f4ta",
+    "rank": "C"
+  },
+  "85": {
+    "name": "Kappa",
+    "rank": "D"
+  },
+  "86": {
+    "name": "Lambda",
+    "rank": "D"
+  },
+  "87": {
+    "name": "Mu",
+    "rank": "E"
+  },
+  "88": {
+    "name": "Nu",
+    "rank": "E"
+  },
+  "89": {
+    "name": "Omicron",
+    "rank": "E"
+  },
+  "90": {
+    "name": "Pi",
+    "rank": "D"
+  },
+  "91": {
+    "name": "Rh\u00f4",
+    "rank": "D"
+  },
+  "92": {
+    "name": "Sigma",
+    "rank": "S"
+  },
+  "93": {
+    "name": "Tau",
+    "rank": "D"
+  },
+  "94": {
+    "name": "Upsilon",
+    "rank": "E"
+  },
+  "95": {
+    "name": "Psi",
+    "rank": "B"
+  },
+  "96": {
+    "name": "\u00d4m\u00e9ga",
+    "rank": "C"
+  },
+  "97": {
+    "name": "Translator",
+    "rank": "E"
+  },
+  "98": {
+    "name": "Paula",
+    "rank": "E"
+  },
+  "99": {
+    "name": "Mapa",
+    "rank": "E"
+  },
+  "100": {
+    "name": "Avard",
+    "rank": "C"
+  },
+  "101": {
+    "name": "Jean-Pierre",
+    "rank": "E"
+  },
+  "102": {
+    "name": "Yttle",
+    "rank": "D"
+  },
+  "103": {
+    "name": "Buzz",
+    "rank": "A"
+  },
+  "104": {
+    "name": "Vivalive",
+    "rank": "E"
+  },
+  "105": {
+    "name": "Edgar",
+    "rank": "E"
+  },
+  "106": {
+    "name": "Dirty Din",
+    "rank": "E"
+  },
+  "107": {
+    "name": "Veldra",
+    "rank": "B"
+  },
+  "108": {
+    "name": "Picheta",
+    "rank": "A"
+  },
+  "109": {
+    "name": "Evisnake",
+    "rank": "B"
+  },
+  "110": {
+    "name": "Victor",
+    "rank": "E"
+  },
+  "111": {
+    "name": "Pos\u00e9idon",
+    "rank": "A"
+  },
+  "112": {
+    "name": "Triton",
+    "rank": "C"
+  },
+  "113": {
+    "name": "Wonder",
+    "rank": "D"
+  },
+  "114": {
+    "name": "Louiseria",
+    "rank": "C"
+  },
+  "115": {
+    "name": "Boa",
+    "rank": "D"
+  },
+  "116": {
+    "name": "Depardrieux",
+    "rank": "UZ"
+  },
+  "117": {
+    "name": "Zieux (Drieux forme slime)",
+    "rank": "Z"
+  },
+  "118": {
+    "name": "Bao (\u00e0 son arriv\u00e9e)",
+    "rank": "Z"
+  },
+  "119": {
+    "name": "Bao (le mage maudit)",
+    "rank": "Z"
+  },
+  "120": {
+    "name": "Bao (grande guerre contre les d\u00e9mons)",
+    "rank": "Z"
+  },
+  "121": {
+    "name": "Flambo (\u00e9volu\u00e9)",
+    "rank": "UZ"
+  },
+  "122": {
+    "name": "Flambo (conscient)",
+    "rank": "UZ"
+  },
+  "123": {
+    "name": "Bello (jeune)",
+    "rank": "E"
+  },
+  "124": {
+    "name": "Flambo (jeune)",
+    "rank": "S"
+  },
+  "125": {
+    "name": "Blobby (jeune)",
+    "rank": "D"
+  },
+  "126": {
+    "name": "Poubello",
+    "rank": "E"
+  },
+  "127": {
+    "name": "Bello le clown",
+    "rank": "E"
+  },
+  "128": {
+    "name": "Bello le Slime",
+    "rank": "E"
+  },
+  "129": {
+    "name": "Master",
+    "rank": "Z"
+  },
+  "130": {
+    "name": "Master (forme slime)",
+    "rank": "Z"
+  },
+  "131": {
+    "name": "Chef Duculte",
+    "rank": "A"
+  },
+  "132": {
+    "name": "Chef Duculte (boost\u00e9)",
+    "rank": "S"
+  },
+  "133": {
+    "name": "J\u00f6kull",
+    "rank": "C"
+  },
+  "134": {
+    "name": "Auguste",
+    "rank": "C"
+  },
+  "135": {
+    "name": "Elias",
+    "rank": "C"
+  },
+  "136": {
+    "name": "Ziphone",
+    "rank": "B"
+  },
+  "137": {
+    "name": "Slavko",
+    "rank": "B"
+  },
+  "138": {
+    "name": "Kurtz",
+    "rank": "B"
+  },
+  "139": {
+    "name": "Vanessa",
+    "rank": "B"
+  },
+  "140": {
+    "name": "R\u00f6lf",
+    "rank": "D"
+  },
+  "141": {
+    "name": "R\u00f6lf (infect\u00e9)",
+    "rank": "B"
+  },
+  "142": {
+    "name": "Ailha",
+    "rank": "A"
+  },
+  "143": {
+    "name": "Dami\u00e1n",
+    "rank": "A"
+  },
+  "144": {
+    "name": "Aivaas",
+    "rank": "A"
+  },
+  "145": {
+    "name": "Capitaine Ifris (infect\u00e9)",
+    "rank": "S"
+  },
+  "146": {
+    "name": "Incarnation d'\u00d6zlem",
+    "rank": "Z"
+  },
+  "147": {
+    "name": "\u00d6zlem",
+    "rank": "Z"
+  },
+  "148": {
+    "name": "Nj\u00f6rd",
+    "rank": "Z"
+  },
+  "149": {
+    "name": "Astralio",
+    "rank": "D"
+  },
+  "150": {
+    "name": "Titouan",
+    "rank": "A"
+  }
+}

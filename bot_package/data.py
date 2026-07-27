@@ -121,3 +121,5 @@ gambling_quotes = [
     "All the world's a casino, and all the men and women merely gamblers\n- Shakespeare",
     "You can only lose 100% of your money, but you could win 999999999%\n - Unknown"
 ]
+
+image_url = "https://slimepunk.fr/bello/bellobot/slime/"

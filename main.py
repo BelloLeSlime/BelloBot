@@ -1,4 +1,4 @@
-VERSION = "4"
+VERSION = "4.1"
 
 #import stuff
 import os
@@ -25,6 +25,7 @@ import bot_package.error_manager as error_manager
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.presences = True
 
 class LoggingFormatter(logging.Formatter):
     # Colors
