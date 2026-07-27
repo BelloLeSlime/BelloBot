@@ -106,7 +106,7 @@ class Slimania(commands.Cog):
             last_roll = datetime.now(UTC) - timedelta(hours=1)
         if datetime.now(UTC) - last_roll < timedelta(hours=1) and not str(ctx.author.id) in Cf.read_file("files/slimania_no_cooldown.txt"):
             minutes = ((last_roll + timedelta(hours=1)) - datetime.now(UTC)).seconds // 60
-            embed = discord.Embed(color=discord.Color.red(), title="Vous ne pouvez pas acheter de booster :/", description=f"Vous pourrez réutiliser la commande dans {minutes} minutes.")
+            embed = discord.Embed(color=discord.Color.red(), title="Vous ne pouvez pas tirer de slime :/", description=f"Vous pourrez réutiliser la commande dans {minutes} minutes.")
             await ctx.send(embed=embed)
             return
 
