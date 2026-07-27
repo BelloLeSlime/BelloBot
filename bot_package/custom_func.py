@@ -64,12 +64,12 @@ def check_has_data_file(user_id, guild_id):
             write_json({}, f"files/alarms/{guild_id}/{user_id}.json")
     except:
         pass
-    if not str(user_id) + ".json" in os.listdir(f"files/slimania_inventory/"):
+    if not str(user_id) + ".json" in os.listdir(f"files/slimania_inventory/{guild_id}/"):
         write_json({
             "last_roll": 0,
             "inventory": {}
         },
-        f"files/slimania_inventory/{user_id}.json")
+        f"files/slimania_inventory/{guild_id}/{user_id}.json")
 
 def check_guild_has_presence(guild_id):
     if not str(guild_id) + ".json" in os.listdir(f"./files/config/"):
@@ -82,6 +82,8 @@ def check_guild_has_presence(guild_id):
         os.makedirs(f"./files/user_info/{guild_id}/", exist_ok=True)
     if not str(guild_id) in os.listdir(f"./files/alarms/"):
         os.makedirs(f"./files/alarms/{guild_id}/", exist_ok=True)
+    if not str(guild_id) in os.listdir(f"./files/slimania_inventory/"):
+        os.makedirs(f"./files/slimania_inventory/{guild_id}/", exist_ok=True)
 
 async def send_image(ctx: commands.Context, image, text=""):
     buffer = io.BytesIO()
