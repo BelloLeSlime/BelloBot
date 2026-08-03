@@ -83,7 +83,7 @@ class Help(commands.Cog):
         Si le bot a un problème, n'hésitez pas à demander en MP à son crétaeur, bello_leslime, pour qu'il regarde les logs. Le problème est souvent :
         -**Un bug niveau code**
         -**Vous n'avez pas assigné chaque rôle achetable et le salon XP** (demander à un admin de la configurer. Si vous n'en voulez pas, assignez les à des rôles et salons bidons.)
-        -**Je n'ai plus de crédits pour l'IA** : étant donné que j'utilise le plan gratuit d'HuggingFace, je n'ai que 10c gratuit / mois, et c'est probable que trop de requêtes ont été faites que l'IA ne puisse pas répondre.
+        -**Je n'ai plus de crédits pour l'IA** : étant donné que j'utilise le plan gratuit de Google AI Studio, je n'ai que 1500 requêtes gratuites / jour, et c'est probable que trop de requêtes ont été faites que l'IA ne puisse pas répondre.
         -**Bello ce chien m'a coupé et a oublié de me rallumer**
         -**Le Raspbberry Pi sur lequel je tourne a cramé à cause de la canicule**, et donc vous ne verrez plus JAMAIS votre argent ou votre XP.
 

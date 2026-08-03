@@ -1,5 +1,5 @@
 python-dotenv
-huggingface-hub
 discord
 pillow
 requests
+google-genai
