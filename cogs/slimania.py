@@ -188,7 +188,7 @@ class Slimania(commands.Cog):
 
             embed = discord.Embed(color=discord.Color.green() if rank in ["F", "E", "D", "C", "B",
                                                                           "A"] else discord.Color.gold() if rank in [
-                "S", "Z"] else discord.Color.purple(), title="Slimania Roll", description=
+                "S", "Z"] else discord.Color.purple(), title=f"Slimania Booster : carte {i + 1} sur 6", description=
                                   f"""
                     Vous avez obtenu {name} ! Il est de rang {rank}.
                     {"✨ Nouveau ! Vous ne l'aviez pas avant" if new else f"Vous l'avez déjà eu, maintenant vous en avez {inv["inventory"][slime]}."}
