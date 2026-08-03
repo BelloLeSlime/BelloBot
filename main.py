@@ -1,4 +1,4 @@
-VERSION = "4.1"
+VERSION = "5"
 
 #import stuff
 import os
@@ -21,11 +21,10 @@ from bot_package.data import *
 from bot_package import custom_func as Cf
 import bot_package.error_manager as error_manager
 
-
-
 intents = discord.Intents.default()
 intents.message_content = True
 intents.presences = True
+intents.voice_states = True
 
 class LoggingFormatter(logging.Formatter):
     # Colors
@@ -204,7 +203,6 @@ class Bot(commands.Bot):
             except:
                 return
             self.logger.error(error_info)
-
 
 
 bot = Bot()

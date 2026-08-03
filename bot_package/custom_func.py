@@ -2,12 +2,16 @@ import json
 import os
 import discord
 from discord.ext import commands
-from huggingface_hub import InferenceClient
-from bot_package.data import HF_TOKEN, GIPHY_TOKEN, model, system
+from google import genai
+from google.genai import types
+from google.genai import errors
+from bot_package.data import AI_TOKEN, GIPHY_TOKEN, model, system
 import io
 import requests
 import re
 from datetime import datetime, UTC, timedelta
+
+#------------------------------------------------------------FILE MANAGEMENT
 
 def write_file(message, path):
     message = message.replace("\n", " ")
@@ -30,24 +34,68 @@ def read_json(path):
         data = json.loads(file.read())
         return data
 
-def ask_ai(messages, model):
-        client = InferenceClient(token=HF_TOKEN)
-        response = client.chat_completion(
+#------------------------------------------------------------AI STUFF
+
+async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = False, dm = False) -> str:
+    client = genai.Client(api_key=AI_TOKEN)
+    if not no_memory:
+        if not dm:
+            messages = get_messages(guild)
+            messages.pop()
+            remembers = get_remembers(guild)
+            system_str = system
+            for remember in remembers:
+                system_str += " \n" + remembers[remember]
+
+            chat = client.chats.create(
+                model=model,
+                history=messages,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_str
+                )
+            )
+
+            response = chat.send_message(f"{user} : {prompt}")
+            answer = response.text
+            write_file(f"BelloBot(forbellobot) : {answer}", f"files/messages/{guild}.txt")
+            return answer
+        else:
+            messages = get_dm(guild)
+            system_str = system
+
+            chat = client.chats.create(
+                model=model,
+                history=messages,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_str
+                )
+            )
+
+            response = chat.send_message(f"{user} : {prompt}")
+            answer = response.text
+            write_file(f"BelloBot(forbellobot) : {answer}", f"files/dms/{guild}.txt")
+            return answer
+
+    else:
+        chat = client.chats.create(
             model=model,
-            messages=messages
         )
-        return response.choices[0].message.content
+
+        response = chat.send_message(prompt)
+        answer = response.text
+        return answer
 
 def text_to_image(prompt, model, negative_prompt, width=1024, height=1024, steps=30):
-        client = InferenceClient(token=HF_TOKEN)
-        image = client.text_to_image(prompt=prompt, model=model, negative_prompt=negative_prompt, width=width,
-                                     height=height, num_inference_steps=steps)
-        return image
+        pass
+
+#------------------------------------------------------------ECONOMY MANAGEMENT
 
 def add_item(guild_id: int, user_id: int, item: str):
     data = get_user_data(guild_id, user_id)
     data["items"][item] = data["items"][item] + 1 if item in data["items"] else 1
     set_user_data(guild_id, user_id, data)
+
+#------------------------------------------------------------CHECKS
 
 def check_has_data_file(user_id, guild_id):
     check_guild_has_presence(guild_id)
@@ -85,13 +133,7 @@ def check_guild_has_presence(guild_id):
     if not str(guild_id) in os.listdir(f"./files/slimania_inventory/"):
         os.makedirs(f"./files/slimania_inventory/{guild_id}/", exist_ok=True)
 
-async def send_image(ctx: commands.Context, image, text=""):
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
-    buffer.seek(0)
-
-    file = discord.File(fp=buffer, filename="generated.png")
-    await ctx.send(text, file=file)
+#------------------------------------------------------------GET AND SET DATA
 
 def get_user_data(user_id, guild_id):
     check_guild_has_presence(guild_id)
@@ -145,6 +187,39 @@ def set_slimania_inventory(user_id, guild_id, data):
     check_has_data_file(user_id, guild_id)
     write_json(data, f"files/slimania_inventory/{guild_id}/{user_id}.json")
 
+def get_messages(guild_id):
+    messages = []
+    for msg in read_file(f"files/messages/{guild_id}.txt"):
+        msg = str(msg)
+        author = msg.split(" : ")[0]
+        messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "model",
+                         "parts": [{"text": msg if author != "BelloBot(forbellobot)" else msg.removeprefix(
+                             "BelloBot(forbellobot) : ")}]})
+    max_messages = read_json(f"files/config/{guild_id}.json")["max_messages_in_memory"]
+    messages = messages[-max_messages:]
+    return messages
+
+def get_dm(user_id: int):
+    messages = []
+    for msg in read_file(f"files/dms/{user_id}.txt"):
+        msg = str(msg)
+        split = msg.split(" : ")
+        author = split[0]
+        messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "model",
+                         "parts": [{"text": split[1]}]})
+        messages = messages[-50:]
+    return messages
+
+#------------------------------------------------------------MISC
+
+async def send_image(ctx: commands.Context, image, text=""):
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    file = discord.File(fp=buffer, filename="generated.png")
+    await ctx.send(text, file=file)
+
 def get_gif(query):
     url = "https://api.giphy.com/v1/gifs/search"
 
@@ -177,42 +252,7 @@ def parse_text(text):
 
     return text
 
-def get_messages(guild_id, system):
-    messages = [
-        {"role": "system", "content": system},
-    ]
-    remembers = get_remembers(guild_id)
-    for message in remembers.values():
-        messages.append({"role": "system", "content": message})
-    for msg in read_file(f"files/messages/{guild_id}.txt"):
-        msg = str(msg)
-        author = msg.split(" : ")[0]
-        messages.append({"role": "user" if not author in ["BelloBot(forbellobot)", "system(forbellobot)"] else {"assistant" if author == "BelloBot(forbellobot)" else "system"},
-                         "content": msg if author != "BelloBot(forbellobot)" else msg.removeprefix(
-                             "BelloBot(forbellobot) : ")})
-    max_messages = read_json(f"files/config/{guild_id}.json")["max_messages_in_memory"]
-    messages = messages[-max_messages:]
-    return messages
-
-def get_dm(user_id: int, system, user_display_name):
-    messages = [
-        {"role": "system", "content": system},
-        {"role": "system", "content": f"Tu parles ici avec {user_display_name}"},
-    ]
-    for msg in read_file(f"files/dms/{user_id}.txt"):
-        msg = str(msg)
-        split = msg.split(" : ")
-        author = split[0]
-        messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "assistant",
-                         "content": split[1]})
-        messages = messages[-50:]
-        return messages
-
-async def ask_bellobot(message, messages):
-    answer = ask_ai(messages, model)
-    to_send = parse_text(answer)
-    write_file("BelloBot(forbellobot) : " + answer, f"files/messages/{message.guild.id}.txt")
-    return to_send
+#------------------------------------------------------------ON MESSAGE PROCESS
 
 async def ai_process(bot, message):
     content = message.content
@@ -228,7 +268,6 @@ async def ai_process(bot, message):
                 f"<#{channel.id}>",
                 f"#{channel.name}"
             )
-
         for role in message.role_mentions:
             content = content.replace(
                 f"<@&{role.id}>",
@@ -238,10 +277,16 @@ async def ai_process(bot, message):
         write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
         if bot.user in message.mentions and message.author != bot.user:
             try:
-                answer = await ask_bellobot(message, get_messages(message.guild.id, system))
-                await message.reply(answer)
-            except:
-                pass
+                async with message.channel.typing():
+                    answer = await ask_ai(content, message.author.display_name, message.guild.id)
+                    to_send = parse_text(answer)
+                    await message.reply(to_send)
+            except errors.ClientError:
+                await warn_no_more_credits(message)
+                write_file("BelloBot(forbellobot) : Désolé, plus de crédits pour l'IA (réessayez demain !)", f"files/messages/{message.guild.id}.txt")
+            except errors.ServerError:
+                await message.channel.send(f"Désolé, mais le serveur de Google peine en ce moment... Veuillez réessayer plus tard !")
+                write_file("BelloBot(forbellobot) : Problème avec le serveur de Google, réessayez plus tard !",f"files/messages/{message.guild.id}.txt")
 
 async def xp_process(bot, message):
     config = get_config(message.guild.id)
@@ -334,24 +379,25 @@ async def polls_process(message):
         poll = message.poll
         title = poll.question
         answers = poll.answers
+
         prompt = f"Un nouveau sondage a été publié par {message.author.display_name} : {title} \n Tu as le choix entre : \n"
         for answer in answers:
             prompt += f"-{answer.id} : {answer.emoji if answer.emoji else ""} {answer.text}\n"
         prompt += f"{"Le sondage autorise plusieurs réponse." if poll.multiple else "Le sondage n'autorise qu'une seule réponse."} Décris le pour et le contre de chaque réponse, et dit ton opinion en te basant sur tes souvenirs et ta raison, et emmet un avis objectif de la question, sauf si cette dernière est tout sauf objectif bien entendu."
-        messages = get_messages(message.guild.id, system)
-        messages.append({"role": "system", "content": prompt})
-        ai_answer = ask_ai(messages, model)
+
+        ai_answer = await ask_ai(prompt, message.author.display_name, message.guild.id)
         thread: discord.Thread = await message.create_thread(
-            name=f"📊 Discussion : {poll.question}",
+            name=f"📊 Discussion : {poll.question}"[:97]+"..." if len(f"📊 Discussion : {poll.question}") > 100 else "",
             auto_archive_duration=1440
         )
         await thread.send(ai_answer)
-        write_file("system(forbellobot) : " + prompt, f"files/messages/{message.guild.id}.txt")
-        write_file("BelloBot(forbellobot) : " + ai_answer, f"files/messages/{message.guild.id}.txt")
+        write_file(f"{message.author.display_name} : " + prompt, f"files/messages/{message.guild.id}.txt")
 
 async def dm_process(bot, message: discord.Message):
     content = message.content
     if not message.author == bot.user:
+        if not str(message.author.id) + ".txt" in os.listdir("files/dms/"):
+            write_file("", "files/dms/" + str(message.author.id) + ".txt")
         author = message.author.display_name
         for mention in message.mentions:
             content = content.replace(
@@ -362,10 +408,13 @@ async def dm_process(bot, message: discord.Message):
         write_file(author + " : " + content, f"files/dms/{message.author.id}.txt")
         if bot.user in message.mentions and message.author != bot.user:
             try:
-                answer = await ask_bellobot(message, get_dm(message.author.id, system, message.author.display_name))
-                await message.reply(answer)
-            except:
+                answer = await ask_ai(content, message.author.display_name, message.author.id, dm = True)
+                to_send = parse_text(answer)
+                await message.reply(to_send)
+            except errors.ClientError:
                 await warn_no_more_credits(message=message)
+
+#------------------------------------------------------------ON MESSAGE FUNCTION
 
 async def on_message(bot, message: discord.Message):
     if message.guild is None:
@@ -374,21 +423,22 @@ async def on_message(bot, message: discord.Message):
     check_guild_has_presence(message.guild.id)
     check_has_data_file(message.author.id, message.guild.id)
 
-    # ai
     await ai_process(bot, message)
 
-    # xp
     await xp_process(bot, message)
 
-    # polls
     await polls_process(message)
 
+#------------------------------------------------------------WARN NO MORE CREDITS
+
 async def warn_no_more_credits(message = None, ctx = None):
-    embed = discord.Embed(color=discord.Color.red(), title="Plus de crédits !", description="Le bot n'a plus de crédits pour remplir pleinement ses fonctions IA. Il y en aura un petit peu le mois prochain. Désolé !")
+    embed = discord.Embed(color=discord.Color.red(), title="Plus de crédits !", description="Le bot n'a plus de crédits pour remplir pleinement ses fonctions IA. Il y en aura de nouveau demain. Désolé !")
     if message:
         await message.reply(embed=embed)
     elif ctx:
         await ctx.send(embed=embed)
+
+#------------------------------------------------------------CHECK ALARMS
 
 async def check_alarm(bot):
     # alarm

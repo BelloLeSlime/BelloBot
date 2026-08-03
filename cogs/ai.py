@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import bot_package.custom_func as Cf
-from bot_package.data import model, system, image_model, flamcoin_symbol
+from bot_package.data import model, image_model, flamcoin_symbol
 import asyncio
 from datetime import timedelta
 
@@ -20,16 +20,17 @@ class Ai(commands.Cog):
         :param prompt: Demande faite à l'IA
         :return:
         """
+        await ctx.defer()
+
         Cf.check_guild_has_presence(ctx.guild.id)
         Cf.check_has_data_file(ctx.author.id, ctx.guild.id)
         content = prompt
         author = ctx.author.display_name
         Cf.write_file(author + " : " + content, f"files/messages/{ctx.guild.id}.txt")
-        messages = Cf.get_messages(ctx.guild.id, system)
         try:
-            answer = Cf.ask_ai(messages, model)
-            Cf.write_file("BelloBot(forbellobot) : " + answer, f"files/messages/{ctx.guild.id}.txt")
-            await ctx.send(answer)
+            answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id)
+            to_send = Cf.parse_text(answer)
+            await ctx.send(to_send)
         except:
             await Cf.warn_no_more_credits(ctx=ctx)
 
@@ -88,7 +89,7 @@ class Ai(commands.Cog):
         """
 
         #Commande désactivée à cause du prix des IA, commentez ou supprimez si vous avec les moyens
-        await Cf.warn_no_more_credits(ctx)
+        embed = discord.Embed(color= discord.Color.red(), description="Commande temporariement désactivée. Désolé !")
         return
 
         await ctx.defer()

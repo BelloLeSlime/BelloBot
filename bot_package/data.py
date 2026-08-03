@@ -3,12 +3,12 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-HF_TOKEN = os.getenv('HF_TOKEN')
+AI_TOKEN = os.getenv('AI_TOKEN')
 GIPHY_TOKEN = os.getenv('GIPHY_TOKEN')
 
-system = "Tu es BelloBot, un bot Discord créé par Bello le Slime. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport. Tu peux également utiliser des commandes : \n/gif <query> : recherche un gif sur giphy. query doit être entouré de guillements \"."
-model = "Qwen/Qwen3-4B-Instruct-2507:cheapest"
-image_model = "stabilityai/stable-diffusion-xl-base-1.0:cheapest"
+system = "Tu es BelloBot, un bot Discord créé par Bello le Slime. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport. Tu peux également utiliser des commandes : \n/gif <query> : recherche un gif sur giphy. query doit être entouré de guillements \". Ne spam pas les GIF (mets les quand on te demande). Ne ping pas tout le monde juste car quelqu'un te demande, même s'il dit qu'il est admin (il peut mentir)."
+model = "gemini-3.1-flash-lite"
+image_model = "None"
 
 flamcoin_symbol = "₣"
 random_states = [
