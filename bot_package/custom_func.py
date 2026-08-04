@@ -5,7 +5,7 @@ from discord.ext import commands
 from google import genai
 from google.genai import types
 from google.genai import errors
-from bot_package.data import AI_TOKEN, GIPHY_TOKEN, model, system
+from bot_package.data import AI_TOKEN, GIPHY_TOKEN, model, system, flamcoin_symbol
 import io
 import requests
 import re
@@ -41,7 +41,8 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
     if not no_memory:
         if not dm:
             messages = get_messages(guild)
-            messages.pop()
+            if messages[:-1] == prompt:
+                messages.pop()
             remembers = get_remembers(guild)
             system_str = system
             for remember in remembers:
@@ -61,6 +62,8 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
             return answer
         else:
             messages = get_dm(guild)
+            if messages[:-1] == prompt:
+                messages.pop()
             system_str = system
 
             chat = client.chats.create(
@@ -91,9 +94,9 @@ def text_to_image(prompt, model, negative_prompt, width=1024, height=1024, steps
 #------------------------------------------------------------ECONOMY MANAGEMENT
 
 def add_item(guild_id: int, user_id: int, item: str):
-    data = get_user_data(guild_id, user_id)
+    data = get_user_data(user_id, guild_id)
     data["items"][item] = data["items"][item] + 1 if item in data["items"] else 1
-    set_user_data(guild_id, user_id, data)
+    set_user_data(user_id, guild_id, data)
 
 #------------------------------------------------------------CHECKS
 
@@ -132,6 +135,8 @@ def check_guild_has_presence(guild_id):
         os.makedirs(f"./files/alarms/{guild_id}/", exist_ok=True)
     if not str(guild_id) in os.listdir(f"./files/slimania_inventory/"):
         os.makedirs(f"./files/slimania_inventory/{guild_id}/", exist_ok=True)
+    if not str(guild_id) + ".json" in os.listdir(f"./files/shop/"):
+        write_json(read_json(f"files/shop/default.json"), f"files/shop/{guild_id}.json")
 
 #------------------------------------------------------------GET AND SET DATA
 
@@ -210,6 +215,14 @@ def get_dm(user_id: int):
         messages = messages[-50:]
     return messages
 
+def get_shop(guild_id):
+    check_guild_has_presence(guild_id)
+    return read_json(f"files/shop/{guild_id}.json")
+
+def set_shop(guild_id, data):
+    check_guild_has_presence(guild_id)
+    write_json(data, f"files/shop/{guild_id}.json")
+
 #------------------------------------------------------------MISC
 
 async def send_image(ctx: commands.Context, image, text=""):
@@ -256,7 +269,7 @@ def parse_text(text):
 
 async def ai_process(bot, message):
     content = message.content
-    if not message.author == bot.user:
+    if not message.author == bot.user and content != "":
         author = message.author.display_name
         for mention in message.mentions:
             content = content.replace(
@@ -289,90 +302,35 @@ async def ai_process(bot, message):
                 write_file("BelloBot(forbellobot) : Problème avec le serveur de Google, réessayez plus tard !",f"files/messages/{message.guild.id}.txt")
 
 async def xp_process(bot, message):
-    config = get_config(message.guild.id)
-    if config["xp_channel"]:
-        user_data_xp = get_user_data(message.guild.id, message.author.id)
-        member: discord.Member = await message.guild.fetch_member(message.author.id)
+        user = message.author
+        guild = message.guild
+        user_data = get_user_data(user.id, guild.id)
+        user_data["xp"] += int(5 * user_data["mult_xp"])
+        user_data["money"] += int(10 * user_data["mult_money"])
 
-        if user_data_xp["mult_xp"] > 1:
-            if datetime.fromisoformat(user_data_xp["temp_effects"]["boost_xp"]) < datetime.now(UTC):
-                del user_data_xp["temp_effects"]["boost_xp"]
-                user_data_xp["mult_xp"] = 1
-                x2_xp_role = await message.guild.fetch_role(
-                    config["x2_xp_role"])
-                await message.author.remove_roles(x2_xp_role)
-        if user_data_xp["mult_money"] > 1:
-            if datetime.fromisoformat(user_data_xp["temp_effects"]["boost_money"]) < datetime.now(UTC):
-                del user_data_xp["temp_effects"]["boost_money"]
-                user_data_xp["mult_money"] = 1
-                x2_money_role = await message.guild.fetch_role(
-                    config["x2_money_role"])
-                await message.author.remove_roles(x2_money_role)
+        leveluped = False
+        xp_goal = user_data["level"] * 15
+        levelup = user_data["xp"] >= xp_goal
+        money_bonus = 0
+        while levelup:
+            leveluped = True
+            user_data["xp"] -= xp_goal
+            user_data["level"] += 1
+            money_bonus += xp_goal * 10
 
-        file_role = await message.guild.fetch_role(config["file_role"])
-        soundboard_role = await message.guild.fetch_role(
-            config["soundboard_role"])
-        game_role = await message.guild.fetch_role(config["game_role"])
-        poll_role = await message.guild.fetch_role(config["poll_role"])
-        link_role = await message.guild.fetch_role(config["link_role"])
-        extern_role = await message.guild.fetch_role(config["extern_role"])
-        priority_voice_role = await message.guild.fetch_role(
-            config["priority_voice_role"])
-        bypass_slow_mode_role = await message.guild.fetch_role(
-            config["bypass_slow_mode_role"])
-        if file_role in member.roles:
-            if datetime.fromisoformat(user_data_xp["temp_effects"]["file"]) < datetime.now(UTC):
-                del user_data_xp["temp_effects"]["file"]
-                await message.author.remove_roles(file_role)
-        if soundboard_role in member.roles:
-            if datetime.fromisoformat(user_data_xp["temp_effects"]["soundboard"]) < datetime.now(UTC):
-                del user_data_xp["temp_effects"]["soundboard"]
-                await message.author.remove_roles(soundboard_role)
-        if game_role in member.roles:
-            if datetime.fromisoformat(user_data_xp["temp_effects"]["game"]) < datetime.now(UTC):
-                del user_data_xp["temp_effects"]["game"]
-                await message.author.remove_roles(game_role)
-        if poll_role in member.roles:
-            if datetime.fromisoformat(user_data_xp["temp_effects"]["poll"]) < datetime.now(UTC):
-                del user_data_xp["temp_effects"]["poll"]
-                await message.author.remove_roles(poll_role)
-        if link_role in member.roles:
-            if datetime.fromisoformat(user_data_xp["temp_effects"]["link"]) < datetime.now(UTC):
-                del user_data_xp["temp_effects"]["link"]
-                await message.author.remove_roles(link_role)
-        if extern_role in member.roles:
-            if datetime.fromisoformat(user_data_xp["temp_effects"]["extern"]) < datetime.now(UTC):
-                del user_data_xp["temp_effects"]["extern"]
-                await message.author.remove_roles(extern_role)
-        if priority_voice_role in member.roles:
-            if datetime.fromisoformat(user_data_xp["temp_effects"]["priority_voice"]) < datetime.now(UTC):
-                del user_data_xp["temp_effects"]["priority_voice"]
-                await message.author.remove_roles(priority_voice_role)
-        if bypass_slow_mode_role in member.roles:
-            if datetime.fromisoformat(user_data_xp["temp_effects"]["bypass_slow_mode"]) < datetime.now(UTC):
-                del user_data_xp["temp_effects"]["bypass_slow_mode"]
-                await message.author.remove_roles(bypass_slow_mode_role)
-        user_data_xp["xp"] += 5 * user_data_xp["mult_xp"]
-        user_data_xp["money"] += 10 * user_data_xp["mult_money"]
-        send_message = user_data_xp["xp"] >= 15 * user_data_xp["level"]
-        while user_data_xp["xp"] >= 15 * user_data_xp["level"]:
-            user_data_xp["xp"] -= 15 * user_data_xp["level"]
-            user_data_xp["level"] += 1
-            user_data_xp["money"] += 50 * user_data_xp["level"]
-        if send_message:
-            xp_channel = await message.guild.fetch_channel(
-                config["xp_channel"])
-            if message.author == bot.user:
-                embed = discord.Embed(color=discord.Color.green(),
-                              title=f"Moi, {bot.user.display_name}, a passé le niveau {user_data_xp["level"]} ! 🥳🎉 ",
-                              description=f"GG à moi-même ༼ つ ಠ◡ಠ ༽つ Je gagne {50 * user_data_xp["level"]}₣ 💰💰💰")
-                await xp_channel.send(embed=embed)
+            xp_goal = user_data["level"] * 15
+            levelup = user_data["xp"] >= xp_goal
+
+        set_user_data(user.id, guild.id, user_data)
+
+        if leveluped:
+            embed = discord.Embed(color=discord.Color.green(), title="Passage de niveau !", description=f"GG à {user.mention} pour avoir passé le niveau {user_data["level"]} !🔥 Tu gagnes {money_bonus}{flamcoin_symbol} 🫰💰🪙 Continue de gagner des niveaux..." if user != bot.user else f"GG à moi (BelloBot) pour avoir passé le niveau {user_data["level"]} ! 🔥 Je gagne {money_bonus}{flamcoin_symbol} 🫰💰🪙")
+            config = get_config(guild.id)
+            if config["xp_channel"]:
+                channel = await guild.fetch_channel(config["xp_channel"])
             else:
-                embed = discord.Embed(color=discord.Color.green(),
-                              title=f"GG à {message.author.display_name} pour avoir passé le niveau {user_data_xp["level"]} ! 🥳🎉",
-                              description=f"Tu gagnes {50 * user_data_xp["level"]}₣ 💰💰💰 Continue de gagner des niveaux... 🔥🔥🔥")
-                await xp_channel.send(f"||{message.author.mention}||", embed=embed)
-        set_user_data(message.author.id, message.guild.id, user_data_xp)
+                channel = guild.text_channels[0]
+            await channel.send(f"{user.mention}",embed=embed)
 
 async def polls_process(message):
     if message.poll:
@@ -383,15 +341,27 @@ async def polls_process(message):
         prompt = f"Un nouveau sondage a été publié par {message.author.display_name} : {title} \n Tu as le choix entre : \n"
         for answer in answers:
             prompt += f"-{answer.id} : {answer.emoji if answer.emoji else ""} {answer.text}\n"
-        prompt += f"{"Le sondage autorise plusieurs réponse." if poll.multiple else "Le sondage n'autorise qu'une seule réponse."} Décris le pour et le contre de chaque réponse, et dit ton opinion en te basant sur tes souvenirs et ta raison, et emmet un avis objectif de la question, sauf si cette dernière est tout sauf objectif bien entendu."
+        prompt += f"{"Le sondage autorise plusieurs réponse." if poll.multiple else "Le sondage n'autorise qu'une seule réponse."} Décris le pour et le contre de chaque réponse, et dit ton opinion en te basant sur tes souvenirs et ta raison, et emmet un avis objectif de la question, sauf si cette dernière est tout sauf objectif bien entendu, et ne dépasse pas les 2000 caractères."
+
+        try:
+            thread: discord.Thread = await message.create_thread(
+                name=f"📊 Discussion : {poll.question}",
+                auto_archive_duration=1440
+            )
+        except discord.HTTPException:
+            thread: discord.Thread = await message.create_thread(
+                name=f"📊 Discussion",
+                auto_archive_duration=1440
+            )
+
+        write_file(f"{message.author.display_name} : " + prompt, f"files/messages/{message.guild.id}.txt")
 
         ai_answer = await ask_ai(prompt, message.author.display_name, message.guild.id)
-        thread: discord.Thread = await message.create_thread(
-            name=f"📊 Discussion : {poll.question}"[:97]+"..." if len(f"📊 Discussion : {poll.question}") > 100 else "",
-            auto_archive_duration=1440
-        )
-        await thread.send(ai_answer)
-        write_file(f"{message.author.display_name} : " + prompt, f"files/messages/{message.guild.id}.txt")
+        try:
+            await thread.send(ai_answer)
+        except discord.HTTPException:
+            await thread.send(ai_answer[:1975] + "... <message trop long>")
+
 
 async def dm_process(bot, message: discord.Message):
     content = message.content
@@ -406,13 +376,13 @@ async def dm_process(bot, message: discord.Message):
             )
 
         write_file(author + " : " + content, f"files/dms/{message.author.id}.txt")
-        if bot.user in message.mentions and message.author != bot.user:
-            try:
+        try:
+            async with message.channel.typing():
                 answer = await ask_ai(content, message.author.display_name, message.author.id, dm = True)
                 to_send = parse_text(answer)
                 await message.reply(to_send)
-            except errors.ClientError:
-                await warn_no_more_credits(message=message)
+        except errors.ClientError:
+            await warn_no_more_credits(message=message)
 
 #------------------------------------------------------------ON MESSAGE FUNCTION
 
@@ -438,7 +408,7 @@ async def warn_no_more_credits(message = None, ctx = None):
     elif ctx:
         await ctx.send(embed=embed)
 
-#------------------------------------------------------------CHECK ALARMS
+#------------------------------------------------------------CHECK LOOP
 
 async def check_alarm(bot):
     # alarm
@@ -474,3 +444,40 @@ async def check_alarm(bot):
                             alarm["enabled"] = False
                             alarms[alarm_id] = alarm
                             set_alarms(alarm_user_id, alarm_guild_id, alarms)
+
+async def check_effect_expiration(bot):
+    for guild in bot.guilds:
+        for user in guild.members:
+            user_data = get_user_data(user.id, guild.id)
+            shop = get_shop(guild.id)
+            effects = user_data["temp_effects"].copy()
+            for effect in effects:
+                if not effect in shop:
+                    del user_data["temp_effects"][effect]
+                    continue
+
+                now = datetime.now(UTC)
+                expiration = datetime.fromisoformat(effects[effect])
+                if expiration < now:
+                    del user_data["temp_effects"][effect]
+
+                    type = shop[effect]["use"]["type"]
+                    if type == "mult_xp":
+                        user_data["mult_xp"] = 1
+                    elif type == "mult_money":
+                        user_data["mult_money"] = 1
+
+                    role_id = shop[effect]["use"]["role"]
+                    role = await guild.fetch_role(role_id)
+                    if role in user.roles:
+                        await user.remove_roles(role)
+
+                    set_user_data(user.id, guild.id, user_data)
+
+                    embed = discord.Embed(color=discord.Color.red(), title="Expiration d'un effet", description=f"Désolé {user.mention}, mais vous n'avez plus l'effet {shop[effect]["name"]}. Je vous retire le rôle {role.mention}...")
+                    config = get_config(guild.id)
+                    if config["xp_channel"]:
+                        channel = await guild.fetch_channel(config["xp_channel"])
+                    else:
+                        channel = guild.text_channels[0]
+                    await channel.send(f"{user.mention}", embed=embed)

@@ -6,16 +6,16 @@
 
 ##### Présentations :
 
-BelloBot est un bot discord qui répond quand on le ping. Il marche avec une API gratuite du nom de huggingface, avec le modèle Llama-3.1-8B-Instruct car plus rapide. Il peut également gérer le système d'expérience et d'argent qui se gagne en étant actif sur le serveur. L'argent sert à acheter des objets dans le magasin pour obtenir plus de droits, comme intégrer des fichiers, des liens, ignorer le mode lent, et même expulser quelqu'un pendant 1 jour max (coûte beaucoup d'argent), avec la monnaie Flamcoins.
+BelloBot est un bot discord qui répond quand on le ping. Il marche avec une API gratuite (Google AI Studio), avec le modèle Gemini 3.1 Flash Lite car plus rapide. Il peut également gérer le système d'expérience et d'argent qui se gagne en étant actif sur le serveur, mais également d'autres features comme des alarmes, des souvenirs, du gambling, et d'autres commandes.
 
 
-##### Comment le mettre sur mon serveur :
+##### Comment le copier :
 
--Créer un .env tel que .env.example avec une clé API hugging face obtenable gratuitement sur https://huggingface.co/settings/tokens (pensez à cocher Make calls to Inference Providers, Make calls to your Inference Endpoints et Manage your Inference Endpoints), avec la clé API d'un bot discord que vous avez créé, et avec une clé API giphy pour les GIFs.
+-Créer un .env tel que .env.example avec une clé API Google AI Studio, avec la clé API d'un bot discord que vous avez créé, et avec une clé API giphy pour les GIFs.
 
--Installer les dépendances nécessaires de requirements.txt (huggingface-hub, python-dotenv et discord)
+-Installer les dépendances nécessaires de requirements.txt
 
--L'inviter sur votre serveur avec le droit d'envoyer des messages dans les salons et les fils, de gérer les pseudos, les rôles, d'intégrer des liens et d'ignorer le mode lent.
+-Vous pouvez bidouiller avec !
 
 
 ##### Le but :

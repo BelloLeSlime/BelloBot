@@ -124,6 +124,21 @@ class Ai(commands.Cog):
             await ctx.send(
                 f"Tu n'a pas assez d'argent pour générer une image ! La génération d'image coûte 500₣ + le nombre d'étapes (ici {steps}) pour éviter le spam et la déchéance économique de Bello le Slime.")
 
+    @commands.hybrid_command(name="reset_dm_memory")
+    async def reset_dm_memory(self, ctx: commands.Context):
+        """
+        Réinitialise la mémoire du bot dans les messages privés
+        :param ctx:
+        :return:
+        """
+
+        user_id = ctx.author.id
+        with open(f"files/dms/{user_id}.txt", "w", encoding="utf-8") as f:
+            f.write("")
+
+        embed = discord.Embed(color=discord.Color.orange(), description="Ma mémoire dans les MP est réinitialisée.")
+        await ctx.send(embed=embed, ephemeral=True)
+
 
 async def setup(bot):
     await bot.add_cog(Ai(bot))

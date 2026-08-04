@@ -1,87 +1,23 @@
 import discord
-from discord.app_commands import autocomplete
 from discord.ext import commands
 import bot_package.custom_func as Cf
 from discord import app_commands
-from bot_package.data import item_trad
+from bot_package.data import flamcoin_symbol
+import re
 from datetime import datetime, timedelta, UTC
 
 class ShopSelect(discord.ui.Select):
-    def __init__(self):
-        options = [
-            discord.SelectOption(
-                label="Petite Potion d'Expérience",
-                description="Double l'XP reçu pendant 1 jour • 500",
-                value="small_xp_potion",
-                emoji="🧪"
-            ),
-            discord.SelectOption(
-                label="Petite Potion de Cupidité",
-                description="Double l'argent reçu pendant 1 jour • 1000",
-                value="small_money_potion",
-                emoji="🧪"
-            ),
-            discord.SelectOption(
-                label="Back Door",
-                description="Vous permet d'uploader des fichiers pendant 3 mois • 1000₣",
-                value="back_door",
-                emoji="🚪"
-            ),
-            discord.SelectOption(
-                label="Audacity",
-                description="Vous permet d'utiliser des soundboards et d'envoyer des messages vocaux pendant 3 mois • 1000₣",
-                value="audacity",
-                emoji="🎧"
-            ),
-            discord.SelectOption(
-                label="Nintendo Switch 17",
-                description="Permet de lancer une activité dans un vocal pendant 3 mois • 2000₣",
-                value="nintendo_switch_17",
-                emoji="🎮"
-            ),
-            discord.SelectOption(
-                label="Partenariat avec l'IFOP",
-                description="Permet de créer des sondages pendant 3 mois • 1000₣",
-                value="ifop",
-                emoji="🎤"
-            ),
-            discord.SelectOption(
-                label="Site web",
-                description="Permet d'intégrer des liens pendant 3 mois • 500₣",
-                value="site_web",
-                emoji="🌐"
-            ),
-            discord.SelectOption(
-                label="External Plexus",
-                description="Vous permet d'utiliser des emojis, des autocollants, etc externes pendant 3 mois • 250₣",
-                value="external_plexus",
-                emoji="🌐"
-            ),
-            discord.SelectOption(
-                label="Microphone",
-                description="Donne la voix prioritaire en vocal pendant 3 mois • 4000₣",
-                value="microphone",
-                emoji="🎤"
-            ),
-            discord.SelectOption(
-                label="Formule 1",
-                description="Permet d'ignorer le mode lent pendant 3 mois • 5000₣",
-                value="formule_1",
-                emoji="🏎️"
-            ),
-            discord.SelectOption(
-                label="Name Tag",
-                description="Permet de renommer quelqu'un une fois (attention, punition si jugé humiliant) • 8000₣",
-                value="name_tag",
-                emoji="🏷️"
-            ),
-            discord.SelectOption(
-                label="Ban Hammer",
-                description="Permet de bannir quelqu'un pendant une durée inférieure à 1 jour • 50 000₣",
-                value="ban_hammer",
-                emoji="🔨"
-            ),
-        ]
+    def __init__(self, guild_id):
+        options = []
+        self.guild_id = guild_id
+        shop = Cf.get_shop(self.guild_id)
+        for item in shop:
+            options.append(discord.SelectOption(
+                label=shop[item]["name"],
+                value=item,
+                emoji=shop[item]["emoji"],
+                description=shop[item]["description"] + " - " + str(shop[item]["price"]) + flamcoin_symbol,
+            ))
 
         super().__init__(
             placeholder="Choisis un objet à acheter...",
@@ -90,44 +26,53 @@ class ShopSelect(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         item = self.values[0]
-        prices = {
-            "small_xp_potion": 500,
-            "small_money_potion": 1000,
-            "back_door": 1000,
-            "audacity": 1000,
-            "nintendo_switch_17": 2000,
-            "ifop": 1000,
-            "site_web": 5000,
-            "external_plexus": 250,
-            "microphone": 4000,
-            "formule_1": 5000,
-            "name_tag": 8000,
-            "ban_hammer": 50000,
-        }
-        price = prices[item]
+        id = item
+        item = Cf.get_shop(self.guild_id)[item]
+        price = item["price"]
         user = interaction.user
-        user_data = Cf.read_json(f"files/user_info/{interaction.guild.id}/{user.id}.json")
+        user_data = Cf.get_user_data(user.id, self.guild_id)
         wallet = user_data["money"]
         if wallet > price:
             user_data["money"] -= price
-            Cf.write_json(user_data, f"files/user_info/{interaction.guild.id}/{user.id}.json")
-            Cf.add_item(interaction.guild.id, user.id, item)
-            embed = discord.Embed(color=discord.Color.blue(), title="Merci pour votre achat !", description="Revenez plus tard !")
+            Cf.set_user_data(user.id, self.guild_id, user_data)
+            Cf.add_item(interaction.guild.id, user.id, id)
+            embed = discord.Embed(color=discord.Color.blue(), title="Merci pour votre achat !", description="Revenez plus tard ! Utilisez votre nouvel objet avec /use !")
             await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             embed = discord.Embed(color=discord.Color.red(), title="Vous n'avez pas assez d'argent pour acheter ça",
-                          description="Bah alors ? On est pauvre ? ༼ つ XD ༽つ")
+                          description=f"Cet objet coûte {price}{flamcoin_symbol} mais vous n'en avez que {wallet}.")
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
 class ShopView(discord.ui.View):
-    def __init__(self):
+    def __init__(self, guild_id):
         super().__init__()
-        self.add_item(ShopSelect())
+        self.add_item(ShopSelect(guild_id))
 
 async def use_autocomplete(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+    shop = Cf.get_shop(interaction.guild_id)
     return [
-        app_commands.Choice(name=item_trad[item], value=item) for item in item_trad
+        app_commands.Choice(name=shop[item]["name"], value=item) for item in shop
     ]
+
+def parse_duration(duration: str) -> datetime:
+    match = re.fullmatch(r"(\d+)(min|h|d|w)", duration.lower())
+    if match is None:
+        raise ValueError("Durée invalide")
+
+    amount = int(match.group(1))
+    unit = match.group(2)
+
+    now = datetime.now(UTC)
+
+    if unit == "min":
+        return now + timedelta(minutes=amount)
+    elif unit == "h":
+        return now + timedelta(hours=amount)
+    elif unit == "d":
+        return now + timedelta(days=amount)
+    elif unit == "w":
+        return now + timedelta(weeks=amount)
+    return now
 
 class Shop(commands.Cog):
     """
@@ -143,6 +88,11 @@ class Shop(commands.Cog):
         :param ctx:
         :return:
         """
+        shop = Cf.get_shop(ctx.guild.id)
+        if shop == {}:
+            embed = discord.Embed(color=discord.Color.red(), description=f"Désolé, mais il n'y a rien à vendre ici !")
+            await ctx.send(embed=embed)
+            return
         embed = discord.Embed(
             title="🛒 SHOP",
             description="Bienvenue au Shop.\nSélectionne un objet ci-dessous.",
@@ -150,146 +100,181 @@ class Shop(commands.Cog):
         )
         await ctx.send(
             embed=embed,
-            view=ShopView()
+            view=ShopView(ctx.guild.id)
         )
 
     @commands.hybrid_command(name="use")
     @app_commands.autocomplete(item=use_autocomplete)
-    async def use(self, ctx: commands.Context, item: str, target_user: discord.User | None = None, name: str | None = None, time_in_hours: int | None = None):
+    async def use(self, ctx: commands.Context, item: str, target_user: discord.User | None = None, name: str | None = None):
         """
         Permet d'utiliser un objet.
         :param ctx:
         :param item: Objet à utiliser
-        :param target_user: Utilisateur ciblé (pour le Name Tag et le Ban Hammer)
-        :param name: Nom à donner (pour le Name Tag)
-        :param time_in_hours: Temps banni en heures (pour le Ban Hammer)
+        :param target_user: Utilisateur ciblé (si l'objet le nécéssite)
+        :param name: Nom à donner (si l'objet le nécéssite)
         :return:
         """
         user = ctx.author
-        data = Cf.get_user_data(user.id, ctx.guild.id)
-        if item in data["items"]:
-            if data["items"][item] > 0:
-                data["items"][item] -= 1
-                config = Cf.get_config(ctx.guild.id)
-                x2_xp_role = await ctx.guild.fetch_role(
-                    config["x2_xp_role"])
-                x2_money_role = await ctx.guild.fetch_role(
-                    config["x2_money_role"])
-                file_role = await ctx.guild.fetch_role(
-                    config["file_role"])
-                soundboard_role = await ctx.guild.fetch_role(
-                    config["soundboard_role"])
-                game_role = await ctx.guild.fetch_role(
-                    config["game_role"])
-                poll_role = await ctx.guild.fetch_role(
-                    config["poll_role"])
-                link_role = await ctx.guild.fetch_role(
-                    config["link_role"])
-                extern_role = await ctx.guild.fetch_role(
-                    config["extern_role"])
-                priority_voice_role = await ctx.guild.fetch_role(
-                    config["priority_voice_role"])
-                bypass_slow_mode_role = await ctx.guild.fetch_role(
-                    config["bypass_slow_mode_role"])
-                if item == "small_xp_potion":
-                    data["mult_xp"] = 2
-                    data["temp_effects"]["boost_xp"] = (datetime.now(UTC) + timedelta(days=1)).isoformat()
-                    await user.add_roles(x2_xp_role)
-                    await ctx.send("X2 XP pendant 1 jour !", ephemeral=True)
+        user_data = Cf.get_user_data(user.id, ctx.guild.id)
+        shop = Cf.get_shop(ctx.guild.id)
 
-                elif item == "small_money_potion":
-                    data["mult_money"] = 2
-                    data["temp_effects"]["boost_money"] = (datetime.now(UTC) + timedelta(days=1)).isoformat()
-                    await user.add_roles(x2_money_role)
-                    await ctx.send("X2 Argent pendant 1 jour !", ephemeral=True)
+        if not item in shop:
+            embed = discord.Embed(color=discord.Color.red(), description=f"Désolé, cet objet n'existe pas")
+            await ctx.send(embed=embed)
+            return
 
-                elif item == "back_door":
-                    data["temp_effects"]["file"] = (datetime.now(UTC) + timedelta(days=31 * 3)).isoformat()
-                    await user.add_roles(file_role)
-                    await ctx.send("Vous pouvez maintenant envoyer des fichiers !",
-                                                            ephemeral=True)
+        if not item in user_data["items"].keys():
+            embed = discord.Embed(color=discord.Color.red(), description="Vous n'avez pas cet objet. Utilisez /shop pour l'acheter !")
+            await ctx.send(embed=embed)
+            return
 
-                elif item == "audacity ":
-                    data["temp_effects"]["soundboard"] = (datetime.now(UTC) + timedelta(days=31 * 3)).isoformat()
-                    await user.add_roles(soundboard_role)
-                    await ctx.send("Vous pouvez maintenant utiliser le soundborad !",
-                                                            ephemeral=True)
 
-                elif item == "nintendo_switch_17":
-                    data["temp_effects"]["game"] = (datetime.now(UTC) + timedelta(days=31 * 3)).isoformat()
-                    await user.add_roles(game_role)
-                    await ctx.send("Vous pouvez maintenant utiliser les applications !",
-                                                            ephemeral=True)
+        item_id = item
+        item = shop[item]
+        type = item["use"]["type"]
 
-                elif item == "ifop":
-                    data["temp_effects"]["poll"] = (datetime.now(UTC) + timedelta(days=31 * 3)).isoformat()
-                    await user.add_roles(poll_role)
-                    await ctx.send("Vous pouvez maintenant créer des sondages !",
-                                                            ephemeral=True)
+        if type == "add_role":
+            role_id = item["use"]["role"]
+            role = await ctx.guild.fetch_role(role_id)
+            await ctx.author.add_roles(role)
+            expiration = parse_duration(item["use"]["time"])
+            user_data["temp_effects"][item_id] = expiration.isoformat()
 
-                elif item == "site_web":
-                    data["temp_effects"]["link"] = (datetime.now(UTC) + timedelta(days=31 * 3)).isoformat()
-                    await user.add_roles(link_role)
-                    await ctx.send("Vous pouvez maintenant intégrer des liens !",
-                                                            ephemeral=True)
 
-                elif item == "external_plexus":
-                    data["temp_effects"]["extern"] = (datetime.now(UTC) + timedelta(days=31 * 3)).isoformat()
-                    await user.add_roles(extern_role)
-                    await ctx.send(
-                        "Vous pouvez maintenant utiliser des emojis, autocollants, soundborads et applications externes !",
-                        ephemeral=True)
+        elif type == "mult_xp":
+            role_id = item["use"]["role"]
+            role = await ctx.guild.fetch_role(role_id)
+            await ctx.author.add_roles(role)
+            user_data["mult_xp"] = item["use"]["mult"]
+            expiration = parse_duration(item["use"]["time"])
+            user_data["temp_effects"][item_id] = expiration.isoformat()
 
-                elif item == "microphone":
-                    data["temp_effects"]["priority_voice"] = (datetime.now(UTC) + timedelta(days=31 * 3)).isoformat()
-                    await user.add_roles(priority_voice_role)
-                    await ctx.send("Vous avez maintenant la voix prioritaire en vocal !",
-                                                            ephemeral=True)
+        elif type == "mult_money":
+            role_id = item["use"]["role"]
+            role = await ctx.guild.fetch_role(role_id)
+            await ctx.author.add_roles(role)
+            user_data["mult_money"] = item["use"]["mult"]
+            expiration = parse_duration(item["use"]["time"])
+            user_data["temp_effects"][item_id] = expiration.isoformat()
 
-                elif item == "formule_1":
-                    data["temp_effects"]["bypass_slow_mode"] = (datetime.now(UTC) + timedelta(days=31 * 3)).isoformat()
-                    await user.add_roles(bypass_slow_mode_role)
-                    await ctx.send("Vous pouvez maintenant contourner le mode lent !",
-                                                            ephemeral=True)
+        elif type == "add_xp":
+            user_data["xp"] += item["use"]["amount"]
 
-                elif item == "name_tag":
-                    if target_user:
-                        if name:
-                            await target_user.edit(nick=name)
-                            await ctx.send(
-                                f"Le pseudo de {target_user.mention} a bien été renommé ! ○( ＾皿＾)っ Hehehe…")
-                        else:
-                            await ctx.send(f"Veuillez indiquer un nom.", ephemeral=True)
-                            if "name_tag" in data["items"]:
-                                data["items"]["name_tag"] += 1
-                            else:
-                                data["items"]["name_tag"] = 1
-                    else:
-                        await ctx.send(f"Veuillez indiquer un utilisateur.", ephemeral=True)
-                        if "name_tag" in data["items"]:
-                            data["items"]["name_tag"] += 1
-                        else:
-                            data["items"]["name_tag"] = 1
+        elif type == "rename":
+            member = await ctx.guild.fetch_member(target_user.id)
+            await member.edit(nick=name)
 
-                elif item == "ban_hammer":
-                    if target_user:
-                        member = await ctx.guild.fetch_member(target_user.id)
-                        if 0.16666666666666667777777777777777 < time_in_hours < 24:
-                            await member.timeout(timedelta(hours=time_in_hours), reason="Ban hammer")
-                            await ctx.send(
-                                f"Vous avez bien mute {target_user.mention} pendant {time_in_hours} heures ! Baha noob")
-                        else:
-                            await ctx.send(f"Le temps doit être entre 10min et 24h",
-                                                                    ephemeral=True)
-                    else:
-                        await ctx.send(f"Veuillez indiquer un utilisateur.", ephemeral=True)
-                Cf.set_user_data(user.id, ctx.guild.id, data)
-            else:
-                await ctx.send(
-                    f"Vous n'avez pas cet item :p\n Vous pouvez l'acheter au shop avec /shop", ephemeral=True)
+
+        if user_data["items"][item_id] == 1:
+             del user_data["items"][item_id]
         else:
-            await ctx.send(
-                f"Vous n'avez pas cet item :p\n Vous pouvez l'acheter au shop avec /shop", ephemeral=True)
+            user_data["items"][item_id] -= 1
+        Cf.set_user_data(user.id, ctx.guild.id, user_data)
+
+        embed = discord.Embed(color=discord.Color.blue(), description=item["use"]["description"])
+        await ctx.send(embed=embed)
+
+    async def shop_add_type_autocomplete(self, interaction: discord.Interaction, current: str):
+        return [
+            app_commands.Choice(name="add_role", value="add_role"),
+            app_commands.Choice(name="mult_xp", value="mult_xp"),
+            app_commands.Choice(name="mult_money", value="mult_money"),
+            app_commands.Choice(name="add_xp", value="add_xp"),
+            app_commands.Choice(name="rename", value="rename"),
+        ]
+
+    @commands.hybrid_command(name="shop_add")
+    @app_commands.autocomplete(type=shop_add_type_autocomplete)
+    @commands.has_permissions(administrator=True)
+    async def shop_add(self, ctx: commands.Context, name: str, emoji: str, description: str, price: int, type: str, use_description: str, role: discord.Role = None, time: str = None, mult: int = None, amount: int = None):
+        """
+        Ajoute un objet dans le shop
+        :param ctx: Context
+        :param name: Nom de l'objet
+        :param emoji: Emoji de l'objet
+        :param description: Description de l'objet dans le shop
+        :param price: Prix de l'objet en ₣
+        :param type: Type d'objet (ajouter un role, multiplier l'XP ou l'argent, ajouter de l'XP ou rename quelqu'un
+        :param use_description: Description de l'objet au moment de l'utilisation
+        :param role: Rôle à attribuer (si type est add_role, mult_xp ou mult_money)
+        :param time: Durée de l'utilisation (si type est add_role, mult_xp ou mult_money)
+        :param mult: Multiplication de l'XP ou de l'argent (si type est mult_xp ou mult_money)
+        :param amount: XP à ajouter (si type est add_xp)
+        :return:
+        """
+
+        shop = Cf.get_shop(ctx.guild.id)
+        last_id = 0
+        for item in shop:
+            if int(item) > last_id:
+                last_id = int(item)
+        id = str(last_id + 1)
+
+        shop[id] = {
+            "name": name,
+            "description": description,
+            "emoji": emoji,
+            "price": price,
+            "use": {
+                "type": type,
+                "description": use_description,
+            }
+        }
+
+        if type in ["add_role", "mult_xp", "mult_money"]:
+            if not time:
+                embed = discord.Embed(color=discord.Color.red(), description="Veuillez indiquer une durée (time)")
+                await ctx.send(embed=embed)
+                return
+            match = re.fullmatch(r"(\d+)(min|h|d|w)", time.lower())
+            if match is None:
+                embed = discord.Embed(color=discord.Color.red(), description="Veuillez indiquer une durée valide (nombre + min, h, d ou w)")
+                await ctx.send(embed=embed)
+                return
+            shop[id]["use"]["time"] = time
+            if not role:
+                embed = discord.Embed(color=discord.Color.red(), description="Veuillez indiquer un rôle (role)")
+                await ctx.send(embed=embed)
+                return
+            shop[id]["use"]["role"] = role.id
+
+        if type in ["mult_xp", "mult_money"]:
+            if not mult:
+                embed = discord.Embed(color=discord.Color.red(), description="Veuillez indiquer un multiplicateur (mult)")
+                await ctx.send(embed=embed)
+                return
+            shop[id]["use"]["mult"] = mult
+
+        if type == "add_xp":
+            if not amount:
+                embed = discord.Embed(color=discord.Color.red(), description="Veuillez indiquer un nombre d'XP (amount)")
+                await ctx.send(embed=embed)
+                return
+            shop[id]["use"]["amount"] = amount
+
+        Cf.set_shop(ctx.guild.id, shop)
+
+        embed = discord.Embed(color=discord.Color.blue(), description=f"Vous avez bien rajouté **{emoji} {name}** au shop ! Faîtes /shop pour le voir !")
+        await ctx.send(embed=embed)
+
+    @commands.hybrid_command(name="shop_delete")
+    @app_commands.autocomplete(item=use_autocomplete)
+    @commands.has_permissions(administrator=True)
+    async def shop_delete(self, ctx: commands.Context, item: str):
+        """
+        Retire un objet du shop et des inventaires
+        :param ctx: Context
+        :param item: Objet à retirer
+        :return:
+        """
+        shop = Cf.get_shop(ctx.guild.id)
+        name = shop[item]["name"]
+        del shop[item]
+        Cf.set_shop(ctx.guild.id, shop)
+
+        embed = discord.Embed(color=discord.Color.green(), description=f"L'objet {name} n'existe plus.")
+        await ctx.send(embed=embed)
+
 
 async def setup(bot):
     await bot.add_cog(Shop(bot))

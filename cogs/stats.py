@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import bot_package.custom_func as Cf
-from bot_package.data import item_trad, effect_trad, flamcoin_symbol
+from bot_package.data import flamcoin_symbol
 from datetime import datetime
 
 class Stats(commands.Cog):
@@ -64,11 +64,16 @@ class Stats(commands.Cog):
         if user is None:
             user = ctx.author
         user_data = Cf.get_user_data(user.id, ctx.guild.id)
-        inventory = user_data["items"]
+        shop = Cf.get_shop(ctx.guild.id)
+        inventory = user_data["items"].copy()
         description = ""
-        for item_type in inventory:
-            if inventory[item_type] > 0:
-                description += f"{item_trad[item_type]} : {inventory[item_type]}\n"
+        for item in inventory:
+            if not item in shop.keys():
+                del user_data["items"][item]
+                Cf.set_user_data(user.id, ctx.guild.id, user_data)
+                continue
+            name = shop[item]["name"]
+            description += f"**{shop[item]["emoji"]} {name}** : {inventory[item]} - {shop[item]["description"]}\n"
         embed = discord.Embed(title=f" Inventaire de {user.display_name} :", description=description, color=discord.Color.green())
         await ctx.send(embed=embed)
 
@@ -85,8 +90,9 @@ class Stats(commands.Cog):
         level = user_data["level"]
         xp = user_data["xp"]
         money = user_data["money"]
-        effects = user_data["temp_effects"]
-        inventory = user_data["items"]
+        effects = user_data["temp_effects"].copy()
+        inventory = user_data["items"].copy()
+        shop = Cf.get_shop(ctx.guild.id)
 
         embed = discord.Embed(title = f"Stats de {user.display_name} :", color = discord.Color.green())
         descr = ""
@@ -95,13 +101,22 @@ class Stats(commands.Cog):
         descr += f"**Argent** : **{money}₣**\n"
         descr += f"**Effets temporaires** : \n"
         for effect in effects.keys():
+            if not effect in shop.keys():
+                del user_data["temp_effects"][effect]
+                Cf.set_user_data(user.id, ctx.guild.id, user_data)
+                continue
             dt = datetime.fromisoformat(effects[effect])
             expires_at = dt.strftime("%d/%m/%Y à %H:%M")
-            descr += f">  -**{effect_trad[effect]}** : expire le {expires_at}\n"
+            name = shop[effect]["name"]
+            descr += f">  -**{name}** : expire le {expires_at}\n"
         descr += f"**Inventaire** : \n"
         for item in inventory.keys():
-            item_str = item_trad[item]
-            descr += f">  **{item_str}** : {inventory[item]}\n"
+            if not item in shop.keys():
+                del user_data["items"][item]
+                Cf.set_user_data(user.id, ctx.guild.id, user_data)
+                continue
+            name = shop[item]["name"]
+            descr += f">  **{shop[item]["emoji"]}{name}** : {inventory[item]} - {shop[item]["description"]}\n"
 
         embed.description = descr
 
