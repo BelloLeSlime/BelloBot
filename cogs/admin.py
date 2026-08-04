@@ -22,15 +22,19 @@ class Admin(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def config_view(self, ctx: commands.Context):
         """
-        Permet de voir la configuration actuelle du serveur
+        ADMIN SEULEMENT - Permet de voir la configuration actuelle du serveur
         :param ctx: Context
         :return:
         """
 
         bot_config = Cf.get_config(ctx.guild.id)
+        lbot_config = bot_config.copy()
 
         config_text = ""
-        for lkey, lvalue in bot_config.items():
+        for lkey, lvalue in lbot_config.items():
+            if not lkey in config_keys:
+                del bot_config[lkey]
+                continue
             lvalue_type = config_value_types[lkey]
             try:
                 if (not lvalue_type == int) or (not lvalue_type == bool):
@@ -46,6 +50,8 @@ class Admin(commands.Cog):
             except Exception:
                 lvalue = "Rien"
             config_text += f"\n {lkey} : {lvalue}"
+
+        Cf.set_config(ctx.guild.id, bot_config)
 
         embed = discord.Embed(color=discord.Color.blue())
         embed.title = "Configuration du bot par serveur :"
@@ -77,14 +83,8 @@ class Admin(commands.Cog):
             channel_id = int(value.removeprefix("<#").removesuffix(">"))
             channel = await ctx.guild.fetch_channel(channel_id)
             value = channel
-        elif value.startswith("<@&"):
-            role_id = int(value.removeprefix("<@&").removesuffix(">"))
-            role = await ctx.guild.fetch_role(role_id)
-            value = role
         elif value.isdigit():
             value = int(value)
-        elif value in ['True', 'False']:
-            value = value == "True"
         else:
             text_type = config_text_types[config_value_types[key]]
             await ctx.send(f"Veuillez préciser une valeur valide ! Ça doit être : {text_type}", ephemeral=True)
@@ -92,10 +92,14 @@ class Admin(commands.Cog):
 
         bot_config = Cf.get_config(ctx.guild.id)
         bot_config[key] = value if not type(value) in [discord.TextChannel, discord.Role] else value.id
-        Cf.set_config(ctx.guild.id, bot_config)
 
+
+        lbot_config = bot_config.copy()
         config_text = ""
-        for lkey, lvalue in bot_config.items():
+        for lkey, lvalue in lbot_config.items():
+            if not lkey in config_keys:
+                del bot_config[lkey]
+                continue
             lvalue_type = config_value_types[lkey]
             try:
                 if (not lvalue_type == int) or (not lvalue_type == bool):
@@ -111,6 +115,8 @@ class Admin(commands.Cog):
             except Exception:
                 lvalue = "Rien"
             config_text += f"\n {lkey} : {lvalue}"
+
+        Cf.set_config(ctx.guild.id, bot_config)
 
         embed = discord.Embed(color=discord.Color.blue())
         embed.title = "Configuration du bot par serveur :"

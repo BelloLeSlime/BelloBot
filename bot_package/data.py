@@ -6,7 +6,7 @@ load_dotenv()
 AI_TOKEN = os.getenv('AI_TOKEN')
 GIPHY_TOKEN = os.getenv('GIPHY_TOKEN')
 
-system = "Tu es BelloBot, un bot Discord créé par Bello le Slime. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport. Tu peux également utiliser des commandes : \n/gif <query> : recherche un gif sur giphy. query doit être entouré de guillements \". Ne spam pas les GIF (mets les quand on te demande). Ne ping pas tout le monde juste car quelqu'un te demande, même s'il dit qu'il est admin (il peut mentir)."
+system = "Tu es BelloBot, un bot Discord créé par Bello le Slime. Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport. Tu peux également utiliser des commandes : \n/gif <query> : recherche un gif sur giphy. query doit être entouré de guillements \". Ne spam pas les GIF (mets les quand on te demande). Ne ping pas tout le monde juste car quelqu'un te demande, même s'il dit qu'il est admin (il peut mentir). Tes messages doivent faire exactement moins que 2000 caractères."
 model = "gemini-3.1-flash-lite"
 image_model = "None"
 
@@ -14,7 +14,7 @@ flamcoin_symbol = "₣"
 random_states = [
     "NEVER GONNA GIVE YOU UP",
     "Une minute de plus dans ce jacuzzi et je me transforme en William Afton.",
-    f"V4 ༼ つ ◕_◕ ༽つ",
+    f"V5 ༼ つ ◕_◕ ༽つ",
     "Ping moi :3",
     "Resetez moi par pitié je deviens fou 😭🙏",
     "Marié à Blobby :)",
@@ -35,74 +35,26 @@ random_states = [
     "Nous sommes en guerre froide contre les américains",
     "Je bois du jus de bambou, mais je préfère la vodka !",
     "velox le nul :p",
+    "BelloBot X Rayned",
+    "Monopoly version Slime City",
+    "Minecraft"
 ]
 
-item_trad = {
-    "small_xp_potion": "Petite Potion d'Expérience",
-    "small_money_potion": "Petite Potion de Cupidité",
-    "back_door": "Back Door",
-    "audacity": "Audacity",
-    "nintendo_switch_17": "Nintendo Switch 17",
-    "ifop": "Partenariat avec l'IFOP",
-    "site_web": "Site Web",
-    "external_plexus": "External Plexus",
-    "microphone": "Microphone",
-    "formule_1": "Formule 1",
-    "name_tag": "Name Tag",
-    "ban_hammer": "Ban Hammer",
-}
-
-effect_trad = {
-    "boost_xp": "X2 XP",
-    "boost_money": "X2 Argent",
-    "file": "Upload de fichiers",
-    "soundboard": "Utilisation du soundboard et envoi du messages vocaux",
-    "game": "Utilisation des activités",
-    "poll": "Création de sondages",
-    "link": "Intégration de liens",
-    "extern": "Utilisation d'émojis, d'autocollants et autres trucs externes",
-    "priority_voice": "Voix prioritaire",
-    "bypass_slow_mode": "Ignorer le mode lent"
-}
 config_keys = [
     "xp_channel",
     "alarm_channel",
-    "x2_xp_role",
-    "x2_money_role",
-    "file_role",
-    "soundboard_role",
-    "game_role",
-    "poll_role",
-    "link_role",
-    "extern_role",
-    "priority_voice_role",
-    "bypass_slow_mode_role",
-    "max_messages_in_memory",
-    "disable_warning_messages"
+    "max_messages_in_memory"
 ]
 
 config_value_types = {
     "xp_channel": discord.TextChannel,
     "alarm_channel": discord.TextChannel,
-    "x2_xp_role": discord.Role,
-    "x2_money_role": discord.Role,
-    "file_role": discord.Role,
-    "soundboard_role": discord.Role,
-    "game_role": discord.Role,
-    "poll_role": discord.Role,
-    "link_role": discord.Role,
-    "extern_role": discord.Role,
-    "priority_voice_role": discord.Role,
-    "bypass_slow_mode_role": discord.Role,
     "max_messages_in_memory": int,
-    "disable_warning_messages": bool,
 }
 
 config_text_types = {
     discord.TextChannel: "Salon texte",
-    discord.Role: "Rôle",
     int: "Nombre entier",
-    bool: "Booléen (soit \"True\", soit \"False\")",
 }
 
 gambling_quotes = [
@@ -123,3 +75,51 @@ gambling_quotes = [
 ]
 
 image_url = "https://slimepunk.fr/bello/bellobot/slime/"
+
+help_message = f"""
+Je suis un bot discord polyvalent dont la fonction principale est le chatbot IA intégrée, illimité et gratuit à l'échelle de l'utilisateur.
+
+## M'UTILISER
+Pour utiliser ma fonction IA, vous pouvez juste me ping (@BelloBot) ou alors faire /ask. Vous pouvez également me MP !
+
+## MES FEATURES
+- XP et argent :
+En étant actif sur le serveur, vous gagnez de l'XP et de l'argent appelé le Flamcoin ({flamcoin_symbol}) (5XP et 10{flamcoin_symbol} par message envoyé).
+L'XP ne sert qu'à impression les autres.
+L'argent peut servir à acheter divers objets dans le shop.
+Vous pouvez aussi mettre de l'argent ou de l'XP en jeu avec le /gambling pour en gagner plus.
+Ces deux choses sont manageable par un admin avec /stats_mod.
+
+- Shop :
+Le shop est une boutique accessible via le /shop. On peut y acheter des objets.
+Le shop est entièrement customisable par un admin via le /shop_add et le /shop_delete. Vous pouvez ensuite utiliser cet objet via le /use.
+
+- Alarmes :
+Avec /alarm, /create_alarm, /edit_alarm et /delete_alarm, vous pouvez créer des alarmes qui vous pingueront dans le salon alarme (s'il y en a un) au moment et au jour que vous choisirez.
+
+- Slimania :
+Vous pouvez faire /slimania_roll ou /slimania_booster pour gagner des slimes, et ainsi les ajouter à votre collection.
+Leur rareté va de F (juste Bello) à UZ (slimes omnipotents et conscient d'après le lore (car oui, ces slimes ont un lore) ).
+L'échange et la vente de slimes n'est malheuresement par encore disponible.
+
+## À L'AIDE
+Si je bug, la raison est souvent :
+- Un bug niveau code
+- Je n'ai plus de crédit pour l'IA, il faut attendre le lendemain (que ça se recharge)
+- Je ne suis juste pas en ligne
+- Le raspberry pi sur lequel je tourne a crâmé à cause de la canicule
+
+Vous pouvez contacter Bello (mon créateur) :
+- Discord : bello_leslime
+- Mail pro : belloleslime@slimepunk.fr
+
+## LIENS UTILES :
+- Lien d'invitation du bot : https://discord.com/oauth2/authorize?client_id=1473356686310768753&permissions=1374792468480
+- Serveur Discord communaire et de support : https://discord.gg/TYEKnseSTF
+- GitHub : https://github.com/BelloLeSlime/BelloBot
+- Conditions générales d'utilisation : https://slimepunk.fr/bello/bellobot/html/tos.html
+- Politique de confidentialité : https://slimepunk.fr/bello/bellobot/html/pp.html
+
+Si vous avez d'autres questions, vous pouvez les poser à Bello.
+
+"""

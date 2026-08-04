@@ -1,4 +1,4 @@
-VERSION = "5"
+VERSION = "5.1"
 
 #import stuff
 import os
@@ -24,7 +24,7 @@ import bot_package.error_manager as error_manager
 intents = discord.Intents.default()
 intents.message_content = True
 intents.presences = True
-intents.voice_states = True
+intents.members = True
 
 class LoggingFormatter(logging.Formatter):
     # Colors
@@ -66,7 +66,7 @@ console_handler.setFormatter(LoggingFormatter())
 # File handler
 file_handler = logging.FileHandler(filename="discord.log", encoding="utf-8")
 file_handler_formatter = logging.Formatter(
-    "[{asctime}] [{levelname:<8}] {name}: {message}", "%Y-%m-%d %H:%M:%S", style="{"
+    "[{asctime}] [{levelname:<8}] {name}: {message}", "%d/%m/%Y %H:%M:%S", style="{"
 )
 file_handler.setFormatter(file_handler_formatter)
 
@@ -103,6 +103,7 @@ class Bot(commands.Bot):
     async def status_task(self):
         await self.change_presence(activity=discord.Game(random.choice(random_states)))
         await Cf.check_alarm(self)
+        await Cf.check_effect_expiration(self)
 
     @status_task.before_loop
     async def before_status_task(self):
