@@ -17,7 +17,7 @@ while True:
         break
 
     if exit_code == 42:
-        time.sleep(15)
+        time.sleep(3)
         continue
 
     break
