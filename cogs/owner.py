@@ -6,6 +6,7 @@ class Owner(commands.Cog):
         self.bot = bot
 
     @commands.hybrid_command(name="shutdown")
+    @commands.is_owner()
     async def shutdown(self, ctx):
         """
         OWNER SEULEMENT - Arrête le bot (attention à pouvoir l'allumer après)
