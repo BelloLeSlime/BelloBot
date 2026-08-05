@@ -1,4 +1,4 @@
-VERSION = "5.1.1"
+VERSION = "5.2"
 
 #import stuff
 import os
@@ -23,7 +23,6 @@ import bot_package.error_manager as error_manager
 
 intents = discord.Intents.default()
 intents.message_content = True
-intents.presences = True
 intents.members = True
 
 class LoggingFormatter(logging.Formatter):

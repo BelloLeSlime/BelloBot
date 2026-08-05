@@ -10,6 +10,8 @@ import io
 import requests
 import re
 from datetime import datetime, UTC, timedelta
+from duckduckgo_search import DDGS
+from bs4 import BeautifulSoup
 
 #------------------------------------------------------------FILE MANAGEMENT
 
@@ -249,19 +251,80 @@ def get_gif(query):
 
     return r["data"][0]["images"]["original"]["url"]
 
-def parse_text(text):
+def search(query: str):
+    urls = ""
+    for i in range(5):
+        urls = ""
+        with DDGS() as ddgs:
+            results = ddgs.text(query, max_results=5)
+
+            for r in results:
+                urls += r["href"] + "\n"
+        if urls :
+            break
+
+    if urls:
+        return f"Résultat de la recherche (5 liens les plus pertinents) : \n{urls}"
+    else:
+        return "Erreur lors de la recherche. Essayez de réaranger un peu les mots clés (DuckDuckGo a du mal)"
+
+def surf(url):
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # Supprime les éléments non visibles
+        for tag in soup(["script", "style", "noscript"]):
+            tag.decompose()
+
+        text = soup.get_text(separator="\n", strip=True)
+
+        return "Résultat du surf : " + text
+    except:
+        return "Résultat du surf : Erreur lors du surf. Peut être URL non valide ou inexistante ?"
+
+async def parse_text(text, message, dm):
     # gif
     pattern = r'/gif\s*"([^"]+)"'
 
     matches = re.findall(pattern, text)
 
     for m in matches:
-        print(m)
         gif = get_gif(m)
-        print(gif)
 
         if gif:
             text = text.replace(f'/gif "{m}"', gif)
+
+    #search
+    pattern = r'/search\s*"([^"]+)"'
+    matches = re.findall(pattern, text)
+
+    for m in matches:
+        print("search - " + m)
+        results = search(m)
+        write_file(results, f"files/messages/{message.guild.id}.txt")
+        ai_answer = await ask_ai(results, message.author.display_name, message.guild.id, dm=dm)
+        text = ai_answer
+        text = await parse_text(text, message, dm)
+
+    #surf
+    pattern = r'/surf\s*"([^"]+)"'
+    matches = re.findall(pattern, text)
+
+    for m in matches:
+        print("surf - " + m)
+        page = surf(m)
+
+        write_file(page, f"files/messages/{message.guild.id}.txt")
+        ai_answer = await ask_ai(page, message.author.display_name, message.guild.id, dm=dm)
+        text = ai_answer
+        text = await parse_text(text, message, dm)
 
     return text
 
@@ -292,8 +355,12 @@ async def ai_process(bot, message):
             try:
                 async with message.channel.typing():
                     answer = await ask_ai(content, message.author.display_name, message.guild.id)
-                    to_send = parse_text(answer)
-                    await message.reply(to_send)
+                    to_send = await parse_text(answer, message, False)
+                    try:
+                        await message.reply(to_send)
+                    except discord.HTTPException:
+                        await message.reply(to_send[:1975] + "... <message trop long>")
+
             except errors.ClientError:
                 await warn_no_more_credits(message)
                 write_file("BelloBot(forbellobot) : Désolé, plus de crédits pour l'IA (réessayez demain !)", f"files/messages/{message.guild.id}.txt")
@@ -362,7 +429,6 @@ async def polls_process(message):
         except discord.HTTPException:
             await thread.send(ai_answer[:1975] + "... <message trop long>")
 
-
 async def dm_process(bot, message: discord.Message):
     content = message.content
     if not message.author == bot.user:
@@ -379,8 +445,11 @@ async def dm_process(bot, message: discord.Message):
         try:
             async with message.channel.typing():
                 answer = await ask_ai(content, message.author.display_name, message.author.id, dm = True)
-                to_send = parse_text(answer)
-                await message.reply(to_send)
+                to_send = await parse_text(answer, message, True)
+                try:
+                    await message.reply(to_send)
+                except discord.HTTPException:
+                    await message.reply(to_send[:1975] + "... <message trop long>")
         except errors.ClientError:
             await warn_no_more_credits(message=message)
 
