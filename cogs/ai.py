@@ -4,6 +4,7 @@ import bot_package.custom_func as Cf
 from bot_package.data import model, image_model, flamcoin_symbol
 import asyncio
 from datetime import timedelta
+import os
 
 class Ai(commands.Cog):
     """
@@ -20,19 +21,42 @@ class Ai(commands.Cog):
         :param prompt: Demande faite à l'IA
         :return:
         """
-        await ctx.defer()
+        if ctx.guild:
+            await ctx.defer()
 
-        Cf.check_guild_has_presence(ctx.guild.id)
-        Cf.check_has_data_file(ctx.author.id, ctx.guild.id)
-        content = prompt
-        author = ctx.author.display_name
-        Cf.write_file(author + " : " + content, f"files/messages/{ctx.guild.id}.txt")
-        try:
-            answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id)
-            to_send = Cf.parse_text(answer)
-            await ctx.send(to_send)
-        except:
-            await Cf.warn_no_more_credits(ctx=ctx)
+            Cf.check_guild_has_presence(ctx.guild.id)
+            Cf.check_has_data_file(ctx.author.id, ctx.guild.id)
+            content = prompt
+            author = ctx.author.display_name
+            Cf.write_file(author + " : " + content, f"files/messages/{ctx.guild.id}.txt")
+            try:
+                answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id)
+                to_send = await Cf.parse_text(answer, ctx, False)
+                try:
+                    await ctx.send(to_send)
+                except discord.HTTPException:
+                    await ctx.send(to_send[:1975] + "... <message trop long>")
+            except:
+                await Cf.warn_no_more_credits(ctx=ctx)
+        else:
+            await ctx.defer()
+
+            if not str(ctx.author.id) + ".txt" in os.listdir("files/dms/"):
+                Cf.write_file("", "files/dms/" + str(ctx.author.id) + ".txt")
+
+            content = prompt
+            author = ctx.author.display_name
+            Cf.write_file(author + " : " + content, f"files/dms/{ctx.author.id}.txt")
+            try:
+                answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id, dm=True)
+                to_send = await Cf.parse_text(answer, ctx, True)
+                try:
+                    await ctx.send(to_send)
+                except discord.HTTPException:
+                    await ctx.send(to_send[:1975] + "... <message trop long>")
+            except:
+                await Cf.warn_no_more_credits(ctx=ctx)
+
 
     @commands.hybrid_command(name="vote_reset_memory")
     async def vote_reset_memory(self, ctx: commands.Context):

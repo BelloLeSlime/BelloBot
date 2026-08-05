@@ -2,3 +2,4 @@
 .venv/
 .env
 discord.log
+test.py

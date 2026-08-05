@@ -3,3 +3,5 @@ discord
 pillow
 requests
 google-genai
+duckduckgo-search
+beautifulsoup4
