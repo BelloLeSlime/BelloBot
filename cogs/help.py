@@ -62,5 +62,22 @@ class Help(commands.Cog):
         """
         await ctx.send("Pong !")
 
+    @commands.hybrid_command(name="bellobot_info")
+    async def bellobot_info(self, ctx: commands.Context):
+        """
+        Montre les infos du bot
+        :param ctx:
+        :return:
+        """
+        embed = discord.Embed(color=discord.Color.green(), title="Infos du bot", description=
+        f"""
+        Nom : {self.bot.user.name}
+        ID : {self.bot.user.id}
+        Verison : {self.bot.version}
+        Serveurs : {self.bot.guild_count}
+""").set_image(url="https://slimepunk.fr/img/BelloBot.png")
+
+        await ctx.send(embed=embed)
+
 async def setup(bot):
     await bot.add_cog(Help(bot))
