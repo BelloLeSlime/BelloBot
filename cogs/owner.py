@@ -41,18 +41,6 @@ class Owner(commands.Cog):
 
         await ctx.send("Mise à jour en cours...")
 
-        result_pip = subprocess.run(
-            ["pip", "install", "-r", "requirements.txt"],
-            capture_output=True,
-            text=True
-        )
-
-        if result_pip.returncode != 0:
-            await ctx.send(
-                f"Erreur PIP lors de l'installation :\n{result_pip.stderr}",
-                ephemeral=True
-            )
-            return
 
         result_stash = subprocess.run(
             ["git", "stash"],
@@ -63,6 +51,19 @@ class Owner(commands.Cog):
         if result_stash.returncode != 0:
             await ctx.send(
                 f"Erreur git lors du stash :\n{result_stash.stderr}",
+                ephemeral=True
+            )
+            return
+
+        result_pip = subprocess.run(
+            ["pip", "install", "-r", "requirements.txt"],
+            capture_output=True,
+            text=True
+        )
+
+        if result_pip.returncode != 0:
+            await ctx.send(
+                f"Erreur PIP lors de l'installation :\n{result_pip.stderr}",
                 ephemeral=True
             )
             return
