@@ -209,7 +209,8 @@ def get_messages(guild_id):
 def get_dm(user_id: int):
     messages = []
     for msg in read_file(f"files/dms/{user_id}.txt"):
-        msg = str(msg)
+        if msg == "\n":
+            continue
         split = msg.split(" : ")
         author = split[0]
         messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "model",
