@@ -1,4 +1,4 @@
-VERSION = "5.2"
+VERSION = "5.2.1"
 
 #import stuff
 import os
@@ -77,12 +77,15 @@ class Bot(commands.Bot):
     def __init__(self):
         super().__init__(intents=intents, command_prefix="§", help_command=None)
         self.logger = logger
+        self.version = VERSION
+        self.guild_count = 0
 
     async def load_cogs(self) -> None:
         """
         The code in this function is executed whenever the bot will start.
         """
 
+        self.guild_count = len(self.guilds)
         random_states[15] = f"{len(self.guilds)} serveurs !"
         random_states[2] = f"V{VERSION} ༼ つ ◕_◕ ༽つ"
 
