@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import sys
 import subprocess
+import bot_package.custom_func as Cf
+import os
 
 class Owner(commands.Cog):
     def __init__(self, bot):
@@ -84,6 +86,29 @@ class Owner(commands.Cog):
         await ctx.send("Mise à jour terminée ! Redémarrage...")
         await self.bot.close()
         sys.exit(42)
+
+    @commands.hybrid_command(name="get_logs")
+    @commands.is_owner()
+    async def get_logs(self, ctx):
+        """
+        OWNER SEULEMENT - Permet d'obtenir les logs du bot
+        :param ctx:
+        :return:
+        """
+        await ctx.send(file=discord.File("discord.log"), ephemeral=True)
+
+    @commands.hybrid_command(name="get_last_error")
+    @commands.is_owner()
+    async def get_last_error(self, ctx):
+        """
+        OWNER SEULEMENT - Permet d'obtenir la dernière erreur du bot
+        :param ctx:
+        :return:
+        """
+        if "last.txt" in os.listdir("./files/error/"):
+            await ctx.send(file=discord.File("files/error/last.txt"), ephemeral=True)
+        else:
+            await ctx.send("Il n'y a pas d'erreur !", ephemeral=True)
 
 
 async def setup(bot):
