@@ -14,6 +14,8 @@ async def mk_error_file(error_trace, ctx, command):
 
     with open(f"./files/error/{file_name}.txt", "w", encoding="utf-8") as f:
         f.write(error_info)
+    with open(f"./files/error/last.txt", "w", encoding="utf-8") as f:
+        f.write(error_info)
 
     error_embed = discord.Embed(
         title="Il y a eu une erreur...",

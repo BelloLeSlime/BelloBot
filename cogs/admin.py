@@ -123,13 +123,6 @@ class Admin(commands.Cog):
         embed.description = f"La clé {key} a bien pour valeur {value if value_type in [int, bool] else value.mention} ! Voici la configuration du bot à présent : \n{config_text}"
 
         await ctx.send(embed=embed, ephemeral=True)
-        if key == "max_messages_in_memory" and not Cf.read_json(f"files/config/{ctx.guild.id}.json")[
-            "disable_warning_messages"]:
-            if value > 50:
-                embed = discord.Embed(color=discord.Color.red())
-                embed.title = "ATTENTION"
-                embed.description = "Le nombre de messages maximum est recommendé de rester sous la barre des 50 messages : le bot pourrait être surchargé."
-                await ctx.send(embed=embed, ephemeral=True)
 
     @commands.hybrid_command(name="reset_memory")
     @commands.has_permissions(administrator=True)
