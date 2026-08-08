@@ -1,7 +1,9 @@
 python-dotenv
 discord
+discord[voice]
 pillow
 requests
 google-genai
 duckduckgo-search
 beautifulsoup4
+yt-dlp
