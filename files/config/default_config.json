@@ -1,5 +1,10 @@
 {
   "xp_channel": null,
   "alarm_channel": null,
+  "ticket_channel": null,
+  "ticket_category": null,
+  "ticket_role": null,
+  "ticket_description": null,
+  "ticket_logs_channel": null,
   "max_messages_in_memory": 50
 }
