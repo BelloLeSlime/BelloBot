@@ -4,6 +4,17 @@ from discord.ext import commands
 import bot_package.custom_func as Cf
 from bot_package.data import config_keys, config_value_types, config_text_types, flamcoin_symbol
 import os
+from bot_package.ticket_manager import *
+
+class Ticket(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+
+    @discord.ui.button(label="Créer un ticket", style=discord.ButtonStyle.green, emoji="🎟️")
+    async def create_ticket(self, interaction: discord.Interaction, button: discord.Button):
+        await interaction.response.defer()
+        await create_ticket(interaction.guild, interaction.user)
+
 
 async def config_autocomplete(interaction: discord.Interaction, current: str):
     return [
@@ -28,6 +39,12 @@ class Admin(commands.Cog):
         """
 
         bot_config = Cf.get_config(ctx.guild.id)
+
+        for expected_key in config_keys:
+            if not expected_key in bot_config:
+                bot_config[expected_key] = Cf.read_json("files/config/default_config.json")[expected_key]
+
+
         lbot_config = bot_config.copy()
 
         config_text = ""
@@ -38,7 +55,7 @@ class Admin(commands.Cog):
             lvalue_type = config_value_types[lkey]
             try:
                 if (not lvalue_type == int) or (not lvalue_type == bool):
-                    if lvalue_type == discord.TextChannel:
+                    if lvalue_type in [discord.TextChannel, discord.CategoryChannel]:
                         channel_id = lvalue
                         channel = await ctx.guild.fetch_channel(channel_id)
                         lvalue = channel.mention
@@ -51,7 +68,8 @@ class Admin(commands.Cog):
                 lvalue = "Rien"
             config_text += f"\n {lkey} : {lvalue}"
 
-        Cf.set_config(ctx.guild.id, bot_config)
+        if bot_config != lbot_config:
+            Cf.set_config(ctx.guild.id, bot_config)
 
         embed = discord.Embed(color=discord.Color.blue())
         embed.title = "Configuration du bot par serveur :"
@@ -83,15 +101,21 @@ class Admin(commands.Cog):
             channel_id = int(value.removeprefix("<#").removesuffix(">"))
             channel = await ctx.guild.fetch_channel(channel_id)
             value = channel
+        elif value.startswith("<@&"):
+            role_id = int(value.removeprefix("<@&").removesuffix(">"))
+            role = await ctx.guild.fetch_role(role_id)
+            value = role
         elif value.isdigit():
             value = int(value)
         else:
-            text_type = config_text_types[config_value_types[key]]
-            await ctx.send(f"Veuillez préciser une valeur valide ! Ça doit être : {text_type}", ephemeral=True)
-            return
+            value = value
 
         bot_config = Cf.get_config(ctx.guild.id)
-        bot_config[key] = value if not type(value) in [discord.TextChannel, discord.Role] else value.id
+        for expected_key in config_keys:
+            if not expected_key in bot_config:
+                bot_config[expected_key] = Cf.read_json("files/config/default_config.json")[expected_key]
+
+        bot_config[key] = value if not type(value) in [discord.TextChannel, discord.Role, discord.CategoryChannel] else value.id
 
 
         lbot_config = bot_config.copy()
@@ -102,8 +126,8 @@ class Admin(commands.Cog):
                 continue
             lvalue_type = config_value_types[lkey]
             try:
-                if (not lvalue_type == int) or (not lvalue_type == bool):
-                    if lvalue_type == discord.TextChannel:
+                if (not lvalue_type == int) or (not lvalue_type == bool) or (not lvalue_type == str):
+                    if lvalue_type in [discord.TextChannel, discord.CategoryChannel]:
                         channel_id = lvalue
                         channel = await ctx.guild.fetch_channel(channel_id)
                         lvalue = channel.mention
@@ -120,7 +144,7 @@ class Admin(commands.Cog):
 
         embed = discord.Embed(color=discord.Color.blue())
         embed.title = "Configuration du bot par serveur :"
-        embed.description = f"La clé {key} a bien pour valeur {value if value_type in [int, bool] else value.mention} ! Voici la configuration du bot à présent : \n{config_text}"
+        embed.description = f"La clé {key} a bien pour valeur {value if value_type in [int, bool, str] else value.mention} ! Voici la configuration du bot à présent : \n{config_text}"
 
         await ctx.send(embed=embed, ephemeral=True)
 
@@ -264,6 +288,58 @@ class Admin(commands.Cog):
         embed = discord.Embed(title=title, description=description, color=color)
         await ctx.channel.send(embed=embed)
         await ctx.send("Votre Embed a bien été envoyé", ephemeral=True)
+
+    @commands.hybrid_command(name="ticket")
+    @commands.has_permissions(administrator=True)
+    async def ticket(self, ctx: commands.Context, description: str):
+        """
+        ADMIN SEULEMENT - Envoie un message permettant de créer des tickets
+        :param ctx:
+        :return:
+        """
+        config = Cf.get_config(ctx.guild.id)
+        if config["ticket_channel"] is None:
+            await ctx.send(f"Vous devez renseigner un salon de création de tickets (/config ticket_channel #ticket)", ephemeral=True)
+            return
+
+        if config["ticket_description"] is None:
+            await ctx.send(f"Vous devez renseigner une description du message créant des tickets (/config ticket_description Créez un ticket ici !)", ephemeral=True)
+            return
+
+        if config["ticket_role"] is None:
+            await ctx.send(f"Vous devez renseigner un rôle de gestionnaire de ticket (/config ticket_ole @Gestionnaire de tickets)", ephemeral=True)
+            return
+
+        if config["ticket_logs_channel"] is None:
+            await ctx.send(f"Vous devez renseigner un salon de logs de tickets (/config ticket_logs_channel #tickets_logs)", ephemeral=True)
+            return
+
+        channel = await ctx.guild.fetch_channel(config["ticket_channel"])
+        description = config["ticket_description"]
+        embed = discord.Embed(color=discord.Color.green(), title="Création de ticket", description=description)
+        await channel.send(embed=embed, view=Ticket())
+        await ctx.send(f"Mesage envoyé !", ephemeral=True)
+
+    @commands.hybrid_command(name="ticket_close")
+    async def ticket_close(self, ctx: commands.Context):
+        """
+        ADMIN SEULEMENT - Permet de fermer un ticket déjà ouvert (à utiliser dans le ticket)
+        :param ctx:
+        :return:
+        """
+        channel = ctx.channel
+        tickets = get_tickets(ctx.guild.id)
+        in_ticket = False
+        for ticket in tickets:
+            if tickets[ticket] == channel.id:
+                in_ticket = True
+                break
+
+        if not in_ticket:
+            await ctx.send(f"Vous n'êtes pas dans un ticket !", ephemeral=True)
+
+        await ctx.send(f"Fermeture du ticket...")
+        await close_ticket(ctx.author, ctx.guild, channel)
 
 async def setup(bot):
     await bot.add_cog(Admin(bot))

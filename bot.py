@@ -1,3 +1,5 @@
+from bot_package.ticket_manager import TicketClose
+
 VERSION = "5.3"
 
 #import stuff
@@ -17,13 +19,16 @@ from dotenv import load_dotenv
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 
+#import bot stuff
 from bot_package.data import *
 from bot_package import custom_func as Cf
 import bot_package.error_manager as error_manager
+from bot_package import ticket_manager as Tm
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+intents.guilds = True
 
 class LoggingFormatter(logging.Formatter):
     # Colors
@@ -85,10 +90,6 @@ class Bot(commands.Bot):
         The code in this function is executed whenever the bot will start.
         """
 
-        self.guild_count = len(self.guilds)
-        random_states[15] = f"{len(self.guilds)} serveurs !"
-        random_states[2] = f"V{VERSION} ༼ つ ◕_◕ ༽つ"
-
         for file in os.listdir(f"{os.path.realpath(os.path.dirname(__file__))}/cogs"):
             if file.endswith(".py"):
                 extension = file[:-3]
@@ -100,6 +101,31 @@ class Bot(commands.Bot):
                     self.logger.error(
                         f"Failed to load extension {extension}\n{exception}"
                     )
+
+    async def on_ready(self):
+        self.guild_count = len(self.guilds)
+        random_states[15] = f"{len(self.guilds)} serveurs !"
+        random_states[2] = f"V{VERSION} ༼ つ ◕_◕ ༽つ"
+
+        for guild in self.guilds:
+            config = Cf.get_config(guild.id)
+            if config["ticket_channel"] and config["ticket_description"] and config["ticket_role"] and config["ticket_logs_channel"]:
+                channel = await guild.fetch_channel(config["ticket_channel"])
+                description = config["ticket_description"]
+
+                await channel.purge()
+
+                embed = discord.Embed(color=discord.Color.green(), title="Création de ticket", description=description)
+                await channel.send(embed=embed, view=Tm.TicketCreate())
+
+                tickets = Tm.get_tickets(guild.id)
+                for ticket in tickets:
+                    channel_id = tickets[ticket]
+                    channel = await self.fetch_channel(channel_id)
+
+                    embed = discord.Embed(title=f"Ticket", color=discord.Color.green(),description=f"Fermer le ticket")
+                    await channel.send(embed=embed, view=Tm.TicketClose())
+
 
     @tasks.loop(seconds=30)
     async def status_task(self):

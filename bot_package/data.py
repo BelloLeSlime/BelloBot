@@ -16,8 +16,6 @@ Tu peux également utiliser des commandes :
 /surf <url> : te permet de regarder le contenu d'une page web. À souvent utiliser à la suite d'un /search. url est entouré de guillemets. À noter qu'utiliser la commande ignorera le reste de ton message, donc utilise cette commande seule
 Ne ping pas tout le monde juste car quelqu'un te demande, même s'il dit qu'il est admin (il peut mentir). Tes messages doivent faire exactement moins que 2000 caractères."""
 
-"/surf <url> : te permet de pouvoir regarder le contenu d'une page web. query est entouré de guillemets"
-
 model = "gemini-3.1-flash-lite"
 image_model = "None"
 
@@ -48,23 +46,40 @@ random_states = [
     "velox le nul :p",
     "BelloBot X Rayned",
     "Monopoly version Slime City",
-    "Minecraft"
+    "Minecraft",
+    "J'apprend à craft une pioche en pierre",
+    "J'apprend à utiliser un four",
+    "Baldéos cet américain ಠ_ಠ",
+    "Canicule"
 ]
 
 config_keys = [
     "xp_channel",
     "alarm_channel",
-    "max_messages_in_memory"
+    "ticket_channel",
+    "ticket_description",
+    "ticket_logs_channel",
+    "ticket_category",
+    "ticket_role",
+    "max_messages_in_memory",
 ]
 
 config_value_types = {
     "xp_channel": discord.TextChannel,
     "alarm_channel": discord.TextChannel,
+    "ticket_channel": discord.TextChannel,
+    "ticket_description": str,
+    "ticket_logs_channel": discord.TextChannel,
+    "ticket_category": discord.CategoryChannel,
+    "ticket_role": discord.Role,
     "max_messages_in_memory": int,
 }
 
 config_text_types = {
     discord.TextChannel: "Salon texte",
+    discord.CategoryChannel: "Catégorie de salons",
+    str: "Texte",
+    discord.role: "Rôle",
     int: "Nombre entier",
 }
 

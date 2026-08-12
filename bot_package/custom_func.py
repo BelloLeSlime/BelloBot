@@ -108,7 +108,7 @@ def check_has_data_file(user_id, guild_id):
         os.makedirs(f"files/user_info/{guild_id}")
     try:
         if not str(user_id) + ".json" in os.listdir(f"files/user_info/{guild_id}/"):
-            write_json({"xp": 0, "level": 1, "money": 0, "mult_xp": 1, "mult_money": 1, "temp_effects": {}, "items": {}},
+            write_json(read_json("files/user_info/default.json"),
                        f"files/user_info/{guild_id}/{user_id}.json")
     except:
         pass
