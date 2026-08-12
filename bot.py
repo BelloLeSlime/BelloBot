@@ -1,6 +1,6 @@
 from bot_package.ticket_manager import TicketClose
 
-VERSION = "5.3"
+VERSION = "5.4"
 
 #import stuff
 import os
