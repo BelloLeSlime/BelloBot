@@ -291,7 +291,7 @@ class Admin(commands.Cog):
 
     @commands.hybrid_command(name="ticket")
     @commands.has_permissions(administrator=True)
-    async def ticket(self, ctx: commands.Context, description: str):
+    async def ticket(self, ctx: commands.Context):
         """
         ADMIN SEULEMENT - Envoie un message permettant de créer des tickets
         :param ctx:

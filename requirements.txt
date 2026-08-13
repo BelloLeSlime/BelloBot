@@ -7,3 +7,4 @@ google-genai
 duckduckgo-search
 beautifulsoup4
 yt-dlp
+pynacl
