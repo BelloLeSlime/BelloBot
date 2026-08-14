@@ -3,6 +3,7 @@ import bot_package.custom_func as Cf
 import os
 from datetime import datetime, UTC
 
+#the view for closing a ticket
 class TicketClose(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -12,7 +13,7 @@ class TicketClose(discord.ui.View):
         await interaction.response.defer()
         await close_ticket(interaction.user, interaction.guild, interaction.channel)
 
-
+#the view for creating a ticket
 class TicketCreate(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -31,8 +32,15 @@ def get_tickets(guild_id):
 def set_tickets(guild_id, tickets):
     Cf.write_json(tickets, f"files/tickets/{guild_id}.json")
 
-async def create_ticket(guild: discord.Guild, user):
+async def create_ticket(guild: discord.Guild, user: discord.User):
+    """
+    Creates a ticket in the given category
+    :param guild: Guild
+    :param user: User
+    :return:
+    """
     tickets = get_tickets(guild.id)
+    #get the ticket id to use
     last_id = -1
     for ticket_id in tickets.keys():
         if int(ticket_id) > int(last_id):
@@ -44,6 +52,7 @@ async def create_ticket(guild: discord.Guild, user):
     config = Cf.get_config(guild.id)
     ticket_role = await guild.fetch_role(config["ticket_role"])
 
+    #create the actual channel
     if config["ticket_category"]:
         category = await guild.fetch_channel(config["ticket_category"])
         channel = await guild.create_text_channel(channel_name, category=category, overwrites={
@@ -97,7 +106,16 @@ async def create_ticket(guild: discord.Guild, user):
     await ticket_logs_channel.send(embed=embed)
 
 async def close_ticket(user: discord.User, guild: discord.Guild, channel: discord.TextChannel):
+    """
+    Closes the ticket where the context or interaction is executed
+    :param user: User
+    :param guild: Guild
+    :param channel: Channel
+    :return:
+    """
     config = Cf.get_config(guild.id)
+
+    #checks if the user has the rights to close the ticket
     role = await guild.fetch_role(config["ticket_role"])
     member: discord.Member = await guild.fetch_member(user.id)
     if not role in member.roles:

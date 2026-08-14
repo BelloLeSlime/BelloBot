@@ -3,9 +3,10 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-AI_TOKEN = os.getenv('AI_TOKEN')
-GIPHY_TOKEN = os.getenv('GIPHY_TOKEN')
+AI_TOKEN = os.getenv('AI_TOKEN') #Google AI Studio API tokan
+GIPHY_TOKEN = os.getenv('GIPHY_TOKEN') #Giphy API token
 
+#the message sent to the AI for basic presonnality and understanding of what he can do
 system = """
 Tu es BelloBot, un bot Discord créé par Bello le Slime. 
 Utilise du vocabulaire de discord, utilise des émoticônes comme ;( >:) ¯\\_( ͡° ͜ʖ ͡°)_/¯ ༼ つ ◕_◕ ༽つ ಠ_ಠ :p XD et d'autre. 
@@ -20,6 +21,7 @@ model = "gemini-3.1-flash-lite"
 image_model = "None"
 
 flamcoin_symbol = "₣"
+#list of silly quotes to put in the activity section
 random_states = [
     "NEVER GONNA GIVE YOU UP",
     "Une minute de plus dans ce jacuzzi et je me transforme en William Afton.",
@@ -50,9 +52,12 @@ random_states = [
     "J'apprend à craft une pioche en pierre",
     "J'apprend à utiliser un four",
     "Baldéos cet américain ಠ_ಠ",
-    "Canicule"
+    "Canicule",
+    "You can only lose 100%, but you could win 999999999%",
+    "I bet therefore I am"
 ]
 
+#the keys avaiable in the /config
 config_keys = [
     "xp_channel",
     "alarm_channel",
@@ -64,6 +69,7 @@ config_keys = [
     "max_messages_in_memory",
 ]
 
+#the keys are what knid of data?
 config_value_types = {
     "xp_channel": discord.TextChannel,
     "alarm_channel": discord.TextChannel,
@@ -75,6 +81,7 @@ config_value_types = {
     "max_messages_in_memory": int,
 }
 
+#the knids of data are what exactly?
 config_text_types = {
     discord.TextChannel: "Salon texte",
     discord.CategoryChannel: "Catégorie de salons",
@@ -83,6 +90,7 @@ config_text_types = {
     int: "Nombre entier",
 }
 
+#some silly gambling quotes
 gambling_quotes = [
     "I bet, therefore I am\n- René Descartes",
     "It ain't a sin if you win\n- Granpa",
@@ -100,8 +108,10 @@ gambling_quotes = [
     "You can only lose 100% of your money, but you could win 999999999%\n - Unknown"
 ]
 
+#my website for slimania images :3
 image_url = "https://slimepunk.fr/bello/bellobot/slime/"
 
+#/help default message
 help_message = f"""
 Je suis un bot discord polyvalent dont la fonction principale est le chatbot IA intégrée, illimité et gratuit à l'échelle de l'utilisateur.
 
