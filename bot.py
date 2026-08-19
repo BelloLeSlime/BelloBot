@@ -1,6 +1,4 @@
-from bot_package.ticket_manager import TicketClose
-
-VERSION = "5.4"
+VERSION = "5.4.1"
 
 #import stuff
 import os
@@ -10,7 +8,6 @@ import random
 import logging
 
 #import discord stuff
-import discord
 from discord.ext import commands
 from discord.ext import tasks
 
@@ -25,11 +22,13 @@ from bot_package import custom_func as Cf
 import bot_package.error_manager as error_manager
 from bot_package import ticket_manager as Tm
 
+#define intents
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 intents.guilds = True
 
+#logging formater (for the logs)
 class LoggingFormatter(logging.Formatter):
     # Colors
     black = "\x1b[30m"
@@ -78,6 +77,7 @@ file_handler.setFormatter(file_handler_formatter)
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
+#Actual bot
 class Bot(commands.Bot):
     def __init__(self):
         super().__init__(intents=intents, command_prefix="§", help_command=None)
@@ -103,10 +103,17 @@ class Bot(commands.Bot):
                     )
 
     async def on_ready(self):
+        """
+        This code is executed when the bot is ready
+        :return:
+        """
+
+        #Update random states with dynamic guild count and version
         self.guild_count = len(self.guilds)
         random_states[15] = f"{len(self.guilds)} serveurs !"
         random_states[2] = f"V{VERSION} ༼ つ ◕_◕ ༽つ"
 
+        #Send another ticket creator message because the previous one won't work
         for guild in self.guilds:
             config = Cf.get_config(guild.id)
             if config["ticket_channel"] and config["ticket_description"] and config["ticket_role"] and config["ticket_logs_channel"]:
@@ -129,18 +136,35 @@ class Bot(commands.Bot):
 
     @tasks.loop(seconds=30)
     async def status_task(self):
+        """
+        This code is executed every 30 seconds
+        :return:
+        """
         await self.change_presence(activity=discord.Game(random.choice(random_states)))
         await Cf.check_alarm(self)
         await Cf.check_effect_expiration(self)
 
     @status_task.before_loop
     async def before_status_task(self):
+        """
+        This code is executed before a loop ^
+        :return:
+        """
         await self.wait_until_ready()
 
     async def on_message(self, message):
+        """
+        This code is executed when a message is received
+        :param message:
+        :return:
+        """
         await Cf.on_message(self, message)
 
     async def setup_hook(self):
+        """
+        IDK when this code is executed but it's at the start
+        :return:
+        """
         self.logger.info(f"Logged in as {self.user.name}")
         self.logger.info(f"Python version: {platform.python_version()}")
         print("BOT STARTED")
@@ -181,6 +205,7 @@ class Bot(commands.Bot):
         :param error: The error that has been faced.
         """
 
+        #the command as a cooldown
         if isinstance(error, commands.CommandOnCooldown):
             minutes, seconds = divmod(error.retry_after, 60)
             hours, minutes = divmod(minutes, 60)
@@ -190,12 +215,15 @@ class Bot(commands.Bot):
                 color=0xE02B2B,
             )
             await context.send(embed=embed)
+
+        #the command is only useable by the owner
         elif isinstance(error, commands.NotOwner):
             embed = discord.Embed(
                 description="Il faut être ower pour utiliser cette commande.", color=0xE02B2B
             )
             await context.send(embed=embed)
 
+        #the user's command as not the required permissons, such as admin
         elif isinstance(error, commands.MissingPermissions):
             embed = discord.Embed(
                 description="T'as pas les perms ;-; il faut avoir : `"
@@ -204,6 +232,8 @@ class Bot(commands.Bot):
                 color=0xE02B2B,
             )
             await context.send(embed=embed)
+
+        #the bot doesnt have the required permissions to do his job
         elif isinstance(error, commands.BotMissingPermissions):
             embed = discord.Embed(
                 description="J'ai pas les perms ;-; il faut que j'ai : `"
@@ -212,6 +242,8 @@ class Bot(commands.Bot):
                 color=0xE02B2B,
             )
             await context.send(embed=embed)
+
+        #the command has received invalid or missing arguments
         elif isinstance(error, commands.MissingRequiredArgument):
             embed = discord.Embed(
                 title="Erreur !",
@@ -220,6 +252,7 @@ class Bot(commands.Bot):
             )
             await context.send(embed=embed)
 
+        #when im a dick at doing my job genuienly
         else:
             raw_error = traceback.format_exception(error)
             formated_error = ""

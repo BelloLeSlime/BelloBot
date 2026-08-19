@@ -2,7 +2,6 @@ import discord
 import uuid
 import time
 
-
 async def mk_error_file(error_trace, ctx, command):
     error_info = ("\nError message :"
                   f"\n{error_trace}"
@@ -13,15 +12,15 @@ async def mk_error_file(error_trace, ctx, command):
     file_name = uuid.uuid4()
 
     with open(f"./files/error/{file_name}.txt", "w", encoding="utf-8") as f:
-        f.write(error_info)
+        f.write(error_info) #write the error in a file with a random code for debugging
     with open(f"./files/error/last.txt", "w", encoding="utf-8") as f:
-        f.write(error_info)
+        f.write(error_info) #write the error in last.txt
 
     error_embed = discord.Embed(
         title="Il y a eu une erreur...",
         description="Vous pouvez réessayer plus tard, ou transmettre les infos suivantes sur le discord de BelloBot :",
         color=discord.Color.red()
-    )
+    ) #the embed to send when the command has an error
     error_embed.add_field(name="Informations :",
                           value=f"> - Code d'erreur : {file_name}")
     error_embed.add_field(name="Merci de transmettre le code d'erreur dans ce serveur :",

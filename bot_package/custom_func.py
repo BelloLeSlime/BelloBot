@@ -1,3 +1,4 @@
+#import stuff
 import json
 import os
 import discord
@@ -16,11 +17,22 @@ from bs4 import BeautifulSoup
 #------------------------------------------------------------FILE MANAGEMENT
 
 def write_file(message, path):
+    """
+    Adds a message to a txt file
+    :param message: String message
+    :param path: Path to the file
+    :return:
+    """
     message = message.replace("\n", " ")
     with open(path, "a", encoding="utf-8") as file:
         file.write(message + "\n")
 
 def read_file(path):
+    """
+    Reads a txt file
+    :param path: Path to the file
+    :return:
+    """
     lines = []
     with open(path, "r", encoding="utf-8") as file:
         for line in file:
@@ -28,10 +40,21 @@ def read_file(path):
     return lines
 
 def write_json(data, path):
+    """
+    Writes a json file
+    :param data: Dictionary to write
+    :param path: Path to the file
+    :return:
+    """
     with open(path, "w", encoding="utf-8") as file:
         file.write(json.dumps(data, indent=2))
 
 def read_json(path):
+    """
+    Reads a json file
+    :param path: Path to da file
+    :return:
+    """
     with open(path, "r", encoding="utf-8") as file:
         data = json.loads(file.read())
         return data
@@ -39,6 +62,15 @@ def read_json(path):
 #------------------------------------------------------------AI STUFF
 
 async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = False, dm = False) -> str:
+    """
+    Uses the Google AI Studio API to ask something to an AI model
+    :param prompt: Question to ask
+    :param user: User's Display Name for better understanding for the AI
+    :param guild: Guild ID to read the message file
+    :param no_memory: If the memory is disabled
+    :param dm: If the chat is in DMs
+    :return:
+    """
     client = genai.Client(api_key=AI_TOKEN)
     if not no_memory:
         if not dm:
@@ -60,7 +92,6 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
 
             response = chat.send_message(f"{user} : {prompt}")
             answer = response.text
-            write_file(f"BelloBot(forbellobot) : {answer}", f"files/messages/{guild}.txt")
             return answer
         else:
             messages = get_dm(guild)
@@ -78,7 +109,6 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
 
             response = chat.send_message(f"{user} : {prompt}")
             answer = response.text
-            write_file(f"BelloBot(forbellobot) : {answer}", f"files/dms/{guild}.txt")
             return answer
 
     else:
@@ -91,11 +121,28 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
         return answer
 
 def text_to_image(prompt, model, negative_prompt, width=1024, height=1024, steps=30):
-        pass
+    """
+    Turns text into image via AI
+    :param prompt: Description of the wanted image
+    :param model: Model of the AI
+    :param negative_prompt: What there isnt in the image
+    :param width: Width of the image
+    :param height: Height of the image
+    :param steps: Steps = quality of the image
+    :return:
+    """
+    pass
 
 #------------------------------------------------------------ECONOMY MANAGEMENT
 
 def add_item(guild_id: int, user_id: int, item: str):
+    """
+    Adds an item to a user
+    :param guild_id: Guild ID
+    :param user_id: User ID
+    :param item: Item ID to give
+    :return:
+    """
     data = get_user_data(user_id, guild_id)
     data["items"][item] = data["items"][item] + 1 if item in data["items"] else 1
     set_user_data(user_id, guild_id, data)
@@ -103,7 +150,12 @@ def add_item(guild_id: int, user_id: int, item: str):
 #------------------------------------------------------------CHECKS
 
 def check_has_data_file(user_id, guild_id):
-    check_guild_has_presence(guild_id)
+    """
+    Checks if each file in the user's files is there: if not, creates it
+    :param user_id: User ID
+    :param guild_id: Guild ID
+    :return:
+    """
     if not str(guild_id) in os.listdir("files/user_info/"):
         os.makedirs(f"files/user_info/{guild_id}")
     try:
@@ -125,6 +177,11 @@ def check_has_data_file(user_id, guild_id):
         f"files/slimania_inventory/{guild_id}/{user_id}.json")
 
 def check_guild_has_presence(guild_id):
+    """
+    Checks if each file in the guild's files is there: if not, creates it
+    :param guild_id: Guild ID
+    :return:
+    """
     if not str(guild_id) + ".json" in os.listdir(f"./files/config/"):
         write_json(read_json(f"files/config/default_config.json"), f"files/config/{guild_id}.json")
     if not str(guild_id) + ".txt" in os.listdir(f"./files/messages/"):
@@ -229,6 +286,13 @@ def set_shop(guild_id, data):
 #------------------------------------------------------------MISC
 
 async def send_image(ctx: commands.Context, image, text=""):
+    """
+    Sends an image
+    :param ctx:
+    :param image:
+    :param text:
+    :return:
+    """
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     buffer.seek(0)
@@ -237,6 +301,11 @@ async def send_image(ctx: commands.Context, image, text=""):
     await ctx.send(text, file=file)
 
 def get_gif(query):
+    """
+    Researches a gif on Giphy
+    :param query: Key word for the search
+    :return:
+    """
     url = "https://api.giphy.com/v1/gifs/search"
 
     params = {
@@ -253,6 +322,11 @@ def get_gif(query):
     return r["data"][0]["images"]["original"]["url"]
 
 def search(query: str):
+    """
+    Researches links in DuckDuckGo
+    :param query: Key word for the search
+    :return:
+    """
     urls = ""
     for i in range(5):
         urls = ""
@@ -270,6 +344,11 @@ def search(query: str):
         return "Erreur lors de la recherche. Essayez de réaranger un peu les mots clés (DuckDuckGo a du mal)"
 
 def surf(url):
+    """
+    Get the web page from an URL
+    :param url: Web page's URL
+    :return:
+    """
     try:
         headers = {
             "User-Agent": "Mozilla/5.0"
@@ -291,13 +370,21 @@ def surf(url):
         return "Résultat du surf : Erreur lors du surf. Peut être URL non valide ou inexistante ?"
 
 async def parse_text(text, message, dm):
+    """
+    Executes the AI's commands, such as /gif or /search
+    :param text:
+    :param message:
+    :param dm:
+    :return:
+    """
+
     # gif
     pattern = r'/gif\s*"([^"]+)"'
 
     matches = re.findall(pattern, text)
 
     for m in matches:
-        gif = get_gif(m)
+        gif = get_gif(m) #get the GIF
 
         if gif:
             text = text.replace(f'/gif "{m}"', gif)
@@ -308,9 +395,10 @@ async def parse_text(text, message, dm):
 
     for m in matches:
         print("search - " + m)
-        results = search(m)
+        results = search(m) #search
+        ai_answer = await ask_ai(results, message.author.display_name, message.guild.id, dm=dm) #ask the ai what to do / say now he has got the links
         write_file(results, f"files/messages/{message.guild.id}.txt")
-        ai_answer = await ask_ai(results, message.author.display_name, message.guild.id, dm=dm)
+        write_file(f"BelloBot(forbellobot) : {ai_answer}", f"files/messages/{message.guild.id}.txt")
         text = ai_answer
         text = await parse_text(text, message, dm)
 
@@ -320,10 +408,10 @@ async def parse_text(text, message, dm):
 
     for m in matches:
         print("surf - " + m)
-        page = surf(m)
-
+        page = surf(m) #get the page
+        ai_answer = await ask_ai(page, message.author.display_name, message.guild.id, dm=dm) #ask the ai what to do / say now he has got the page
         write_file(page, f"files/messages/{message.guild.id}.txt")
-        ai_answer = await ask_ai(page, message.author.display_name, message.guild.id, dm=dm)
+        write_file(f"BelloBot(forbellobot) : {ai_answer}", f"files/messages/{message.guild.id}.txt")
         text = ai_answer
         text = await parse_text(text, message, dm)
 
@@ -332,30 +420,36 @@ async def parse_text(text, message, dm):
 #------------------------------------------------------------ON MESSAGE PROCESS
 
 async def ai_process(bot, message):
+    """
+    The AI part of the on_message function
+    :param bot: The bot itself
+    :param message: The user's message
+    :return:
+    """
     content = message.content
     if not message.author == bot.user and content != "":
         author = message.author.display_name
-        for mention in message.mentions:
+        for mention in message.mentions: #translate mentions
             content = content.replace(
                 f"<@{mention.id}>",
                 f"@{mention.display_name}"
             )
-        for channel in message.channel_mentions:
+        for channel in message.channel_mentions: #translate channel mentions
             content = content.replace(
                 f"<#{channel.id}>",
                 f"#{channel.name}"
             )
-        for role in message.role_mentions:
+        for role in message.role_mentions: #translate role mentions
             content = content.replace(
                 f"<@&{role.id}>",
                 f"@{role.name}"
             )
-
-        write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
-        if bot.user in message.mentions and message.author != bot.user:
+        answer = None
+        if bot.user in message.mentions and message.author != bot.user: #if the bot is mentionned
             try:
                 async with message.channel.typing():
                     answer = await ask_ai(content, message.author.display_name, message.guild.id)
+
                     to_send = await parse_text(answer, message, False)
                     try:
                         await message.reply(to_send)
@@ -364,23 +458,37 @@ async def ai_process(bot, message):
 
             except errors.ClientError:
                 await warn_no_more_credits(message)
+                write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
                 write_file("BelloBot(forbellobot) : Désolé, plus de crédits pour l'IA (réessayez demain !)", f"files/messages/{message.guild.id}.txt")
+                return
             except errors.ServerError:
                 await message.channel.send(f"Désolé, mais le serveur de Google peine en ce moment... Veuillez réessayer plus tard !")
+                write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
                 write_file("BelloBot(forbellobot) : Problème avec le serveur de Google, réessayez plus tard !",f"files/messages/{message.guild.id}.txt")
+                return
+        write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
+        if to_send:
+            write_file(f"BelloBot(forbellobot) : {to_send}", f"files/messages/{message.guild.id}.txt")
 
 async def xp_process(bot, message):
+        """
+        The XP and money part of the on_message function
+        :param bot: The bot itself
+        :param message: The user's message
+        :return:
+        """
         user = message.author
         guild = message.guild
         user_data = get_user_data(user.id, guild.id)
         user_data["xp"] += int(5 * user_data["mult_xp"])
         user_data["money"] += int(10 * user_data["mult_money"])
 
+        #checks if the xp has reached the xp goal
         leveluped = False
-        xp_goal = user_data["level"] * 15
+        xp_goal = user_data["level"] * 15 #xp goal formula
         levelup = user_data["xp"] >= xp_goal
         money_bonus = 0
-        while levelup:
+        while levelup: #level ups until the xp is less than the xp goal
             leveluped = True
             user_data["xp"] -= xp_goal
             user_data["level"] += 1
@@ -391,7 +499,7 @@ async def xp_process(bot, message):
 
         set_user_data(user.id, guild.id, user_data)
 
-        if leveluped:
+        if leveluped: #send the level up message
             embed = discord.Embed(color=discord.Color.green(), title="Passage de niveau !", description=f"GG à {user.mention} pour avoir passé le niveau {user_data["level"]} !🔥 Tu gagnes {money_bonus}{flamcoin_symbol} 🫰💰🪙 Continue de gagner des niveaux..." if user != bot.user else f"GG à moi (BelloBot) pour avoir passé le niveau {user_data["level"]} ! 🔥 Je gagne {money_bonus}{flamcoin_symbol} 🫰💰🪙")
             config = get_config(guild.id)
             if config["xp_channel"]:
@@ -401,6 +509,11 @@ async def xp_process(bot, message):
             await channel.send(f"{user.mention}",embed=embed)
 
 async def polls_process(message):
+    """
+    The polls part of the on_message function, executed when a poll is created
+    :param message: Message
+    :return:
+    """
     if message.poll:
         poll = message.poll
         title = poll.question
@@ -416,7 +529,7 @@ async def polls_process(message):
                 name=f"📊 Discussion : {poll.question}",
                 auto_archive_duration=1440
             )
-        except discord.HTTPException:
+        except discord.HTTPException: #the thread name is too long
             thread: discord.Thread = await message.create_thread(
                 name=f"📊 Discussion",
                 auto_archive_duration=1440
@@ -431,6 +544,12 @@ async def polls_process(message):
             await thread.send(ai_answer[:1975] + "... <message trop long>")
 
 async def dm_process(bot, message: discord.Message):
+    """
+    Executed if the message comes from DM
+    :param bot: The bot itself
+    :param message: Message
+    :return:
+    """
     content = message.content
     if not message.author == bot.user:
         if not str(message.author.id) + ".txt" in os.listdir("files/dms/"):
@@ -442,7 +561,6 @@ async def dm_process(bot, message: discord.Message):
                 f"@{mention.display_name}"
             )
 
-        write_file(author + " : " + content, f"files/dms/{message.author.id}.txt")
         try:
             async with message.channel.typing():
                 answer = await ask_ai(content, message.author.display_name, message.author.id, dm = True)
@@ -453,25 +571,35 @@ async def dm_process(bot, message: discord.Message):
                     await message.reply(to_send[:1975] + "... <message trop long>")
         except errors.ClientError:
             await warn_no_more_credits(message=message)
+            return
+        write_file(author + " : " + content, f"files/dms/{message.author.id}.txt")
+        write_file("BelloBot(forbellobot) : " + to_send, f"files/dms/{message.author.id}.txt")
 
 #------------------------------------------------------------ON MESSAGE FUNCTION
 
 async def on_message(bot, message: discord.Message):
     if message.guild is None:
-        await dm_process(bot, message)
+        await dm_process(bot, message) #if the message comes from DM
         return
+    # check if the user and guild have files
     check_guild_has_presence(message.guild.id)
     check_has_data_file(message.author.id, message.guild.id)
 
-    await ai_process(bot, message)
+    await ai_process(bot, message) #ask something to the AI if mentionned
 
-    await xp_process(bot, message)
+    await xp_process(bot, message) #add XP and money to the user and eventualy level up
 
-    await polls_process(message)
+    await polls_process(message) #answer to polls
 
 #------------------------------------------------------------WARN NO MORE CREDITS
 
 async def warn_no_more_credits(message = None, ctx = None):
+    """
+    This code is executed when the bot doesnt have credits anymore
+    :param message: Message (if the user was typing to the bot)
+    :param ctx: Context (if the user was using a command)
+    :return:
+    """
     embed = discord.Embed(color=discord.Color.red(), title="Plus de crédits !", description="Le bot n'a plus de crédits pour remplir pleinement ses fonctions IA. Il y en aura de nouveau demain. Désolé !")
     if message:
         await message.reply(embed=embed)
@@ -481,7 +609,11 @@ async def warn_no_more_credits(message = None, ctx = None):
 #------------------------------------------------------------CHECK LOOP
 
 async def check_alarm(bot):
-    # alarm
+    """
+    Checks if any alarm is set to now
+    :param bot: The bot itself
+    :return:
+    """
     for alarm_guild_id in os.listdir("files/alarms/"):
         if alarm_guild_id == ".gitignore":
             continue
@@ -516,6 +648,11 @@ async def check_alarm(bot):
                             set_alarms(alarm_user_id, alarm_guild_id, alarms)
 
 async def check_effect_expiration(bot):
+    """
+    For every effect of every user, checks if the effect is out dated, if so, remove it and the potential role
+    :param bot:
+    :return:
+    """
     for guild in bot.guilds:
         for user in guild.members:
             user_data = get_user_data(user.id, guild.id)
