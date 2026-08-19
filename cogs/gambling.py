@@ -32,176 +32,183 @@ class ReplayButton(discord.ui.View):
             await self.game_function(self.ctx, self.bet, self.what)
 
 class MultChoice(discord.ui.View):
-    def __init__(self, callback, ctx, bet, what):
+    def __init__(self, callback, ctx, bet, what, message=None):
         super().__init__()
         self.callback = callback
         self.ctx = ctx
         self.bet = bet
         self.what = what
+        self.message = message
 
     @discord.ui.button(label="X2", style=discord.ButtonStyle.green)
     async def button_2_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, choice=2)
+        await self.callback(self.ctx, self.bet, self.what, choice=2, message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="X3", style=discord.ButtonStyle.primary)
     async def button_3_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, choice=3)
+        await self.callback(self.ctx, self.bet, self.what, choice=3, message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="X5", style=discord.ButtonStyle.red)
     async def button_5_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, choice=5)
+        await self.callback(self.ctx, self.bet, self.what, choice=5, message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="X10", style=discord.ButtonStyle.grey)
     async def button_10_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, choice=10)
+        await self.callback(self.ctx, self.bet, self.what, choice=10, message=self.message)
         await interaction.response.defer()
 
 class DuckChoice(discord.ui.View):
-    def __init__(self, callback, ctx, bet, what):
+    def __init__(self, callback, ctx, bet, what, message = None):
         super().__init__()
         self.callback = callback
         self.ctx = ctx
         self.bet = bet
         self.what = what
+        self.message = message
 
     @discord.ui.button(label="Donald", style=discord.ButtonStyle.green)
     async def donald_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, choice="Donald")
+        await self.callback(self.ctx, self.bet, self.what, choice="Donald", message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="Daffy", style=discord.ButtonStyle.green)
     async def daffy_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, choice="Daffy")
+        await self.callback(self.ctx, self.bet, self.what, choice="Daffy", message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="Yarl", style=discord.ButtonStyle.green)
     async def yarl_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, choice="Yarl")
+        await self.callback(self.ctx, self.bet, self.what, choice="Yarl", message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="Picsou", style=discord.ButtonStyle.green)
     async def picsou_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, choice="Picsou")
+        await self.callback(self.ctx, self.bet, self.what, choice="Picsou", message=self.message)
         await interaction.response.defer()
 
 class BlackjackChoice(discord.ui.View):
-    def __init__(self, callback, ctx, bet, what, game_info):
+    def __init__(self, callback, ctx, bet, what, game_info, message = None):
         super().__init__()
         self.callback = callback
         self.ctx = ctx
         self.bet = bet
         self.what = what
         self.game_info = game_info
+        self.message = message
 
     @discord.ui.button(label="Tirer", style=discord.ButtonStyle.green)
     async def draw_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.game_info["choice"] = "draw"
-        await self.callback(self.ctx, self.bet, self.what, self.game_info)
+        await self.callback(self.ctx, self.bet, self.what, self.game_info, message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="Rester", style=discord.ButtonStyle.blurple)
     async def stand_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.game_info["choice"] = "stand"
-        await self.callback(self.ctx, self.bet, self.what, self.game_info)
+        await self.callback(self.ctx, self.bet, self.what, self.game_info, message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="Doubler", style=discord.ButtonStyle.red)
     async def double_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.game_info["choice"] = "double"
-        await self.callback(self.ctx, self.bet, self.what, self.game_info)
+        await self.callback(self.ctx, self.bet, self.what, self.game_info, message=self.message)
         await interaction.response.defer()
 
 class StreetCrapsRoll(discord.ui.View):
-    def __init__(self, callback, ctx, bet, what, game_info):
+    def __init__(self, callback, ctx, bet, what, game_info, message = None):
         super().__init__()
         self.callback = callback
         self.ctx = ctx
         self.bet = bet
         self.what = what
         self.game_info = game_info
+        self.message = message
 
     @discord.ui.button(label="Lancer", style=discord.ButtonStyle.blurple)
     async def roll_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, self.game_info)
+        await self.callback(self.ctx, self.bet, self.what, self.game_info, message=self.message)
         await interaction.response.defer()
 
 class RouletteChoice(discord.ui.View):
-    def __init__(self, callback, ctx, bet, what):
+    def __init__(self, callback, ctx, bet, what, message = None):
         super().__init__()
         self.callback = callback
         self.ctx = ctx
         self.bet = bet
         self.what = what
+        self.message = message
 
     @discord.ui.button(label="Rouge", style=discord.ButtonStyle.red)
     async def red_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, "red")
+        await self.callback(self.ctx, self.bet, self.what, "red", message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="Noir", style=discord.ButtonStyle.grey)
     async def black_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, "black")
+        await self.callback(self.ctx, self.bet, self.what, "black", message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="Vert", style=discord.ButtonStyle.green)
     async def green_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, "green")
+        await self.callback(self.ctx, self.bet, self.what, "green", message=self.message)
         await interaction.response.defer()
 
 class PeguinCrossChoice(discord.ui.View):
-    def __init__(self, callback, ctx, bet, what, turn):
+    def __init__(self, callback, ctx, bet, what, turn, message = None):
         super().__init__()
         self.callback = callback
         self.ctx = ctx
         self.bet = bet
         self.what = what
         self.turn = turn
+        self.message = message
 
     @discord.ui.button(label="Avancer", style=discord.ButtonStyle.green)
     async def step_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, "step", self.turn)
+        await self.callback(self.ctx, self.bet, self.what, "step", self.turn, message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="Cash-Out", style=discord.ButtonStyle.blurple)
     async def cashout_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, "cashout", self.turn)
+        await self.callback(self.ctx, self.bet, self.what, "cashout", self.turn, message=self.message)
         await interaction.response.defer()
 
 class DragonTowerChoice(discord.ui.View):
-    def __init__(self, callback, ctx, bet, what, game_info):
+    def __init__(self, callback, ctx, bet, what, game_info, message = None):
         super().__init__()
         self.callback = callback
         self.ctx = ctx
         self.bet = bet
         self.what = what
         self.game_info = game_info
+        self.message = message
 
     @discord.ui.button(label="1", style=discord.ButtonStyle.green)
     async def one_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, self.game_info, "1")
+        await self.callback(self.ctx, self.bet, self.what, self.game_info, "1", message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="2", style=discord.ButtonStyle.green)
     async def two_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, self.game_info, "2")
+        await self.callback(self.ctx, self.bet, self.what, self.game_info, "2", message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="3", style=discord.ButtonStyle.green)
     async def three_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, self.game_info, "3")
+        await self.callback(self.ctx, self.bet, self.what, self.game_info, "3", message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="4", style=discord.ButtonStyle.green)
     async def four_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, self.game_info, "4")
+        await self.callback(self.ctx, self.bet, self.what, self.game_info, "4", message=self.message)
         await interaction.response.defer()
 
     @discord.ui.button(label="Cash-Out", style=discord.ButtonStyle.blurple)
     async def cashout_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.callback(self.ctx, self.bet, self.what, self.game_info, "cashout")
+        await self.callback(self.ctx, self.bet, self.what, self.game_info, "cashout", message=self.message)
         await interaction.response.defer()
 
 class Gamebling(commands.Cog):
@@ -266,6 +273,7 @@ class Gamebling(commands.Cog):
         elif game == "dragon tower":
             await self.dragon_tower(ctx, bet, what)
 
+    #V
     async def wheel_of_fortune(self, ctx, bet, what):
         choices = [-1, 3, 0.1, 0.5, 0.25, 5, 0.1, 0.25, 2, 0.1, -1, 3, 0.5, 0.1, 0.25, 0, 0.5, 0.1, 2, 0.25]
         mult = random.choice(choices)
@@ -297,7 +305,8 @@ class Gamebling(commands.Cog):
 """)
             await ctx.send(embed=embed, view=ReplayButton(self.wheel_of_fortune, ctx, bet, what))
 
-    async def money_wheel(self, ctx, bet, what, choice=0):
+    #V
+    async def money_wheel(self, ctx, bet, what, choice=0, message = None):
         if choice == 0:
             embed = discord.Embed(color=discord.Color.blue(), title=f"MONEY WHEEL - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}", description=f"""
             Veuillez choisir le gain possible
@@ -308,7 +317,8 @@ class Gamebling(commands.Cog):
             > X5 : 8/37
             > X10 : 5/37
 """)
-            await ctx.send(embed=embed, view=MultChoice(self.money_wheel, ctx, bet, what))
+            message = await ctx.send(embed=embed)
+            await message.edit(embed=embed, view=MultChoice(self.money_wheel, ctx, bet, what, message))
         else:
             choices = [2, 3, 5, 10]
             weights = [14, 10, 8, 5]
@@ -328,8 +338,12 @@ class Gamebling(commands.Cog):
             
             {f"Dommage, vous ne gagnez rien. Vous pouvez toujours retenter pour X{choice}..." if not win else f"Bien joué ! Vous multipliez votre mise par {choice} ! Vous remportez {win}{"XP" if what == "xp" else flamcoin_symbol} sur les {bet} que vous avez parié."}
 """)
-            await ctx.send(embed=embed, view=ReplayButton(self.money_wheel, ctx, bet, what, arg=choice))
+            if message:
+                await message.edit(embed=embed, view=ReplayButton(self.money_wheel, ctx, bet, what, arg=choice))
+            else:
+                await ctx.send(embed=embed, view=ReplayButton(self.money_wheel, ctx, bet, what, arg=choice))
 
+    #V
     async def slots(self, ctx, bet, what):
         choices = ["🍎", "🍊", "🍋", "🍉"]
 
@@ -394,7 +408,8 @@ class Gamebling(commands.Cog):
 """)
         await ctx.send(embed=embed, view=ReplayButton(self.slots, ctx, bet, what))
 
-    async def duck_race(self, ctx, bet, what, choice=""):
+    #V
+    async def duck_race(self, ctx, bet, what, choice="", message = None):
         if choice == "":
             embed = discord.Embed(color=discord.Color.blue(), title=f"DUCK RACE - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}", description=
             f"""
@@ -413,7 +428,8 @@ class Gamebling(commands.Cog):
             
             > Conseil de pro : choisissez Yarl, toujours Yarl
 """)
-            await ctx.send(embed=embed, view=DuckChoice(self.duck_race, ctx, bet, what))
+            message = await ctx.send(embed=embed)
+            await message.edit(embed=embed, view=DuckChoice(self.duck_race, ctx, bet, what, message=message))
         else:
             names = ["Donald", "Daffy", "Yarl", "Picsou"]
             weights = [1, 1, 1.1, 1]
@@ -469,7 +485,10 @@ class Gamebling(commands.Cog):
         Vous remportez {win}{"XP" if what == "xp" else flamcoin_symbol} sur les {bet} que vous avez parié{" !" if win else "..."}
             
 """)
-            await ctx.send(embed=embed, view=ReplayButton(self.duck_race, ctx, bet, what, arg=choice))
+            if message:
+                await message.edit(embed=embed, view=ReplayButton(self.duck_race, ctx, bet, what, arg=choice))
+            else:
+                await ctx.send(embed=embed, view=ReplayButton(self.duck_race, ctx, bet, what, arg=choice))
 
     def get_random_card(self, already_dropped) -> str:
         cards_value = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
@@ -482,7 +501,8 @@ class Gamebling(commands.Cog):
     def get_already_dropped(self, game_info):
         return game_info["user_cards"] + game_info["gm_cards"]
 
-    async def blackjack(self, ctx, bet, what, game_info=None):
+    #V
+    async def blackjack(self, ctx, bet, what, game_info=None, message = None):
         card_values = {
             "A": 11,
             "2": 2,
@@ -535,7 +555,8 @@ class Gamebling(commands.Cog):
                 Vous triplez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}"
                 
 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                message = await ctx.send(embed=embed)
+                await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what, message))
                 return
 
 
@@ -568,9 +589,9 @@ class Gamebling(commands.Cog):
             Vous perdez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}... Vous pouvez retenter votre chance !"""}
 """)
             if not bust:
-                await ctx.send(embed=embed, view=BlackjackChoice(self.blackjack, ctx, bet, what, game_info=game_info))
+                await message.edit(embed=embed, view=BlackjackChoice(self.blackjack, ctx, bet, what, game_info=game_info, message=message))
             else:
-                await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
 
         elif game_info["choice"] == "stand":
             while game_info["gm_points"] < 17:
@@ -598,7 +619,7 @@ class Gamebling(commands.Cog):
                                 {gm_cards_str}
 
                                 Vous doublez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol} !""")
-                await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
 
             elif game_info["user_points"] > game_info["gm_points"]:
                 user_data = Cf.get_user_data(ctx.author.id, ctx.guild.id)
@@ -616,7 +637,7 @@ class Gamebling(commands.Cog):
                 
                 Vous doublez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol} !
 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
 
             elif game_info["user_points"] < game_info["gm_points"]:
                 embed = discord.Embed(color=discord.Color.red(),
@@ -632,7 +653,7 @@ class Gamebling(commands.Cog):
 
                                 Vous perdez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}...
                 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
 
             elif game_info["user_points"] == game_info["gm_points"]:
                 user_data = Cf.get_user_data(ctx.author.id, ctx.guild.id)
@@ -651,7 +672,7 @@ class Gamebling(commands.Cog):
 
                                                 Vous vous faîtes rembourser votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}.
                                 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
 
         elif game_info["choice"] == "double":
             game_info["user_cards"].append(self.get_random_card(self.get_already_dropped(game_info)))
@@ -678,7 +699,7 @@ class Gamebling(commands.Cog):
                 
                 Vous perdez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}... Vous pouvez retenter votre chance !
 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
             else:
                 while game_info["gm_points"] < 17:
                     game_info["gm_cards"].append(self.get_random_card(self.get_already_dropped(game_info)))
@@ -708,7 +729,7 @@ class Gamebling(commands.Cog):
                                                 {gm_cards_str}
 
                                                 Vous triplez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol} !""")
-                    await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                    await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
 
                 elif game_info["user_points"] > game_info["gm_points"]:
                     user_data = Cf.get_user_data(ctx.author.id, ctx.guild.id)
@@ -728,7 +749,7 @@ class Gamebling(commands.Cog):
 
                                 Vous triplez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol} !
                 """)
-                    await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                    await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
 
                 elif game_info["user_points"] < game_info["gm_points"]:
                     embed = discord.Embed(color=discord.Color.red(),
@@ -745,7 +766,7 @@ class Gamebling(commands.Cog):
 
                                                 Vous perdez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}...
                                 """)
-                    await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                    await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
 
                 elif game_info["user_points"] == game_info["gm_points"]:
                     user_data = Cf.get_user_data(ctx.author.id, ctx.guild.id)
@@ -765,7 +786,7 @@ class Gamebling(commands.Cog):
 
                                                                 Vous vous faîtes rembourser votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}.
                                                 """)
-                    await ctx.send(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
+                    await message.edit(embed=embed, view=ReplayButton(self.blackjack, ctx, bet, what))
 
         else:
             user_cards_str = ""
@@ -782,7 +803,9 @@ class Gamebling(commands.Cog):
             La main du croupier (BelloBot en costar cravate) : {game_info["gm_points"]}
             {gm_cards_str}
 """)
-            await ctx.send(embed=embed, view=BlackjackChoice(self.blackjack, ctx, bet, what, game_info))
+
+            message = await ctx.send(embed=embed)
+            await message.edit(embed=embed, view=BlackjackChoice(self.blackjack, ctx, bet, what, game_info, message=message))
 
     def roll_dices(self, dices_count):
         result = []
@@ -790,7 +813,8 @@ class Gamebling(commands.Cog):
             result.append(random.randint(1, 6))
         return result
 
-    async def street_craps(self, ctx, bet, what, game_info=None):
+    #V
+    async def street_craps(self, ctx, bet, what, game_info=None, message=None):
         if game_info is None:
             game_info = {
                 "rolls": [],
@@ -805,7 +829,9 @@ class Gamebling(commands.Cog):
             
             Commencez à lancer les dés !
 """)
-            await ctx.send(embed=embed, view=StreetCrapsRoll(self.street_craps, ctx, bet, what, game_info))
+            message = await ctx.send(embed=embed)
+            await message.edit(embed=embed, view=StreetCrapsRoll(self.street_craps, ctx, bet, what, game_info, message=message))
+            return
 
         elif game_info["turn"] == 1:
             game_info["turn"] += 1
@@ -824,7 +850,7 @@ class Gamebling(commands.Cog):
                 
                 Vous doublez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol} !
 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
             elif result in [2, 3, 12]:
                 embed = discord.Embed(color=discord.Color.red(),
                                       title=f"STREET CRAPS - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}",
@@ -837,7 +863,7 @@ class Gamebling(commands.Cog):
                                 Vous perdez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}...
                                 Vous pouvez toujours réessayer !
                 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
             else:
                 embed = discord.Embed(color=discord.Color.blue(), title=f"STREET CRAPS - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}", description=
                 f"""
@@ -848,7 +874,7 @@ class Gamebling(commands.Cog):
                 
                 Relancez les dés !
 """)
-                await ctx.send(embed=embed, view=StreetCrapsRoll(self.street_craps, ctx, bet, what, game_info))
+                await message.edit(embed=embed, view=StreetCrapsRoll(self.street_craps, ctx, bet, what, game_info, message=message))
         elif game_info["turn"] in [2, 3, 4]:
             game_info["turn"] += 1
             dices = self.roll_dices(2)
@@ -866,7 +892,7 @@ class Gamebling(commands.Cog):
                                                 Vous perdez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}...
                                                 Vous pouvez toujours réessayer !
                                 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
             elif result == game_info["rolls"][0]:
                 user_data = Cf.get_user_data(ctx.author.id, ctx.guild.id)
                 user_data[what] += int(4 * bet)
@@ -881,7 +907,7 @@ class Gamebling(commands.Cog):
 
                                 Vous quadruplez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol} !
 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
             else:
                 embed = discord.Embed(color=discord.Color.blue(),
                                       title=f"STREET CRAPS - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}",
@@ -894,7 +920,7 @@ class Gamebling(commands.Cog):
 
                                 Relancez les dés !
                 """)
-                await ctx.send(embed=embed, view=StreetCrapsRoll(self.street_craps, ctx, bet, what, game_info))
+                await message.edit(embed=embed, view=StreetCrapsRoll(self.street_craps, ctx, bet, what, game_info, message=message))
         elif game_info["turn"] == 5:
             dices = self.roll_dices(2)
             result = sum(dices)
@@ -911,7 +937,7 @@ class Gamebling(commands.Cog):
                                                             Vous perdez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}...
                                                             Vous pouvez toujours réessayer !
                                             """)
-                await ctx.send(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
             elif result == game_info["rolls"][0]:
                 user_data = Cf.get_user_data(ctx.author.id, ctx.guild.id)
                 user_data[what] += int(4 * bet)
@@ -926,7 +952,7 @@ class Gamebling(commands.Cog):
 
                                             Vous quadruplez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol} !
             """)
-                await ctx.send(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
             else:
                 user_data = Cf.get_user_data(ctx.author.id, ctx.guild.id)
                 user_data[what] += int(bet)
@@ -941,16 +967,18 @@ class Gamebling(commands.Cog):
 
                                             Relancez une partie !
                             """)
-                await ctx.send(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
 
-    async def roulette(self, ctx, bet, what, choice=None):
+    #V
+    async def roulette(self, ctx, bet, what, choice=None, message=None):
         if choice == None:
             embed = discord.Embed(color=discord.Color.blue(), title=f"ROULETTE - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}", description=
             f"""
             Veuillez parier sur une couleur ci-dessous
             (Oui, on peut pas parier sur les nombres)
 """)
-            await ctx.send(embed=embed, view=RouletteChoice(self.roulette, ctx, bet, what))
+            message = await ctx.send(embed=embed)
+            await message.edit(embed=embed, view=RouletteChoice(self.roulette, ctx, bet, what, message=message))
         else:
             choices = ["red", "black", "green"]
             weights = [18, 18, 1]
@@ -971,9 +999,13 @@ class Gamebling(commands.Cog):
             
             {f"Bien joué ! Vous pouvez reparier sur le {"rouge" if choice == "red" else "noir" if choice == "black" else "vert"} !" if result == choice else f"Dommage... Vous pouvez toujours reparier sur le {"rouge" if choice == "red" else "noir" if choice == "black" else "vert"} !"}
 """)
-            await ctx.send(embed=embed, view=ReplayButton(self.roulette, ctx, bet, what, arg=choice))
+            if message:
+                await message.edit(embed=embed, view=ReplayButton(self.roulette, ctx, bet, what, arg=choice))
+            else:
+                await ctx.send(embed=embed, view=ReplayButton(self.roulette, ctx, bet, what, arg=choice))
 
-    async def peguin_cross(self, ctx, bet, what, choice=None, turn=None):
+    #V
+    async def peguin_cross(self, ctx, bet, what, choice=None, turn=None, message=None):
         mults = [1, 1.2, 1.5, 2, 3, 5, 10, 25, 75, 250, 1000]
         if choice == None:
             turn = 0
@@ -984,7 +1016,7 @@ class Gamebling(commands.Cog):
                 space_str = ""
                 for i in range(turn * 2):
                     space_str += "🟡"
-                embed = discord.Embed(color=discord.Color.blue(),
+                embed = discord.Embed(color=discord.Color.red(),
                                       title=f"PEGUIN CROSS - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}",
                                       description=
                                       f"""
@@ -997,7 +1029,7 @@ class Gamebling(commands.Cog):
                         Vous avez perdu... Vous perdez votre mise de {bet}{"XP" if what == "xp" else flamcoin_symbol}
                         Vous pouvez réessayer !
                 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.peguin_cross, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.peguin_cross, ctx, bet, what))
                 return
         elif choice == "cashout" or turn == 10:
             user_data = Cf.get_user_data(ctx.author.id, ctx.guild.id)
@@ -1006,7 +1038,7 @@ class Gamebling(commands.Cog):
             space_str = ""
             for i in range(turn * 2):
                 space_str += "🟡"
-            embed = discord.Embed(color=discord.Color.blue(),
+            embed = discord.Embed(color=discord.Color.green(),
                                   title=f"PEGUIN CROSS - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}",
                                   description=
                                   f"""
@@ -1019,7 +1051,7 @@ class Gamebling(commands.Cog):
                                     Vous multipliez votre mise par {mults[turn]} !
                                     Vous pouvez réessayer !
                             """)
-            await ctx.send(embed=embed, view=ReplayButton(self.peguin_cross, ctx, bet, what))
+            await message.edit(embed=embed, view=ReplayButton(self.peguin_cross, ctx, bet, what))
             return
 
         space_str = ""
@@ -1033,7 +1065,11 @@ class Gamebling(commands.Cog):
         {space_str}🐧
         🧊🌊🧊🌊🧊🌊🧊🌊🧊🌊🧊🌊🧊🌊🧊🌊🧊🌊🧊🌊🧊🧊🧊
 """)
-        await ctx.send(embed=embed, view=PeguinCrossChoice(self.peguin_cross, ctx, bet, what, turn))
+        if message:
+            await message.edit(embed=embed, view=PeguinCrossChoice(self.peguin_cross, ctx, bet, what, turn, message=message))
+        else:
+            message = await ctx.send(embed=embed)
+            await message.edit(embed=embed, view=PeguinCrossChoice(self.peguin_cross, ctx, bet, what, turn, message=message))
 
     def get_map_str(self, game_info, lose=False):
         map_str = ""
@@ -1064,7 +1100,8 @@ class Gamebling(commands.Cog):
                     map_str += "⬛⬛⬛🟥\n"
         return map_str
 
-    async def dragon_tower(self, ctx, bet, what, game_info=None, choice=None):
+    #X
+    async def dragon_tower(self, ctx, bet, what, game_info=None, choice=None, message=None):
         mults = [1, 1.5, 2, 2.5, 3, 4, 5]
         if game_info == None:
             game_info = {
@@ -1086,7 +1123,7 @@ class Gamebling(commands.Cog):
 
                         Vous avez perdez... Dommage, vous pouvez toujours retenter !
                 """)
-                await ctx.send(embed=embed, view=ReplayButton(self.dragon_tower, ctx, bet, what))
+                await message.edit(embed=embed, view=ReplayButton(self.dragon_tower, ctx, bet, what))
                 return
             else:
                 game_info["played_map"].append(choice)
@@ -1104,18 +1141,21 @@ class Gamebling(commands.Cog):
 
                     Vous remportez {bet*mults[len(game_info["played_map"])]}{"XP" if what == "xp" else flamcoin_symbol} sur les {bet} que vous avez misé !
             """)
-            await ctx.send(embed=embed, view=ReplayButton(self.dragon_tower, ctx, bet, what))
+            await message.edit(embed=embed, view=ReplayButton(self.dragon_tower, ctx, bet, what))
             return
-
 
         embed = discord.Embed(color=discord.Color.blue(), title=f"DRAGON TOWER - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}", description=
         f"""
         {self.get_map_str(game_info)}
         1️⃣2️⃣3️⃣4️⃣     X{mults[len(game_info["played_map"])]}
         
-        Choisissez une colonne ou chast-out.
+        Choisissez une colonne ou cash-out.
 """)
-        await ctx.send(embed=embed, view=DragonTowerChoice(self.dragon_tower, ctx, bet, what, game_info))
+        if message:
+            await message.edit(embed=embed, view=DragonTowerChoice(self.dragon_tower, ctx, bet, what, game_info, message=message))
+        else:
+            message = await ctx.send(embed=embed)
+            await message.edit(embed=embed, view=DragonTowerChoice(self.dragon_tower, ctx, bet, what, game_info, message=message))
 
 
     @commands.hybrid_command(name="gambling_quote")

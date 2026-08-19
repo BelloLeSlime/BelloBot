@@ -28,7 +28,7 @@ class Ai(commands.Cog):
             Cf.check_has_data_file(ctx.author.id, ctx.guild.id)
             content = prompt
             author = ctx.author.display_name
-            Cf.write_file(author + " : " + content, f"files/messages/{ctx.guild.id}.txt")
+
             try:
                 answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id)
                 to_send = await Cf.parse_text(answer, ctx, False)
@@ -38,6 +38,11 @@ class Ai(commands.Cog):
                     await ctx.send(to_send[:1975] + "... <message trop long>")
             except:
                 await Cf.warn_no_more_credits(ctx=ctx)
+                return
+
+            Cf.write_file(author + " : " + content, f"files/messages/{ctx.guild.id}.txt")
+            Cf.write_file("BelloBot(forbellobot) : " + to_send, f"files/messages/{ctx.guild.id}.txt")
+
         else:
             await ctx.defer()
 
@@ -46,7 +51,6 @@ class Ai(commands.Cog):
 
             content = prompt
             author = ctx.author.display_name
-            Cf.write_file(author + " : " + content, f"files/dms/{ctx.author.id}.txt")
             try:
                 answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id, dm=True)
                 to_send = await Cf.parse_text(answer, ctx, True)
@@ -56,6 +60,9 @@ class Ai(commands.Cog):
                     await ctx.send(to_send[:1975] + "... <message trop long>")
             except:
                 await Cf.warn_no_more_credits(ctx=ctx)
+                return
+            Cf.write_file(author + " : " + content, f"files/dms/{ctx.author.id}.txt")
+            Cf.write_file("BelloBot(forbellobot) : " + to_send, f"files/dms/{ctx.author.id}.txt")
 
 
     @commands.hybrid_command(name="vote_reset_memory")

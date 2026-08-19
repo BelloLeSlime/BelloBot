@@ -1,6 +1,4 @@
-from bot_package.ticket_manager import TicketClose
-
-VERSION = "5.4"
+VERSION = "5.4.1"
 
 #import stuff
 import os
@@ -10,7 +8,6 @@ import random
 import logging
 
 #import discord stuff
-import discord
 from discord.ext import commands
 from discord.ext import tasks
 

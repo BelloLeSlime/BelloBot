@@ -92,7 +92,6 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
 
             response = chat.send_message(f"{user} : {prompt}")
             answer = response.text
-            write_file(f"BelloBot(forbellobot) : {answer}", f"files/messages/{guild}.txt")
             return answer
         else:
             messages = get_dm(guild)
@@ -110,7 +109,6 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
 
             response = chat.send_message(f"{user} : {prompt}")
             answer = response.text
-            write_file(f"BelloBot(forbellobot) : {answer}", f"files/dms/{guild}.txt")
             return answer
 
     else:
@@ -398,8 +396,9 @@ async def parse_text(text, message, dm):
     for m in matches:
         print("search - " + m)
         results = search(m) #search
-        write_file(results, f"files/messages/{message.guild.id}.txt")
         ai_answer = await ask_ai(results, message.author.display_name, message.guild.id, dm=dm) #ask the ai what to do / say now he has got the links
+        write_file(results, f"files/messages/{message.guild.id}.txt")
+        write_file(f"BelloBot(forbellobot) : {ai_answer}", f"files/messages/{message.guild.id}.txt")
         text = ai_answer
         text = await parse_text(text, message, dm)
 
@@ -410,9 +409,9 @@ async def parse_text(text, message, dm):
     for m in matches:
         print("surf - " + m)
         page = surf(m) #get the page
-
-        write_file(page, f"files/messages/{message.guild.id}.txt")
         ai_answer = await ask_ai(page, message.author.display_name, message.guild.id, dm=dm) #ask the ai what to do / say now he has got the page
+        write_file(page, f"files/messages/{message.guild.id}.txt")
+        write_file(f"BelloBot(forbellobot) : {ai_answer}", f"files/messages/{message.guild.id}.txt")
         text = ai_answer
         text = await parse_text(text, message, dm)
 
@@ -445,12 +444,12 @@ async def ai_process(bot, message):
                 f"<@&{role.id}>",
                 f"@{role.name}"
             )
-
-        write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
+        answer = None
         if bot.user in message.mentions and message.author != bot.user: #if the bot is mentionned
             try:
                 async with message.channel.typing():
                     answer = await ask_ai(content, message.author.display_name, message.guild.id)
+
                     to_send = await parse_text(answer, message, False)
                     try:
                         await message.reply(to_send)
@@ -459,10 +458,17 @@ async def ai_process(bot, message):
 
             except errors.ClientError:
                 await warn_no_more_credits(message)
+                write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
                 write_file("BelloBot(forbellobot) : Désolé, plus de crédits pour l'IA (réessayez demain !)", f"files/messages/{message.guild.id}.txt")
+                return
             except errors.ServerError:
                 await message.channel.send(f"Désolé, mais le serveur de Google peine en ce moment... Veuillez réessayer plus tard !")
+                write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
                 write_file("BelloBot(forbellobot) : Problème avec le serveur de Google, réessayez plus tard !",f"files/messages/{message.guild.id}.txt")
+                return
+        write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
+        if to_send:
+            write_file(f"BelloBot(forbellobot) : {to_send}", f"files/messages/{message.guild.id}.txt")
 
 async def xp_process(bot, message):
         """
@@ -555,7 +561,6 @@ async def dm_process(bot, message: discord.Message):
                 f"@{mention.display_name}"
             )
 
-        write_file(author + " : " + content, f"files/dms/{message.author.id}.txt")
         try:
             async with message.channel.typing():
                 answer = await ask_ai(content, message.author.display_name, message.author.id, dm = True)
@@ -566,6 +571,9 @@ async def dm_process(bot, message: discord.Message):
                     await message.reply(to_send[:1975] + "... <message trop long>")
         except errors.ClientError:
             await warn_no_more_credits(message=message)
+            return
+        write_file(author + " : " + content, f"files/dms/{message.author.id}.txt")
+        write_file("BelloBot(forbellobot) : " + to_send, f"files/dms/{message.author.id}.txt")
 
 #------------------------------------------------------------ON MESSAGE FUNCTION
 
