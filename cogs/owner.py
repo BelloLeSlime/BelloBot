@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import sys
 import subprocess
-import bot_package.custom_func as Cf
 import os
 
 class Owner(commands.Cog):
@@ -41,7 +40,7 @@ class Owner(commands.Cog):
         :return:
         """
 
-        message = await ctx.send("Mise à jour en cours...")
+        message = await ctx.send("Mise à jour en cours...", ephemeral=True)
 
 
         result_stash = subprocess.run(
@@ -83,7 +82,7 @@ class Owner(commands.Cog):
             )
             return
 
-        await message.edit("Mise à jour en cours...\nMise à jour terminée ! Redémarrage...")
+        await message.edit("Mise à jour en cours...\nMise à jour terminée ! Redémarrage...", ephemeral=True)
         await self.bot.close()
         sys.exit(42)
 

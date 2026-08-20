@@ -174,6 +174,8 @@ class Stats(commands.Cog):
         :return:
         """
 
+        await ctx.defer()
+
         if user is None:
             user = ctx.author
 
@@ -190,19 +192,11 @@ class Stats(commands.Cog):
                 level = level_top[user_id]
                 if i >= 10:
                     break
-                try:
-                    usr = await ctx.guild.fetch_member(int(user_id))
-                except discord.NotFound:
-                    usr = None
-                if not usr:
-                    usr = "*utilisateur inconnu*"
-                else:
-                    usr = usr.mention
-                embed.description += f"#{i + 1} {usr} : Niveau {level}\n"
+                embed.description += f"#{i + 1} <@{user_id}> : Niveau {level}\n"
             for i, user_id in enumerate(level_top):
                 level = level_top[user_id]
                 if user_id == str(user.id):
-                    embed.description += f"\n{"Vous êtes " if ctx.author == user else f"{user.display_name} est "}#{i + 1} avec {level} niveaux"
+                    embed.description += f"\n{"Vous êtes " if ctx.author == user else f"<@{user_id}> est "}#{i + 1} avec {level} niveaux"
 
         elif what == "money":
             money_top = {}
@@ -217,19 +211,11 @@ class Stats(commands.Cog):
                 money = money_top[user_id]
                 if i >= 10:
                     break
-                try:
-                    usr = await ctx.guild.fetch_member(int(user_id))
-                except discord.NotFound:
-                    usr = None
-                if not usr:
-                    usr = "*utilisateur inconnu*"
-                else:
-                    usr = usr.mention
-                embed.description += f"#{i+1} {usr} : {money}{flamcoin_symbol}\n"
+                embed.description += f"#{i+1} <@{user_id}> : {money}{flamcoin_symbol}\n"
             for i, user_id in enumerate(money_top):
                 money = money_top[user_id]
                 if user_id == str(user.id):
-                    embed.description += f"\n{"Vous êtes " if ctx.author == user else f"{user.display_name} est "}#{i+1} avec {money}{flamcoin_symbol}"
+                    embed.description += f"\n{"Vous êtes " if ctx.author == user else f"<@{user_id}> est "}#{i+1} avec {money}{flamcoin_symbol}"
 
         await ctx.send(embed=embed)
 
