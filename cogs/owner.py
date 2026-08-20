@@ -52,7 +52,6 @@ class Owner(commands.Cog):
         if result_stash.returncode != 0:
             await message.edit(
                 f"Mise à jour en cours...\nErreur git lors du stash :\n{result_stash.stderr}",
-                ephemeral=True
             )
             return
 
@@ -65,7 +64,6 @@ class Owner(commands.Cog):
         if result_pip.returncode != 0:
             await message.edit(
                 f"Mise à jour en cours...\nErreur PIP lors de l'installation :\n{result_pip.stderr}",
-                ephemeral=True
             )
             return
 
@@ -78,11 +76,10 @@ class Owner(commands.Cog):
         if result_pull.returncode != 0:
             await message.edit(
                 f"Mise à jour en cours...\nErreur git lors du pull :\n{result_pull.stderr}",
-                ephemeral=True
             )
             return
 
-        await message.edit("Mise à jour en cours...\nMise à jour terminée ! Redémarrage...", ephemeral=True)
+        await message.edit("Mise à jour en cours...\nMise à jour terminée ! Redémarrage...")
         await self.bot.close()
         sys.exit(42)
 
