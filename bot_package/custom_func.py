@@ -467,7 +467,7 @@ async def ai_process(bot, message):
                 write_file("BelloBot(forbellobot) : Problème avec le serveur de Google, réessayez plus tard !",f"files/messages/{message.guild.id}.txt")
                 return
         write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
-        if to_send:
+        if answer:
             write_file(f"BelloBot(forbellobot) : {to_send}", f"files/messages/{message.guild.id}.txt")
 
 async def xp_process(bot, message):
