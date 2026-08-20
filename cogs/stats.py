@@ -1,3 +1,4 @@
+import os
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -161,6 +162,81 @@ class Stats(commands.Cog):
 
             embed = discord.Embed(color=discord.Color.green(), description=f"Vous avez bien envoyé {amount}{"XP" if what == "xp" else flamcoin_symbol} à {user_2.display_name} !")
             await ctx.send(embed=embed)
+
+    @commands.hybrid_command(name="top")
+    @app_commands.autocomplete(what=gift_what_autocomplete)
+    async def top(self, ctx: commands.Context, what: str, user: discord.User = None):
+        """
+        Affiche les 10 premiers du classement de l'XP ou de l'argent, ainsi que votre propre classement
+        :param ctx:
+        :param what: XP ou argent
+        :param user: Utilisateur à connaître le rang
+        :return:
+        """
+
+        if user is None:
+            user = ctx.author
+
+        if what == "xp":
+            level_top = {}
+            for file in os.listdir(f"./files/user_info/{ctx.guild.id}"):
+                user_id = file.split(".")[0]
+                user_data = Cf.get_user_data(user_id, ctx.guild.id)
+                level = user_data["level"]
+                level_top[user_id] = level
+            level_top = dict(sorted(level_top.items(), key=lambda item: item[1], reverse=True))
+            embed = discord.Embed(color=discord.Color.green(), title="TOP du serveur", description="")
+            for i, user_id in enumerate(level_top):
+                level = level_top[user_id]
+                if i >= 10:
+                    break
+                try:
+                    usr = await ctx.guild.fetch_member(int(user_id))
+                except discord.NotFound:
+                    usr = None
+                if not usr:
+                    usr = "*utilisateur inconnu*"
+                else:
+                    usr = usr.mention
+                embed.description += f"#{i + 1} {usr} : Niveau {level}\n"
+            for i, user_id in enumerate(level_top):
+                level = level_top[user_id]
+                if user_id == str(user.id):
+                    embed.description += f"\n{"Vous êtes " if ctx.author == user else f"{user.display_name} est "}#{i + 1} avec {level} niveaux"
+
+        elif what == "money":
+            money_top = {}
+            for file in os.listdir(f"./files/user_info/{ctx.guild.id}"):
+                user_id = file.split(".")[0]
+                user_data = Cf.get_user_data(user_id, ctx.guild.id)
+                money = user_data["money"]
+                money_top[user_id] = money
+            money_top = dict(sorted(money_top.items(), key=lambda item: item[1], reverse=True))
+            embed = discord.Embed(color=discord.Color.green(), title="TOP du serveur", description="")
+            for i, user_id in enumerate(money_top):
+                money = money_top[user_id]
+                if i >= 10:
+                    break
+                try:
+                    usr = await ctx.guild.fetch_member(int(user_id))
+                except discord.NotFound:
+                    usr = None
+                if not usr:
+                    usr = "*utilisateur inconnu*"
+                else:
+                    usr = usr.mention
+                embed.description += f"#{i+1} {usr} : {money}{flamcoin_symbol}\n"
+            for i, user_id in enumerate(money_top):
+                money = money_top[user_id]
+                if user_id == str(user.id):
+                    embed.description += f"\n{"Vous êtes " if ctx.author == user else f"{user.display_name} est "}#{i+1} avec {money}{flamcoin_symbol}"
+
+        await ctx.send(embed=embed)
+
+
+
+
+
 
 async def setup(bot):
     await bot.add_cog(Stats(bot))

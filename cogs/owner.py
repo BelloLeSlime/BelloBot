@@ -41,7 +41,7 @@ class Owner(commands.Cog):
         :return:
         """
 
-        await ctx.send("Mise à jour en cours...")
+        message = await ctx.send("Mise à jour en cours...")
 
 
         result_stash = subprocess.run(
@@ -51,8 +51,8 @@ class Owner(commands.Cog):
         )
 
         if result_stash.returncode != 0:
-            await ctx.send(
-                f"Erreur git lors du stash :\n{result_stash.stderr}",
+            await message.edit(
+                f"Mise à jour en cours...\nErreur git lors du stash :\n{result_stash.stderr}",
                 ephemeral=True
             )
             return
@@ -64,8 +64,8 @@ class Owner(commands.Cog):
         )
 
         if result_pip.returncode != 0:
-            await ctx.send(
-                f"Erreur PIP lors de l'installation :\n{result_pip.stderr}",
+            await message.edit(
+                f"Mise à jour en cours...\nErreur PIP lors de l'installation :\n{result_pip.stderr}",
                 ephemeral=True
             )
             return
@@ -77,13 +77,13 @@ class Owner(commands.Cog):
         )
 
         if result_pull.returncode != 0:
-            await ctx.send(
-                f"Erreur git lors du pull :\n{result_pull.stderr}",
+            await message.edit(
+                f"Mise à jour en cours...\nErreur git lors du pull :\n{result_pull.stderr}",
                 ephemeral=True
             )
             return
 
-        await ctx.send("Mise à jour terminée ! Redémarrage...")
+        await message.edit("Mise à jour en cours...\nMise à jour terminée ! Redémarrage...")
         await self.bot.close()
         sys.exit(42)
 
@@ -110,6 +110,19 @@ class Owner(commands.Cog):
         else:
             await ctx.send("Il n'y a pas d'erreur !", ephemeral=True)
 
+    @commands.hybrid_command(name="get_error")
+    @commands.is_owner()
+    async def get_error(self, ctx, error_code:str):
+        """
+        OWNER SEULEMENT - Permet d'avoir n'importe quelle erreur du bot
+        :param ctx:
+        :param error_code: Code d'erreur
+        :return:
+        """
+        if error_code + ".txt" in os.listdir("./files/error/"):
+            await ctx.send(file=discord.File(f"files/error/{error_code}.txt"), ephemeral=True)
+        else:
+            await ctx.send(f"Il n'y a pas d'erreur {error_code} !", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(Owner(bot))
