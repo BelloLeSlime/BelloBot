@@ -88,6 +88,19 @@ class Shop(commands.Cog):
         :param ctx:
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        if not config["enable_shop"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le shop n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         shop = Cf.get_shop(ctx.guild.id)
         if shop == {}:
             embed = discord.Embed(color=discord.Color.red(), description=f"Désolé, mais il n'y a rien à vendre ici !")
@@ -114,6 +127,20 @@ class Shop(commands.Cog):
         :param name: Nom à donner (si l'objet le nécéssite)
         :return:
         """
+
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        if not config["enable_shop"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le shop n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         user = ctx.author
         user_data = Cf.get_user_data(user.id, ctx.guild.id)
         shop = Cf.get_shop(ctx.guild.id)
@@ -203,6 +230,19 @@ class Shop(commands.Cog):
         :return:
         """
 
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        if not config["enable_shop"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le shop n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         shop = Cf.get_shop(ctx.guild.id)
         last_id = 0
         for item in shop:
@@ -257,6 +297,42 @@ class Shop(commands.Cog):
         embed = discord.Embed(color=discord.Color.blue(), description=f"Vous avez bien rajouté **{emoji} {name}** au shop ! Faîtes /shop pour le voir !")
         await ctx.send(embed=embed)
 
+    @commands.hybrid_command(name="shop_view")
+    @app_commands.autocomplete()
+    @commands.has_permissions(administrator=True)
+    async def shop_view(self, ctx: commands.Context):
+        """
+        Permet de voir les items du shop ainsi que leurs effets
+        :param ctx:
+        :return:
+        """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        if not config["enable_shop"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le shop n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        shop = Cf.get_shop(ctx.guild.id)
+        embed = discord.Embed(color=discord.Color.green(), title="Objets achetables au shop", description=f"")
+        for item_id, item in shop.items():
+            embed.description += f"""
+            - Objet {item_id} : **{item["emoji"]}{item["name"]}**
+            > *{item["description"]}*
+            > Prix : {item["price"]}{flamcoin_symbol}
+            Utilisation :
+            > Type : {item["use"]["type"]}
+            > Description : {item["use"]["description"]}
+            {f"> Rôle : {await ctx.guild.fetch_role(item["use"].get("role"))}\n" if item["use"].get("role") else ""}{f"> Temps : {item["use"].get("time")}\n" if item["use"].get("time") else ""}{f"> Nombre : {item["use"].get("amount")}\n" if item["use"].get("amount") else ""}{f"> Multiplicateur  : {item["use"].get("mult")}\n" if item["use"].get("mult") else ""}
+"""
+        await ctx.send(embed=embed, ephemeral=True)
+
     @commands.hybrid_command(name="shop_delete")
     @app_commands.autocomplete(item=use_autocomplete)
     @commands.has_permissions(administrator=True)
@@ -267,6 +343,19 @@ class Shop(commands.Cog):
         :param item: Objet à retirer
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        if not config["enable_shop"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le shop n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         shop = Cf.get_shop(ctx.guild.id)
         name = shop[item]["name"]
         del shop[item]
@@ -274,7 +363,6 @@ class Shop(commands.Cog):
 
         embed = discord.Embed(color=discord.Color.green(), description=f"L'objet {name} n'existe plus.")
         await ctx.send(embed=embed)
-
 
 async def setup(bot):
     await bot.add_cog(Shop(bot))

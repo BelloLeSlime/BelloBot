@@ -21,6 +21,14 @@ class Stats(commands.Cog):
         :param user: Utilisateur
         :return:
         """
+
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         if user is None:
             user = ctx.author
         user_data_xp = Cf.get_user_data(user.id, ctx.guild.id)
@@ -41,6 +49,14 @@ class Stats(commands.Cog):
         :param user: Utilisateur
         :return:
         """
+
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         if user is None:
             user = ctx.author
         user_data_xp = Cf.get_user_data(user.id, ctx.guild.id)
@@ -62,6 +78,20 @@ class Stats(commands.Cog):
         :param user: Utilisateur
         :return:
         """
+
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        if not config["enable_shop"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le shop n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         if user is None:
             user = ctx.author
         user_data = Cf.get_user_data(user.id, ctx.guild.id)
@@ -86,6 +116,14 @@ class Stats(commands.Cog):
         :param user: Utilisateur
         :return:
         """
+
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         user = ctx.author if user == None else user
         user_data = Cf.get_user_data(user.id, ctx.guild.id)
         level = user_data["level"]
@@ -141,6 +179,13 @@ class Stats(commands.Cog):
         :return:
         """
 
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         if amount < 0:
             embed = discord.Embed(color=discord.Color.red(), description=f"Bien tenté, mais vous ne pouvez pas voler {user.display_name} !")
             await ctx.send(embed=embed)
@@ -173,6 +218,13 @@ class Stats(commands.Cog):
         :param user: Utilisateur à connaître le rang
         :return:
         """
+
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
 
         await ctx.defer()
 
@@ -218,10 +270,6 @@ class Stats(commands.Cog):
                     embed.description += f"\n{"Vous êtes " if ctx.author == user else f"<@{user_id}> est "}#{i+1} avec {money}{flamcoin_symbol}"
 
         await ctx.send(embed=embed)
-
-
-
-
 
 
 async def setup(bot):

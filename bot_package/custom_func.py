@@ -6,7 +6,7 @@ from discord.ext import commands
 from google import genai
 from google.genai import types
 from google.genai import errors
-from bot_package.data import AI_TOKEN, GIPHY_TOKEN, model, system, flamcoin_symbol
+from bot_package.data import AI_TOKEN, GIPHY_TOKEN, model, system, flamcoin_symbol, config_keys
 import io
 import requests
 import re
@@ -197,6 +197,12 @@ def check_guild_has_presence(guild_id):
     if not str(guild_id) + ".json" in os.listdir(f"./files/shop/"):
         write_json(read_json(f"files/shop/default.json"), f"files/shop/{guild_id}.json")
 
+def check_config(config):
+    for expected_key in config_keys:
+        if not expected_key in config:
+            config[expected_key] = read_json("files/config/default_config.json")[expected_key]
+    return config
+
 #------------------------------------------------------------GET AND SET DATA
 
 def get_user_data(user_id, guild_id):
@@ -211,7 +217,8 @@ def set_user_data(user_id, guild_id, data):
 
 def get_config(guild_id):
     check_guild_has_presence(guild_id)
-    return read_json(f"files/config/{guild_id}.json")
+    config = read_json(f"files/config/{guild_id}.json")
+    return check_config(config)
 
 def set_config(guild_id, data):
     check_guild_has_presence(guild_id)
@@ -426,6 +433,11 @@ async def ai_process(bot, message):
     :param message: The user's message
     :return:
     """
+
+    config = get_config(message.guild.id)
+    if not config["enable_ai"]:
+        return
+
     content = message.content
     if not message.author == bot.user and content != "":
         author = message.author.display_name
@@ -477,6 +489,10 @@ async def xp_process(bot, message):
         :param message: The user's message
         :return:
         """
+        config = get_config(message.guild.id)
+        if not config["enable_xp"]:
+            return
+
         user = message.author
         guild = message.guild
         user_data = get_user_data(user.id, guild.id)
@@ -514,6 +530,11 @@ async def polls_process(message):
     :param message: Message
     :return:
     """
+
+    config = get_config(message.guild.id)
+    if not config["enable_ai"]:
+        return
+
     if message.poll:
         poll = message.poll
         title = poll.question
@@ -614,9 +635,15 @@ async def check_alarm(bot):
     :param bot: The bot itself
     :return:
     """
+
     for alarm_guild_id in os.listdir("files/alarms/"):
         if alarm_guild_id == ".gitignore":
             continue
+
+        config = get_config(alarm_guild_id)
+        if not config["enable_alarm"]:
+            continue
+
         for alarm_user_id in os.listdir(f"files/alarms/{alarm_guild_id}/"):
             alarm_user_id = alarm_user_id.removesuffix(".json")
             alarms = get_alarms(alarm_user_id, alarm_guild_id)
@@ -654,6 +681,14 @@ async def check_effect_expiration(bot):
     :return:
     """
     for guild in bot.guilds:
+
+        config = get_config(guild.id)
+        if not config["enable_xp"]:
+            continue
+
+        if not config["enable_shop"]:
+            continue
+
         for user in guild.members:
             user_data = get_user_data(user.id, guild.id)
             shop = get_shop(guild.id)

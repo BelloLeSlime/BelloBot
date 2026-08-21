@@ -211,7 +211,7 @@ class DragonTowerChoice(discord.ui.View):
         await self.callback(self.ctx, self.bet, self.what, self.game_info, "cashout", message=self.message)
         await interaction.response.defer()
 
-class Gamebling(commands.Cog):
+class Gambling(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -245,6 +245,14 @@ class Gamebling(commands.Cog):
         :param what: Miser sur l'XP ou l'argent
         :return:
         """
+
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         if bet < 10:
             await ctx.send(embed=discord.Embed(color=discord.Color.red(), description=f"Désolé, la mise minimum est de 10{"XP" if what == "xp" else flamcoin_symbol} !"))
             return
@@ -1170,4 +1178,4 @@ class Gamebling(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(Gamebling(bot))
+    await bot.add_cog(Gambling(bot))

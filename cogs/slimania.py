@@ -98,6 +98,13 @@ class Slimania(commands.Cog):
         :param ctx: Context
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_slimania"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le Slimania n'est pas activé sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         inv = Cf.get_slimania_inventory(ctx.author.id, ctx.guild.id)
         last_roll = inv["last_roll"]
         if last_roll != 0:
@@ -146,6 +153,19 @@ class Slimania(commands.Cog):
         :param ctx:
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_slimania"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le Slimania n'est pas activé sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         inv = Cf.get_slimania_inventory(ctx.author.id, ctx.guild.id)
         last_roll = inv["last_roll"]
         if last_roll != 0:
@@ -211,6 +231,13 @@ class Slimania(commands.Cog):
         :param user: Utilisateur
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_slimania"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le Slimania n'est pas activé sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         if user == None:
             user = ctx.author
 
@@ -292,6 +319,13 @@ class Slimania(commands.Cog):
         :param rank: Rang du slime
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_slimania"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le Slimania n'est pas activé sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         slime_list = Cf.get_slime_list()
         last_id = 0
         for slime in slime_list:
@@ -338,6 +372,13 @@ class Slimania(commands.Cog):
         :param rank: Rang (regroupement de slimes)
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_slimania"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le Slimania n'est pas activé sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         if not (query or rank):
             await ctx.send(embed=discord.Embed(
                 color=discord.Color.red(),

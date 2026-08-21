@@ -25,6 +25,13 @@ class Alarm(commands.Cog):
         :param ctx: Context
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_alarm"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais les alarmes ne sont pas activées sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         alarms = Cf.get_alarms(ctx.author.id, ctx.guild.id)
         embed = discord.Embed(color=discord.Color.green(), title=f"Alarmes de {ctx.author.display_name}")
         descr = ""
@@ -71,6 +78,14 @@ class Alarm(commands.Cog):
         :param dimanche: Dimanche
         :return:
         """
+
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_alarm"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais les alarmes ne sont pas activées sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         alarms = Cf.get_alarms(ctx.author.id, ctx.guild.id)
         ints = [int(key) for key in alarms.keys()]
         next_id = max(ints) + 1 if alarms else 0
@@ -133,6 +148,14 @@ class Alarm(commands.Cog):
         :param dimanche: Dimanche
         :return:
         """
+
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_alarm"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais les alarmes ne sont pas activées sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         alarms = Cf.get_alarms(ctx.author.id, ctx.guild.id)
         if not str(id) in alarms.keys():
             await ctx.send(f"Vous n'avez aucune alarme avec l'ID {id}.", ephemeral=True)
@@ -208,6 +231,13 @@ class Alarm(commands.Cog):
         :param id: ID de l'alarme
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_alarm"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais les alarmes ne sont pas activées sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         alarms = Cf.get_alarms(ctx.author.id, ctx.guild.id)
         if str(id) not in alarms.keys():
             await ctx.send(f"Vous n'avez pas d'alarme avec l'ID {id}.", ephemeral=True)

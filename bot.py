@@ -1,4 +1,4 @@
-VERSION = "5.5"
+VERSION = "5.6"
 
 #import stuff
 import os
@@ -116,6 +116,8 @@ class Bot(commands.Bot):
         #Send another ticket creator message because the previous one won't work
         for guild in self.guilds:
             config = Cf.get_config(guild.id)
+            if not "ticket_channel" in config or not "ticket_description" in config or not "ticket_role" in config or not "ticket_logs_channel" in config:
+                continue
             if config["ticket_channel"] and config["ticket_description"] and config["ticket_role"] and config["ticket_logs_channel"]:
                 channel = await guild.fetch_channel(config["ticket_channel"])
                 description = config["ticket_description"]
@@ -167,10 +169,10 @@ class Bot(commands.Bot):
         """
         self.logger.info(f"Logged in as {self.user.name}")
         self.logger.info(f"Python version: {platform.python_version()}")
-        print("BOT STARTED")
         self.logger.info(
             f"Running on: {platform.system()} {platform.release()} ({os.name})"
         )
+        self.logger.info(f"Bot version: {self.version}")
         self.logger.info("-------------------")
         await self.load_cogs()
         # Sync global commands

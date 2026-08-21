@@ -67,6 +67,13 @@ config_keys = [
     "ticket_category",
     "ticket_role",
     "max_messages_in_memory",
+    "enable_xp",
+    "enable_shop",
+    "enable_gambling",
+    "enable_ai",
+    "enable_slimania",
+    "enable_alarm",
+    "enable_music",
 ]
 
 #the keys are what knid of data?
@@ -79,6 +86,13 @@ config_value_types = {
     "ticket_category": discord.CategoryChannel,
     "ticket_role": discord.Role,
     "max_messages_in_memory": int,
+    "enable_xp": bool,
+    "enable_shop": bool,
+    "enable_gambling": bool,
+    "enable_ai": bool,
+    "enable_slimania": bool,
+    "enable_alarm": bool,
+    "enable_music": bool,
 }
 
 #the knids of data are what exactly?
@@ -88,6 +102,7 @@ config_text_types = {
     str: "Texte",
     discord.role: "Rôle",
     int: "Nombre entier",
+    bool: "Booléan (soit True soit False)"
 }
 
 #some silly gambling quotes

@@ -62,6 +62,12 @@ class Voice(commands.Cog):
         :param music: Musique (titre ou url)
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_music"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais la musique n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
 
         await ctx.defer()
 
@@ -140,6 +146,13 @@ class Voice(commands.Cog):
         :param ctx:
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_music"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais la musique n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         if ctx.voice_client:
             voice_client = ctx.voice_client
             if voice_client.is_playing():
@@ -157,6 +170,13 @@ class Voice(commands.Cog):
         :param user: Utilisateur
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_music"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais la musique n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         if user is None:
             user = ctx.author
 

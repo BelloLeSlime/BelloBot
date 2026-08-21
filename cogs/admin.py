@@ -40,11 +40,6 @@ class Admin(commands.Cog):
 
         bot_config = Cf.get_config(ctx.guild.id)
 
-        for expected_key in config_keys:
-            if not expected_key in bot_config:
-                bot_config[expected_key] = Cf.read_json("files/config/default_config.json")[expected_key]
-
-
         lbot_config = bot_config.copy()
 
         config_text = ""
@@ -54,7 +49,7 @@ class Admin(commands.Cog):
                 continue
             lvalue_type = config_value_types[lkey]
             try:
-                if (not lvalue_type == int) or (not lvalue_type == bool):
+                if (lvalue_type != int) and (lvalue_type != bool) and (not lvalue_type == str):
                     if lvalue_type in [discord.TextChannel, discord.CategoryChannel]:
                         channel_id = lvalue
                         channel = await ctx.guild.fetch_channel(channel_id)
@@ -94,7 +89,6 @@ class Admin(commands.Cog):
             await ctx.send(f"Veuillez préciser une clé valide !", ephemeral=True)
             return
 
-
         value_type = config_value_types[key]
 
         if value.startswith("<#"):
@@ -107,16 +101,14 @@ class Admin(commands.Cog):
             value = role
         elif value.isdigit():
             value = int(value)
+        elif value in ["True", "False"]:
+            value = value == "True"
         else:
             value = value
 
         bot_config = Cf.get_config(ctx.guild.id)
-        for expected_key in config_keys:
-            if not expected_key in bot_config:
-                bot_config[expected_key] = Cf.read_json("files/config/default_config.json")[expected_key]
 
         bot_config[key] = value if not type(value) in [discord.TextChannel, discord.Role, discord.CategoryChannel] else value.id
-
 
         lbot_config = bot_config.copy()
         config_text = ""
@@ -126,7 +118,7 @@ class Admin(commands.Cog):
                 continue
             lvalue_type = config_value_types[lkey]
             try:
-                if (not lvalue_type == int) or (not lvalue_type == bool) or (not lvalue_type == str):
+                if (lvalue_type != int) and (lvalue_type != bool) and (lvalue_type != str):
                     if lvalue_type in [discord.TextChannel, discord.CategoryChannel]:
                         channel_id = lvalue
                         channel = await ctx.guild.fetch_channel(channel_id)
@@ -156,6 +148,13 @@ class Admin(commands.Cog):
         :param ctx:
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_ai"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'IA n'est pas activé sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         with open(f"files/messages/{ctx.guild.id}.txt", "w", encoding="utf-8") as f:
             f.write("")
         await ctx.send(f"Ma mémoire a bien été réinitialisée !", ephemeral=True)
@@ -168,6 +167,13 @@ class Admin(commands.Cog):
         :param ctx:
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         for file in os.listdir("./files/user_info/{interaction.guild.id}/"):
             user_data_xp = Cf.read_json(f"files/user_info/{ctx.guild.id}/{file}")
             user_data_xp["xp"] = 0
@@ -208,6 +214,13 @@ class Admin(commands.Cog):
         :param amount: Combien ?
         :return:
         """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
         user_data = Cf.get_user_data(user.id, ctx.guild.id)
         embed = discord.Embed(title=f"Modification faite", color=discord.Color.green())
         if what == "xp":

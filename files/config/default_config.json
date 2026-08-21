@@ -6,5 +6,12 @@
   "ticket_role": null,
   "ticket_description": null,
   "ticket_logs_channel": null,
+  "enable_xp": true,
+  "enable_shop": true,
+  "enable_gambling": true,
+  "enable_ai": true,
+  "enable_slimania": true,
+  "enable_alarm": true,
+  "enable_music": true,
   "max_messages_in_memory": 50
 }
