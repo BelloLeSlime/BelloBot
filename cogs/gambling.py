@@ -446,6 +446,9 @@ class Gambling(commands.Cog):
                 win = 4 * bet
             else:
                 win = 0
+            user_data = Cf.get_user_data(ctx.author.id, ctx.guild.id)
+            user_data[what] += win
+            Cf.set_user_data(ctx.author.id, ctx.guild.id, user_data)
             embed = discord.Embed(color=discord.Color.green() if win else discord.Color.red(), title=f"DUCK RACE - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}", description=
             f"""
             {"""🍔🍟🌭🪙
