@@ -513,6 +513,7 @@ async def xp_process(bot, message):
             xp_goal = user_data["level"] * 15
             levelup = user_data["xp"] >= xp_goal
 
+        user_data["money"] += money_bonus
         set_user_data(user.id, guild.id, user_data)
 
         if leveluped: #send the level up message
