@@ -6,6 +6,7 @@
   "ticket_role": null,
   "ticket_description": null,
   "ticket_logs_channel": null,
+  "counting_channel": null,
   "enable_xp": true,
   "enable_shop": true,
   "enable_gambling": true,

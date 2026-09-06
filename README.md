@@ -11,16 +11,16 @@ BelloBot est un bot discord qui répond quand on le ping. Il marche avec une API
 
 ##### Comment le copier :
 
--Créer un .env tel que .env.example avec une clé API Google AI Studio, avec la clé API d'un bot discord que vous avez créé, et avec une clé API giphy pour les GIFs.
+- Créer un .env tel que .env.example avec une clé API Google AI Studio, avec la clé API d'un bot discord que vous avez créé, et avec une clé API giphy pour les GIFs.
 
--Installer les dépendances nécessaires de requirements.txt
+- Installer les dépendances nécessaires de requirements.txt
 
--Vous pouvez bidouiller avec !
+- Vous pouvez bidouiller avec !
 
 
 ##### Le but :
 
--Dépasser en tous points **TOUS** les bots Discord du **MONDE** en ajoutant le plus de features possible.
+- Dépasser en tous points **TOUS** les bots Discord du **MONDE** en ajoutant le plus de features possible.
 
 
 ##### Vie privée :

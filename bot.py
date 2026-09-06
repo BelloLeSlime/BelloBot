@@ -162,6 +162,12 @@ class Bot(commands.Bot):
         """
         await Cf.on_message(self, message)
 
+    async def on_message_edit(self, before, after):
+        await Cf.on_message_edit(self, before, after)
+
+    async def on_message_delete(self, message):
+        await Cf.on_message_delete(self, message)
+
     async def setup_hook(self):
         """
         IDK when this code is executed but it's at the start

@@ -1,0 +1,15 @@
+{
+  "number": 0,
+  "last_talked": null,
+  "chat_allowed": true,
+  "reset_at_error": true,
+  "allow_same_user_twice": false,
+  "reaction_emoji": "✅",
+  "failed_reaction_emoji": "❌",
+  "warning_reaction_emoji": "⚠️",
+  "maths_mode": true,
+  "warn_at_deleted_message": true,
+  "warn_at_modified_message": false,
+  "high_score": 0,
+  "delete_errors": false
+}
