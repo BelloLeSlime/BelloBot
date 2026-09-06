@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import bot_package.custom_func as Cf
-from bot_package.data import config_keys, config_value_types, config_text_types, flamcoin_symbol
+from bot_package.data import config_value_types, config_text_types, flamcoin_symbol
 import os
 from bot_package.ticket_manager import *
 
@@ -18,7 +18,7 @@ class Ticket(discord.ui.View):
 
 async def config_autocomplete(interaction: discord.Interaction, current: str):
     return [
-        app_commands.Choice(name=key, value=key) for key in config_keys
+        app_commands.Choice(name=key, value=key) for key in config_value_types.keys()
     ]
 
 class Admin(commands.Cog):
@@ -44,7 +44,7 @@ class Admin(commands.Cog):
 
         config_text = ""
         for lkey, lvalue in lbot_config.items():
-            if not lkey in config_keys:
+            if not lkey in config_value_types.keys():
                 del bot_config[lkey]
                 continue
             lvalue_type = config_value_types[lkey]
@@ -108,12 +108,17 @@ class Admin(commands.Cog):
 
         bot_config = Cf.get_config(ctx.guild.id)
 
+        if not isinstance(value, config_value_types[key]):
+            embed = discord.Embed(color=discord.Color.red(), description=f"Veuillez indiquer une valeur valide ! Ça doit être : {config_text_types[config_value_types[key]]}")
+            await ctx.send(embed=embed, ephemeral=True)
+            return
+
         bot_config[key] = value if not type(value) in [discord.TextChannel, discord.Role, discord.CategoryChannel] else value.id
 
         lbot_config = bot_config.copy()
         config_text = ""
         for lkey, lvalue in lbot_config.items():
-            if not lkey in config_keys:
+            if not lkey in config_value_types.keys():
                 del bot_config[lkey]
                 continue
             lvalue_type = config_value_types[lkey]

@@ -6,13 +6,15 @@ from discord.ext import commands
 from google import genai
 from google.genai import types
 from google.genai import errors
-from bot_package.data import AI_TOKEN, GIPHY_TOKEN, model, system, flamcoin_symbol, config_keys
+from bot_package.data import AI_TOKEN, GIPHY_TOKEN, model, system, flamcoin_symbol, config_value_types
 import io
 import requests
 import re
 from datetime import datetime, UTC, timedelta
 from duckduckgo_search import DDGS
 from bs4 import BeautifulSoup
+import asyncio
+from simpleeval import simple_eval
 
 #------------------------------------------------------------FILE MANAGEMENT
 
@@ -120,19 +122,6 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
         answer = response.text
         return answer
 
-def text_to_image(prompt, model, negative_prompt, width=1024, height=1024, steps=30):
-    """
-    Turns text into image via AI
-    :param prompt: Description of the wanted image
-    :param model: Model of the AI
-    :param negative_prompt: What there isnt in the image
-    :param width: Width of the image
-    :param height: Height of the image
-    :param steps: Steps = quality of the image
-    :return:
-    """
-    pass
-
 #------------------------------------------------------------ECONOMY MANAGEMENT
 
 def add_item(guild_id: int, user_id: int, item: str):
@@ -196,12 +185,50 @@ def check_guild_has_presence(guild_id):
         os.makedirs(f"./files/slimania_inventory/{guild_id}/", exist_ok=True)
     if not str(guild_id) + ".json" in os.listdir(f"./files/shop/"):
         write_json(read_json(f"files/shop/default.json"), f"files/shop/{guild_id}.json")
+    if not str(guild_id) + ".json" in os.listdir(f"./files/counting/"):
+        write_json(read_json(f"files/counting/default.json"), f"files/counting/{guild_id}.json")
 
 def check_config(config):
-    for expected_key in config_keys:
+    for expected_key in config_value_types:
         if not expected_key in config:
             config[expected_key] = read_json("files/config/default_config.json")[expected_key]
     return config
+
+async def check_level_up(bot, user, guild):
+    config = get_config(guild.id)
+    if not config["enable_xp"]:
+        return
+
+    user_data = get_user_data(user.id, guild.id)
+    user_data["xp"] += int(5 * user_data["mult_xp"])
+    user_data["money"] += int(10 * user_data["mult_money"])
+
+    # checks if the xp has reached the xp goal
+    leveluped = False
+    xp_goal = user_data["level"]  ** 2 *2 +12  # xp goal formula
+    levelup = user_data["xp"] >= xp_goal
+    money_bonus = 0
+    while levelup:  # level ups until the xp is less than the xp goal
+        leveluped = True
+        user_data["xp"] -= xp_goal
+        user_data["level"] += 1
+        money_bonus += user_data["level"] ** 2 *4 +14
+
+        xp_goal = user_data["level"]  ** 2 *2 +12
+        levelup = user_data["xp"] >= xp_goal
+
+    user_data["money"] += money_bonus
+    set_user_data(user.id, guild.id, user_data)
+
+    if leveluped:  # send the level up message
+        embed = discord.Embed(color=discord.Color.green(), title="Passage de niveau !",
+                              description=f"GG à {user.mention} pour avoir passé le niveau {user_data["level"]} !🔥 Tu gagnes {money_bonus}{flamcoin_symbol} 🫰💰🪙 Continue de gagner des niveaux..." if user != bot.user else f"GG à moi (BelloBot) pour avoir passé le niveau {user_data["level"]} ! 🔥 Je gagne {money_bonus}{flamcoin_symbol} 🫰💰🪙")
+        config = get_config(guild.id)
+        if config["xp_channel"]:
+            channel = await guild.fetch_channel(config["xp_channel"])
+        else:
+            channel = guild.text_channels[0]
+        await channel.send(f"{user.mention}", embed=embed)
 
 #------------------------------------------------------------GET AND SET DATA
 
@@ -289,6 +316,14 @@ def get_shop(guild_id):
 def set_shop(guild_id, data):
     check_guild_has_presence(guild_id)
     write_json(data, f"files/shop/{guild_id}.json")
+
+def get_counting(guild_id):
+    check_guild_has_presence(guild_id)
+    return read_json(f"files/counting/{guild_id}.json")
+
+def set_counting(guild_id, data):
+    check_guild_has_presence(guild_id)
+    write_json(data, f"files/counting/{guild_id}.json")
 
 #------------------------------------------------------------MISC
 
@@ -501,16 +536,16 @@ async def xp_process(bot, message):
 
         #checks if the xp has reached the xp goal
         leveluped = False
-        xp_goal = user_data["level"] * 15 #xp goal formula
+        xp_goal = user_data["level"] ** 2 *2 +12 #xp goal formula
         levelup = user_data["xp"] >= xp_goal
         money_bonus = 0
         while levelup: #level ups until the xp is less than the xp goal
             leveluped = True
             user_data["xp"] -= xp_goal
             user_data["level"] += 1
-            money_bonus += xp_goal * 10
+            money_bonus += user_data["level"] ** 2 *4 +14
 
-            xp_goal = user_data["level"] * 15
+            xp_goal = user_data["level"] ** 2 *2 +12
             levelup = user_data["xp"] >= xp_goal
 
         user_data["money"] += money_bonus
@@ -597,21 +632,154 @@ async def dm_process(bot, message: discord.Message):
         write_file(author + " : " + content, f"files/dms/{message.author.id}.txt")
         write_file("BelloBot(forbellobot) : " + to_send, f"files/dms/{message.author.id}.txt")
 
-#------------------------------------------------------------ON MESSAGE FUNCTION
+async def counting_process(bot, message: discord.Message):
+    if message.author == bot.user:
+        return
+
+    config = get_config(message.guild.id)
+    counting_channel = config["counting_channel"]
+
+    if message.channel.id == counting_channel:
+        counting_config = get_counting(message.guild.id)
+
+        try:
+            msg = message.content if not counting_config["maths_mode"] else str(simple_eval(message.content))
+        except:
+            msg = message.content
+
+        if msg.isdigit():
+            user_id = message.author.id
+            if user_id == counting_config["last_talked"] and not counting_config["allow_same_user_twice"]:
+                if counting_config["reset_at_error"]:
+                    await message.add_reaction(counting_config["failed_reaction_emoji"])
+                    embed = discord.Embed(color=discord.Color.red(), description=f"Désolé, mais vous ne pouvez pas compter deux fois d'affilée ! Retour à zéro")
+                    reply = await message.reply(embed=embed)
+                    counting_config["number"] = 0
+                    if counting_config["delete_errors"]:
+                        await asyncio.sleep(3)
+                        await message.delete()
+                        await reply.delete()
+                else:
+                    await message.add_reaction(counting_config["warning_reaction_emoji"])
+                    embed = discord.Embed(color=discord.Color.orange(),
+                                          description=f"Attention, vous ne pouvez pas compter deux fois d'affilée !")
+                    reply = await message.reply(embed=embed)
+                    if counting_config["delete_errors"]:
+                        await asyncio.sleep(3)
+                        await message.delete()
+                        await reply.delete()
+
+            else:
+                if int(msg) == counting_config["number"] + 1:
+                    await message.add_reaction(counting_config["reaction_emoji"])
+                    counting_config["number"] += 1
+                    if counting_config["number"] > counting_config["high_score"]:
+                        counting_config["high_score"] = counting_config["number"]
+                    nbr = int(msg)
+                    user_data = get_user_data(message.author.id, message.guild.id)
+                    user_data["xp"] += 10000 if (nbr % 10000 == 0) else 3000 if (nbr % 5000 == 0) else 1000 if (nbr % 1000 == 0) else 500 if (nbr % 500 == 0) else 250 if (nbr % 100 == 0) else 100 if (nbr % 50 == 0) else 5
+                    set_user_data(message.author.id, message.guild.id, user_data)
+
+                else:
+                    if counting_config["reset_at_error"]:
+                        await message.add_reaction(counting_config["failed_reaction_emoji"])
+                        embed = discord.Embed(color=discord.Color.red(),
+                                              description=f"Désolé, mais {counting_config["number"]} + 1 n'est pas égal à {msg} ! (incroyable oui je sais) Retour à zéro")
+                        reply = await message.reply(embed=embed)
+                        counting_config["number"] = 0
+                        if counting_config["delete_errors"]:
+                            await asyncio.sleep(3)
+                            await message.delete()
+                            await reply.delete()
+                    else:
+                        await message.add_reaction(counting_config["warning_reaction_emoji"])
+                        embed = discord.Embed(color=discord.Color.orange(),
+                                              description=f"Attention, {counting_config["number"]} + 1 n'est pas égal à {msg} ! (incroyable oui je sais)")
+                        reply = await message.reply(embed=embed)
+                        if counting_config["delete_errors"]:
+                            await asyncio.sleep(3)
+                            await message.delete()
+                            await reply.delete()
+
+            counting_config["last_talked"] = user_id
+
+        else:
+            if not counting_config["chat_allowed"]:
+                if counting_config["reset_at_error"]:
+                    await message.add_reaction(counting_config["failed_reaction_emoji"])
+                    embed = discord.Embed(color=discord.Color.red(), description=f"Désolé, mais vous ne pouvez pas parler ici ! Retour à zéro")
+                    reply = await message.reply(embed=embed)
+                    counting_config["number"] = 0
+                    if counting_config["delete_errors"]:
+                        await asyncio.sleep(3)
+                        await message.delete()
+                        await reply.delete()
+                else:
+                    await message.add_reaction(counting_config["warning_reaction_emoji"])
+                    embed = discord.Embed(color=discord.Color.red(),
+                                          description=f"Attention, vous ne pouvez pas parler ici !")
+                    reply = await message.reply(embed=embed)
+                    if counting_config["delete_errors"]:
+                        await asyncio.sleep(3)
+                        await message.delete()
+                        await reply.delete()
+
+        set_counting(message.guild.id, counting_config)
+
+#------------------------------------------------------------ON MESSAGE EDIT PROCESS
+
+async def edit_counting_process(bot, before: discord.Message, after: discord.Message):
+    if after.author == bot.user:
+        return
+
+    config = get_config(after.guild.id)
+    counting_channel = config["counting_channel"]
+
+    if after.channel.id == counting_channel:
+        counting_config = get_counting(after.guild.id)
+        if counting_config["warn_at_modified_message"] and before.content.isdigit() and int(before.content) == counting_config["number"]:
+            await after.reply(f"ATTENTION, {after.author.mention} a modifié son message de **{before.content}** à **{after.content}**. Le prochain nombre est **{counting_config["number"] + 1}**.")
+
+#------------------------------------------------------------ON MESSAGE DELETE PROCESS
+
+async def delete_counting_process(bot, message: discord.Message):
+    if message.author == bot.user:
+        return
+
+    config = get_config(message.guild.id)
+    counting_channel = config["counting_channel"]
+
+    if message.channel.id == counting_channel:
+        counting_config = get_counting(message.guild.id)
+        if counting_config["warn_at_deleted_message"] and message.content.isdigit() and int(message.content) == counting_config["number"]:
+            channel = await message.guild.fetch_channel(counting_channel)
+            await channel.send(
+                f"ATTENTION, {message.author.mention} a supprimé son message **{message.content}**. Le prochain nombre est **{counting_config["number"] + 1}**.")
+
+#------------------------------------------------------------ON MESSAGE FUNCTIONS
 
 async def on_message(bot, message: discord.Message):
     if message.guild is None:
-        await dm_process(bot, message) #if the message comes from DM
+        await dm_process(bot, message) #if the message comes from a DM
         return
-    # check if the user and guild have files
+
+    # checks if the user and guild have files
     check_guild_has_presence(message.guild.id)
     check_has_data_file(message.author.id, message.guild.id)
 
-    await ai_process(bot, message) #ask something to the AI if mentionned
+    await ai_process(bot, message) #asks something to the AI if mentionned
 
-    await xp_process(bot, message) #add XP and money to the user and eventualy level up
+    await counting_process(bot, message)  # counts
 
-    await polls_process(message) #answer to polls
+    await xp_process(bot, message) #adds XP and money to the user and eventualy level up
+
+    await polls_process(message) #answers to polls
+
+async def on_message_edit(bot, before: discord.Message, after: discord.Message):
+    await edit_counting_process(bot, before, after)
+
+async def on_message_delete(bot, message: discord.Message):
+    await delete_counting_process(bot, message)
 
 #------------------------------------------------------------WARN NO MORE CREDITS
 

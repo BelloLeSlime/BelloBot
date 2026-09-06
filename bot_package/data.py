@@ -57,26 +57,7 @@ random_states = [
     "I bet therefore I am"
 ]
 
-#the keys avaiable in the /config
-config_keys = [
-    "xp_channel",
-    "alarm_channel",
-    "ticket_channel",
-    "ticket_description",
-    "ticket_logs_channel",
-    "ticket_category",
-    "ticket_role",
-    "max_messages_in_memory",
-    "enable_xp",
-    "enable_shop",
-    "enable_gambling",
-    "enable_ai",
-    "enable_slimania",
-    "enable_alarm",
-    "enable_music",
-]
-
-#the keys are what knid of data?
+#the keys avaiable in the /config and their respective type
 config_value_types = {
     "xp_channel": discord.TextChannel,
     "alarm_channel": discord.TextChannel,
@@ -85,6 +66,7 @@ config_value_types = {
     "ticket_logs_channel": discord.TextChannel,
     "ticket_category": discord.CategoryChannel,
     "ticket_role": discord.Role,
+    "counting_channel": discord.TextChannel,
     "max_messages_in_memory": int,
     "enable_xp": bool,
     "enable_shop": bool,
@@ -95,7 +77,7 @@ config_value_types = {
     "enable_music": bool,
 }
 
-#the knids of data are what exactly?
+#the kinds of data are what exactly?
 config_text_types = {
     discord.TextChannel: "Salon texte",
     discord.CategoryChannel: "Catégorie de salons",
@@ -105,7 +87,21 @@ config_text_types = {
     bool: "Booléan (soit True soit False)"
 }
 
-#some silly gambling quotes
+#the keys avaiable in the /counting_config and their respective type
+counting_config_keys = {
+    "chat_allowed": bool,
+    "reset_at_error": bool,
+    "allow_same_user_twice": bool,
+    "reaction_emoji": str,
+    "failed_reaction_emoji": str,
+    "warning_reaction_emoji": str,
+    "maths_mode": bool,
+    "warn_at_deleted_message": bool,
+    "warn_at_modified_message": bool,
+    "delete_errors": bool
+}
+
+#some silly billy gambling quotes
 gambling_quotes = [
     "I bet, therefore I am\n- René Descartes",
     "It ain't a sin if you win\n- Granpa",
@@ -131,7 +127,7 @@ help_message = f"""
 Je suis un bot discord polyvalent dont la fonction principale est le chatbot IA intégrée, illimité et gratuit à l'échelle de l'utilisateur.
 
 ## M'UTILISER
-Pour utiliser ma fonction IA, vous pouvez juste me ping (@BelloBot) ou alors faire /ask. Vous pouvez également me MP !
+Pour utiliser ma fonction IA, vous pouvez juste me ping (@BelloBot), répondre à un de mes messages ou alors faire /ask. Vous pouvez également me MP !
 
 ## MES FEATURES
 - XP et argent :
@@ -142,16 +138,19 @@ Vous pouvez aussi mettre de l'argent ou de l'XP en jeu avec le /gambling pour en
 Ces deux choses sont manageable par un admin avec /stats_mod.
 
 - Shop :
-Le shop est une boutique accessible via le /shop. On peut y acheter des objets.
-Le shop est entièrement customisable par un admin via le /shop_add et le /shop_delete. Vous pouvez ensuite utiliser cet objet via le /use.
+Le shop est une boutique accessible via le /shop. On peut y acheter des objets. Vous pouvez ensuite utiliser cet objet via le /use.
+Le shop est entièrement customisable par un admin via le /shop_add et le /shop_delete. 
 
 - Alarmes :
 Avec /alarm, /create_alarm, /edit_alarm et /delete_alarm, vous pouvez créer des alarmes qui vous pingueront dans le salon alarme (s'il y en a un) au moment et au jour que vous choisirez.
 
 - Slimania :
 Vous pouvez faire /slimania_roll ou /slimania_booster pour gagner des slimes, et ainsi les ajouter à votre collection.
-Leur rareté va de F (juste Bello) à UZ (slimes omnipotents et conscient d'après le lore (car oui, ces slimes ont un lore) ).
+Leur rareté va de F (juste Bello) à UZ (slimes omnipotents et conscient d'après le lore (car oui, ces slimes ont un lore)).
 L'échange et la vente de slimes n'est malheuresement par encore disponible.
+
+- Comptage : 
+Dans un salon défini par le /config, vous pouvez compter jusqu'à l'infini avec d'autres personnes. Les règles sont customisable via le /counting_config 
 
 ## À L'AIDE
 Si je bug, la raison est souvent :
@@ -165,6 +164,7 @@ Vous pouvez contacter Bello (mon créateur) :
 - Mail pro : belloleslime@slimepunk.fr
 
 ## LIENS UTILES :
+- Site du bot : https://slimepunk.fr/bello/bellobot
 - Lien d'invitation du bot : https://discord.com/oauth2/authorize?client_id=1473356686310768753&permissions=1374792468480
 - Serveur Discord communaire et de support : https://discord.gg/TYEKnseSTF
 - GitHub : https://github.com/BelloLeSlime/BelloBot

@@ -119,6 +119,17 @@ class Owner(commands.Cog):
         else:
             await ctx.send(f"Il n'y a pas d'erreur {error_code} !", ephemeral=True)
 
+    @commands.hybrid_command(name="clear_logs")
+    @commands.is_owner()
+    async def clear_logs(self, ctx):
+        """
+        OWNER SEULEMENT - Permet de supprimer les logs du bot
+        :param ctx:
+        :return:
+        """
+        os.unlink("discord.log")
+        await ctx.send("Les logs ont bien été supprimé !", ephemeral=True)
+
 async def setup(bot):
     await bot.add_cog(Owner(bot))
 

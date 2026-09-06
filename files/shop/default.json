@@ -2,34 +2,34 @@
   "0": {
     "name": "Un peu d'XP",
     "emoji": "🧪",
-    "description": "Gagne 50 XP",
+    "description": "Gagne 25 XP",
     "price": 200,
     "use": {
       "type": "add_xp",
-      "description": "Vous avez 50 XP en plus !",
-      "amount": 50
+      "description": "Vous avez 25 XP en plus !",
+      "amount": 25
     }
   },
   "1": {
     "name": "Plus d'XP",
     "emoji": "🧪",
-    "description": "Gagne 300 XP",
+    "description": "Gagne 100 XP",
     "price": 1000,
     "use": {
       "type": "add_xp",
-      "description": "Vous avez 300 d'XP en plus !",
-      "amount": 300
+      "description": "Vous avez 100 d'XP en plus !",
+      "amount": 100
     }
   },
   "2": {
     "name": "Beaucoup d'XP !",
     "emoji": "🧪",
-    "description": "Gagne 1.000 XP",
+    "description": "Gagne 400 XP",
     "price": 2500,
     "use": {
       "type": "add_xp",
-      "description": "Vous avez 1.000 XP en plus !",
-      "amount": 1000
+      "description": "Vous avez 400 XP en plus !",
+      "amount": 400
     }
   }
 }

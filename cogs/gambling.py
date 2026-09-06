@@ -281,7 +281,6 @@ class Gambling(commands.Cog):
         elif game == "dragon tower":
             await self.dragon_tower(ctx, bet, what)
 
-    #V
     async def wheel_of_fortune(self, ctx, bet, what):
         choices = [-1, 3, 0.1, 0.5, 0.25, 5, 0.1, 0.25, 2, 0.1, -1, 3, 0.5, 0.1, 0.25, 0, 0.5, 0.1, 2, 0.25]
         mult = random.choice(choices)
@@ -313,7 +312,6 @@ class Gambling(commands.Cog):
 """)
             await ctx.send(embed=embed, view=ReplayButton(self.wheel_of_fortune, ctx, bet, what))
 
-    #V
     async def money_wheel(self, ctx, bet, what, choice=0, message = None):
         if choice == 0:
             embed = discord.Embed(color=discord.Color.blue(), title=f"MONEY WHEEL - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}", description=f"""
@@ -351,7 +349,6 @@ class Gambling(commands.Cog):
             else:
                 await ctx.send(embed=embed, view=ReplayButton(self.money_wheel, ctx, bet, what, arg=choice))
 
-    #V
     async def slots(self, ctx, bet, what):
         choices = ["🍎", "🍊", "🍋", "🍉"]
 
@@ -416,7 +413,6 @@ class Gambling(commands.Cog):
 """)
         await ctx.send(embed=embed, view=ReplayButton(self.slots, ctx, bet, what))
 
-    #V
     async def duck_race(self, ctx, bet, what, choice="", message = None):
         if choice == "":
             embed = discord.Embed(color=discord.Color.blue(), title=f"DUCK RACE - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}", description=
@@ -512,7 +508,6 @@ class Gambling(commands.Cog):
     def get_already_dropped(self, game_info):
         return game_info["user_cards"] + game_info["gm_cards"]
 
-    #V
     async def blackjack(self, ctx, bet, what, game_info=None, message = None):
         card_values = {
             "A": 11,
@@ -824,7 +819,6 @@ class Gambling(commands.Cog):
             result.append(random.randint(1, 6))
         return result
 
-    #V
     async def street_craps(self, ctx, bet, what, game_info=None, message=None):
         if game_info is None:
             game_info = {
@@ -980,7 +974,6 @@ class Gambling(commands.Cog):
                             """)
                 await message.edit(embed=embed, view=ReplayButton(self.street_craps, ctx, bet, what))
 
-    #V
     async def roulette(self, ctx, bet, what, choice=None, message=None):
         if choice == None:
             embed = discord.Embed(color=discord.Color.blue(), title=f"ROULETTE - MISE : {bet}{"XP" if what == "xp" else flamcoin_symbol} - {ctx.author.display_name.upper()}", description=
@@ -1015,7 +1008,6 @@ class Gambling(commands.Cog):
             else:
                 await ctx.send(embed=embed, view=ReplayButton(self.roulette, ctx, bet, what, arg=choice))
 
-    #V
     async def peguin_cross(self, ctx, bet, what, choice=None, turn=None, message=None):
         mults = [1, 1.2, 1.5, 2, 3, 5, 10, 25, 75, 250, 1000]
         if choice == None:
@@ -1111,7 +1103,6 @@ class Gambling(commands.Cog):
                     map_str += "⬛⬛⬛🟥\n"
         return map_str
 
-    #X
     async def dragon_tower(self, ctx, bet, what, game_info=None, choice=None, message=None):
         mults = [1, 1.5, 2, 2.5, 3, 4, 5]
         if game_info == None:
