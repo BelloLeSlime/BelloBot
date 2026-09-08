@@ -127,7 +127,7 @@ help_message = f"""
 Je suis un bot discord polyvalent dont la fonction principale est le chatbot IA intégrée, illimité et gratuit à l'échelle de l'utilisateur.
 
 ## M'UTILISER
-Pour utiliser ma fonction IA, vous pouvez juste me ping (@BelloBot), répondre à un de mes messages ou alors faire /ask. Vous pouvez également me MP !
+Pour utiliser ma fonction IA, vous pouvez juste me ping (@BelloBot), répondre à un de mes messages ou alors faire /ask. Vous pouvez également me MP ! Pour un serveur, il est cependant extrêmement conseillé d'ajouter un ou plusieurs salons dans lesquels l'IA ne peux pas voir (/ai_ignore_add) pour le respect de votre vie privée.
 
 ## MES FEATURES
 - XP et argent :

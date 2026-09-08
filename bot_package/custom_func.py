@@ -187,6 +187,8 @@ def check_guild_has_presence(guild_id):
         write_json(read_json(f"files/shop/default.json"), f"files/shop/{guild_id}.json")
     if not str(guild_id) + ".json" in os.listdir(f"./files/counting/"):
         write_json(read_json(f"files/counting/default.json"), f"files/counting/{guild_id}.json")
+    if not str(guild_id) + ".json" in os.listdir(f"./files/ai_ignore/"):
+        write_json({"channels": []}, f"files/ai_ignore/{guild_id}.json")
 
 def check_config(config):
     for expected_key in config_value_types:
@@ -231,6 +233,9 @@ async def check_level_up(bot, user, guild):
         await channel.send(f"{user.mention}", embed=embed)
 
 #------------------------------------------------------------GET AND SET DATA
+
+def get_global_config():
+    return read_json("configuration.json")
 
 def get_user_data(user_id, guild_id):
     check_guild_has_presence(guild_id)
@@ -324,6 +329,14 @@ def get_counting(guild_id):
 def set_counting(guild_id, data):
     check_guild_has_presence(guild_id)
     write_json(data, f"files/counting/{guild_id}.json")
+
+def get_ai_ignore(guild_id):
+    check_guild_has_presence(guild_id)
+    return read_json(f"files/ai_ignore/{guild_id}.json")
+
+def set_ai_ignore(guild_id, data):
+    check_guild_has_presence(guild_id)
+    write_json(data, f"files/ai_ignore/{guild_id}.json")
 
 #------------------------------------------------------------MISC
 
@@ -459,6 +472,19 @@ async def parse_text(text, message, dm):
 
     return text
 
+async def warn_no_more_credits(message = None, ctx = None):
+    """
+    This code is executed when the bot doesnt have credits anymore
+    :param message: Message (if the user was typing to the bot)
+    :param ctx: Context (if the user was using a command)
+    :return:
+    """
+    embed = discord.Embed(color=discord.Color.red(), title="Plus de crédits !", description="Le bot n'a plus de crédits pour remplir pleinement ses fonctions IA. Il y en aura de nouveau demain. Désolé !")
+    if message:
+        await message.reply(embed=embed)
+    elif ctx:
+        await ctx.send(embed=embed)
+
 #------------------------------------------------------------ON MESSAGE PROCESS
 
 async def ai_process(bot, message):
@@ -471,6 +497,10 @@ async def ai_process(bot, message):
 
     config = get_config(message.guild.id)
     if not config["enable_ai"]:
+        return
+
+    ai_ignore = get_ai_ignore(message.guild.id)
+    if message.channel.id in ai_ignore["channels"]:
         return
 
     content = message.content
@@ -781,20 +811,6 @@ async def on_message_edit(bot, before: discord.Message, after: discord.Message):
 async def on_message_delete(bot, message: discord.Message):
     await delete_counting_process(bot, message)
 
-#------------------------------------------------------------WARN NO MORE CREDITS
-
-async def warn_no_more_credits(message = None, ctx = None):
-    """
-    This code is executed when the bot doesnt have credits anymore
-    :param message: Message (if the user was typing to the bot)
-    :param ctx: Context (if the user was using a command)
-    :return:
-    """
-    embed = discord.Embed(color=discord.Color.red(), title="Plus de crédits !", description="Le bot n'a plus de crédits pour remplir pleinement ses fonctions IA. Il y en aura de nouveau demain. Désolé !")
-    if message:
-        await message.reply(embed=embed)
-    elif ctx:
-        await ctx.send(embed=embed)
 
 #------------------------------------------------------------CHECK LOOP
 
