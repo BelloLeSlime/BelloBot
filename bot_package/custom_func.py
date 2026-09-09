@@ -685,6 +685,7 @@ async def counting_process(bot, message: discord.Message):
                     embed = discord.Embed(color=discord.Color.red(), description=f"Désolé, mais vous ne pouvez pas compter deux fois d'affilée ! Retour à zéro")
                     reply = await message.reply(embed=embed)
                     counting_config["number"] = 0
+                    counting_config["last_talked"] = None
                     if counting_config["delete_errors"]:
                         await asyncio.sleep(3)
                         await message.delete()
@@ -717,6 +718,7 @@ async def counting_process(bot, message: discord.Message):
                                               description=f"Désolé, mais {counting_config["number"]} + 1 n'est pas égal à {msg} ! (incroyable oui je sais) Retour à zéro")
                         reply = await message.reply(embed=embed)
                         counting_config["number"] = 0
+                        counting_config["last_talked"] = None
                         if counting_config["delete_errors"]:
                             await asyncio.sleep(3)
                             await message.delete()
@@ -740,6 +742,7 @@ async def counting_process(bot, message: discord.Message):
                     embed = discord.Embed(color=discord.Color.red(), description=f"Désolé, mais vous ne pouvez pas parler ici ! Retour à zéro")
                     reply = await message.reply(embed=embed)
                     counting_config["number"] = 0
+                    counting_config["last_talked"] = None
                     if counting_config["delete_errors"]:
                         await asyncio.sleep(3)
                         await message.delete()
