@@ -1,6 +1,6 @@
 python-dotenv
-discord
-discord[voice]
+discord.py
+discord.py[voice]
 pillow
 requests
 google-genai
