@@ -52,7 +52,6 @@ class Help(commands.Cog):
         embed = discord.Embed(color=discord.Color.green(), title="Bonjour, je suis BelloBot", description=help_message)
         await ctx.send(embed=embed)
 
-
     @commands.hybrid_command(name="ping")
     async def ping(self, ctx: commands.Context):
         """

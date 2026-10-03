@@ -63,7 +63,7 @@ def read_json(path):
 
 #------------------------------------------------------------AI STUFF
 
-async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = False, dm = False) -> str:
+async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = False, dm = False, emojis = tuple(), guild_name=None, guild_description=None) -> str:
     """
     Uses the Google AI Studio API to ask something to an AI model
     :param prompt: Question to ask
@@ -83,6 +83,15 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
             system_str = system
             for remember in remembers:
                 system_str += " \n" + remembers[remember]
+            if guild_name:
+                system_str += " \n" + f"Le serveur dans lequel tu es s'appelle {guild_name}."
+                if guild_description:
+                    system_str += f"\nVoici la description de ce serveur : {guild_description}"
+            if emojis != tuple():
+                system_str += " \n" + "Voici les émojis du serveur : "
+                for emoji in emojis:
+                    system_str += "\n- " + str(emoji)
+
 
             chat = client.chats.create(
                 model=model,
@@ -525,7 +534,7 @@ async def ai_process(bot, message):
         if bot.user in message.mentions and message.author != bot.user: #if the bot is mentionned
             try:
                 async with message.channel.typing():
-                    answer = await ask_ai(content, message.author.display_name, message.guild.id)
+                    answer = await ask_ai(content, message.author.display_name, message.guild.id, emojis=await message.guild.fetch_emojis(), guild_name=message.guild.name, guild_description=message.guild.description)
 
                     to_send = await parse_text(answer, message, False)
                     try:

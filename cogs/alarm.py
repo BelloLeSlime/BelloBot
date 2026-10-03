@@ -1,5 +1,6 @@
 import discord
 from discord import Interaction
+from discord.app_commands import guild_only
 from discord.ext import commands
 import bot_package.custom_func as Cf
 from random import choice, randint
@@ -257,7 +258,7 @@ class AlarmPanel(discord.ui.View):
         alarms = Cf.get_alarms(interaction.user.id, interaction.guild.id)
         if alarms == {}:
             await interaction.response.send_message(
-                "Vous n'avez pas d'alarme à modifer, créez-en une avec le `/alarm` !", ephemeral=True)
+                "Vous n'avez pas d'alarme à supprimer, créez-en une avec le `/alarm` !", ephemeral=True)
             return
         await interaction.response.send_message(embed=discord.Embed(color=discord.Color.blue(), description="Veuillez choisir une alarme à supprimer"), view=RemoveAlarm(interaction), ephemeral=True)
 
@@ -324,6 +325,7 @@ class Alarm(commands.Cog):
             6: "Dimanche"
         }
 
+    @guild_only
     @commands.hybrid_command(name="alarm")
     async def alarm(self, ctx: commands.Context):
         """

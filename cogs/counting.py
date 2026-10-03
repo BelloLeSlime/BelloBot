@@ -1,4 +1,5 @@
 import discord
+from discord.app_commands import guild_only
 from discord.ext import commands
 from discord import app_commands
 from bot_package import custom_func as Cf
@@ -11,6 +12,7 @@ class Counting(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @guild_only
     @commands.hybrid_command(name="counting_config")
     @commands.has_permissions(administrator=True)
     @app_commands.autocomplete(key=counting_config_key_autocomplete)
@@ -86,6 +88,7 @@ class Counting(commands.Cog):
 
         await ctx.send(embed=embed, ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="counting_set")
     @commands.has_permissions(administrator=True)
     async def counting_set(self, ctx: commands.Context, number: int):
@@ -116,7 +119,7 @@ class Counting(commands.Cog):
                               description=f"Le nombre du comptage a bien été mit à **{number}** !")
         await ctx.send(embed=embed, ephemeral=True)
 
-
+    @guild_only
     @commands.hybrid_command(name="counting_high_score")
     async def counting_high_score(self, ctx: commands.Context):
         """

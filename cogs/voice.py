@@ -1,4 +1,5 @@
 import discord
+from discord.app_commands import guild_only
 from discord.ext import commands
 import bot_package.custom_func as Cf
 import yt_dlp
@@ -7,6 +8,7 @@ class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @guild_only
     @commands.hybrid_command(name="join")
     async def join(self, ctx: commands.Context, channel: discord.VoiceChannel = None):
         """
@@ -37,6 +39,7 @@ class Voice(commands.Cog):
         embed = discord.Embed(color=discord.Color.green(), description="Je suis connecté !")
         await ctx.send(embed=embed)
 
+    @guild_only
     @commands.hybrid_command(name="leave")
     async def leave(self, ctx: commands.Context):
         """
@@ -54,6 +57,7 @@ class Voice(commands.Cog):
         embed = discord.Embed(color=discord.Color.green(), description="J'ai bien quitté le salon vocal !")
         await ctx.send(embed=embed)
 
+    @guild_only
     @commands.hybrid_command(name="music_play")
     async def music_play(self, ctx: commands.Context, music: str):
         """
@@ -139,6 +143,7 @@ class Voice(commands.Cog):
         user_data["music_stats"][title] += 1
         Cf.set_user_data(ctx.author.id, ctx.guild.id, user_data)
 
+    @guild_only
     @commands.hybrid_command(name="music_stop")
     async def music_stop(self, ctx: commands.Context):
         """
@@ -162,6 +167,7 @@ class Voice(commands.Cog):
 
         await ctx.send("Aucune musique en cours")
 
+    @guild_only
     @commands.hybrid_command(name="music_stats")
     async def music_stats(self, ctx: commands.Context, user: discord.User = None):
         """

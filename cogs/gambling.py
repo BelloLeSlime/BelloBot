@@ -1,4 +1,5 @@
 import discord
+from discord.app_commands import guild_only
 from discord.ext import commands
 from discord import app_commands
 import bot_package.custom_func as Cf
@@ -234,6 +235,7 @@ class Gambling(commands.Cog):
             app_commands.Choice(name="money", value="money"),
         ]
 
+    @guild_only
     @commands.hybrid_command(name="gambling")
     @app_commands.autocomplete(game=gambling_game_autocomplete, what=gambling_what_autocomplete)
     async def gambling(self, ctx: commands.Context, game: str, bet: int, what: str):

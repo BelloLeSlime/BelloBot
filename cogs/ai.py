@@ -1,9 +1,11 @@
 import discord
+from discord.app_commands import guild_only
 from discord.ext import commands
-from discord import app_commands
 import bot_package.custom_func as Cf
 import asyncio
 import os
+from google.genai.errors import ClientError
+from discord.errors import NotFound
 
 class Ai(commands.Cog):
     """
@@ -12,6 +14,7 @@ class Ai(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @guild_only
     @commands.hybrid_command(name="ask")
     async def ask(self, ctx: commands.Context, prompt: str):
         """
@@ -37,13 +40,20 @@ class Ai(commands.Cog):
             author = ctx.author.display_name
 
             try:
+                answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id, emojis=await ctx.guild.fetch_emojis(), guild_name=ctx.guild.name, guild_description=ctx.guild.description)
+                to_send = await Cf.parse_text(answer, ctx, False)
+                try:
+                    await ctx.send(to_send)
+                except discord.HTTPException:
+                    await ctx.send(to_send[:1975] + "... <message trop long>")
+            except NotFound:
                 answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id)
                 to_send = await Cf.parse_text(answer, ctx, False)
                 try:
                     await ctx.send(to_send)
                 except discord.HTTPException:
                     await ctx.send(to_send[:1975] + "... <message trop long>")
-            except:
+            except ClientError:
                 await Cf.warn_no_more_credits(ctx=ctx)
                 return
 
@@ -71,6 +81,7 @@ class Ai(commands.Cog):
             Cf.write_file(author + " : " + content, f"files/dms/{ctx.author.id}.txt")
             Cf.write_file("BelloBot(forbellobot) : " + to_send, f"files/dms/{ctx.author.id}.txt")
 
+    @guild_only
     @commands.hybrid_command(name="vote_reset_memory")
     async def vote_reset_memory(self, ctx: commands.Context):
         """
@@ -137,6 +148,7 @@ class Ai(commands.Cog):
         embed = discord.Embed(color=discord.Color.orange(), description="Ma mémoire dans les MP est réinitialisée.")
         await ctx.send(embed=embed, ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="ai_ignore_add")
     @commands.has_permissions(administrator=True)
     async def ai_ignore_add(self, ctx: commands.Context, channel: discord.TextChannel):
@@ -163,6 +175,7 @@ class Ai(commands.Cog):
             embed = discord.Embed(color=discord.Color.red(), description=f"L'IA est déjà désactivée dans {channel.mention}.")
             await ctx.send(embed=embed, ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="ai_ignore")
     @commands.has_permissions(administrator=True)
     async def ai_ignore(self, ctx: commands.Context):
@@ -185,6 +198,7 @@ class Ai(commands.Cog):
         embed.description += f"Dans ces salons, l'IA ne pourra ni parler, ni voir quelconque message."
         await ctx.send(embed=embed, ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="ai_ignore_remove")
     @commands.has_permissions(administrator=True)
     async def ai_ignore_remove(self, ctx: commands.Context, channel: discord.TextChannel):

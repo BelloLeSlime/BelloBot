@@ -1,5 +1,6 @@
 import os
 import discord
+from discord.app_commands import guild_only
 from discord.ext import commands
 from discord import app_commands
 import bot_package.custom_func as Cf
@@ -13,6 +14,7 @@ class Stats(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @guild_only
     @commands.hybrid_command(name="xp")
     async def xp(self, ctx: commands.Context, user: discord.User = None):
         """
@@ -41,6 +43,7 @@ class Stats(commands.Cog):
             embed.description = f"{user.display_name} est au niveau {user_data_xp['level']}, il a {user_data_xp['xp']} xp et il lui manque {user_data_xp["level"] * 15 - user_data_xp['xp']} xp pour passer au niveau {user_data_xp['level'] + 1} :p"
         await ctx.send(embed=embed)
 
+    @guild_only
     @commands.hybrid_command(name="wallet")
     async def wallet(self, ctx: commands.Context, user: discord.User = None):
         """
@@ -70,6 +73,7 @@ class Stats(commands.Cog):
             embed.description = f"{user.display_name} a actuellement {money}₣."
         await ctx.send(embed=embed)
 
+    @guild_only
     @commands.hybrid_command(name="inventory")
     async def inventory(self, ctx: commands.Context, user: discord.User | None = None):
         """
@@ -108,6 +112,7 @@ class Stats(commands.Cog):
         embed = discord.Embed(title=f" Inventaire de {user.display_name} :", description=description, color=discord.Color.green())
         await ctx.send(embed=embed)
 
+    @guild_only
     @commands.hybrid_command(name="stats")
     async def stats(self, ctx: commands.Context, user: discord.User | None = None):
         """
@@ -167,6 +172,7 @@ class Stats(commands.Cog):
             app_commands.Choice(name="money", value="money"),
         ]
 
+    @guild_only
     @commands.hybrid_command(name="gift")
     @app_commands.autocomplete(what=gift_what_autocomplete)
     async def gift(self, ctx: commands.Context, user: discord.User, what: str, amount: int):
@@ -208,6 +214,7 @@ class Stats(commands.Cog):
             embed = discord.Embed(color=discord.Color.green(), description=f"Vous avez bien envoyé {amount}{"XP" if what == "xp" else flamcoin_symbol} à {user_2.display_name} !")
             await ctx.send(embed=embed)
 
+    @guild_only
     @commands.hybrid_command(name="top")
     @app_commands.autocomplete(what=gift_what_autocomplete)
     async def top(self, ctx: commands.Context, what: str, user: discord.User = None):
