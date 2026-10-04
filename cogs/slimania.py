@@ -1,4 +1,5 @@
 import discord
+from discord.app_commands import guild_only
 from discord.ext import commands
 from discord import app_commands
 import bot_package.custom_func as Cf
@@ -91,6 +92,7 @@ class Slimania(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @guild_only
     @commands.hybrid_command(name="slimania_roll")
     async def slimania_roll(self, ctx: commands.Context):
         """
@@ -146,6 +148,7 @@ class Slimania(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @guild_only
     @commands.hybrid_command(name="slimania_booster")
     async def slimania_booster(self, ctx: commands.Context):
         """
@@ -223,6 +226,7 @@ class Slimania(commands.Cog):
         inv["last_roll"] = datetime.isoformat(datetime.now(UTC))
         Cf.set_slimania_inventory(ctx.author.id, ctx.guild.id, inv)
 
+    @guild_only
     @commands.hybrid_command(name="slimania_inventory")
     async def slimania_inventory(self, ctx: commands.Context, user: discord.User = None):
         """
@@ -308,6 +312,7 @@ class Slimania(commands.Cog):
             app_commands.Choice(name="UZ", value="UZ"),
         ]
 
+    @guild_only
     @commands.hybrid_command(name="slimania_add")
     @app_commands.autocomplete(rank=rank_autocomplete)
     @commands.is_owner()
@@ -362,6 +367,7 @@ class Slimania(commands.Cog):
         )
         await ctx.send(embed=embed)
 
+    @guild_only
     @commands.hybrid_command(name="slimania_search")
     @app_commands.autocomplete(rank=rank_autocomplete)
     async def slimania_search(self, ctx: commands.Context, query: str=None, rank:str=None):

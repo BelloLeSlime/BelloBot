@@ -1,10 +1,12 @@
 import discord
+from discord.app_commands import guild_only
 from discord.ext import commands
 
 class Mod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @guild_only
     @commands.hybrid_command(name="ban")
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, reason=None):
@@ -18,6 +20,7 @@ class Mod(commands.Cog):
         await member.ban(reason=reason)
         await ctx.send(f"Vous avez bien banni {member.mention}.", ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="kick")
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member, reason=None):

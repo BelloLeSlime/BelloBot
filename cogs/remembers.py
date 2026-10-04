@@ -1,4 +1,5 @@
 import discord
+from discord.app_commands import guild_only
 from discord.ext import commands
 import bot_package.custom_func as Cf
 
@@ -9,6 +10,7 @@ class Remembers(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @guild_only
     @commands.hybrid_command(name="add_remember")
     @commands.has_permissions(administrator=True)
     async def add_remember(self, ctx: commands.Context, message: str):
@@ -33,6 +35,7 @@ class Remembers(commands.Cog):
         Cf.set_remembers(ctx.guild.id, remembers)
         await ctx.send(f"Votre souvenir \"*{message}*\" a bien été enregistré !", ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="remembers")
     @commands.has_permissions(administrator=True)
     async def remembers(self, ctx: commands.Context):
@@ -58,6 +61,7 @@ class Remembers(commands.Cog):
         embed.description = descr
         await ctx.send(embed=embed, ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="delete_remember")
     @commands.has_permissions(administrator=True)
     async def delete_remember(self, ctx: commands.Context, id: int):

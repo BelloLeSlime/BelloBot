@@ -1,4 +1,5 @@
 import discord
+from discord.app_commands import Choice, guild_only
 from discord.ext import commands
 import bot_package.custom_func as Cf
 from discord import app_commands
@@ -48,7 +49,7 @@ class ShopView(discord.ui.View):
         super().__init__()
         self.add_item(ShopSelect(guild_id))
 
-async def use_autocomplete(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+async def use_autocomplete(interaction: discord.Interaction, current: str):
     shop = Cf.get_shop(interaction.guild_id)
     return [
         app_commands.Choice(name=shop[item]["name"], value=item) for item in shop
@@ -81,6 +82,7 @@ class Shop(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @guild_only
     @commands.hybrid_command(name="shop")
     async def shop(self, ctx: commands.Context):
         """
@@ -116,6 +118,7 @@ class Shop(commands.Cog):
             view=ShopView(ctx.guild.id)
         )
 
+    @guild_only
     @commands.hybrid_command(name="use")
     @app_commands.autocomplete(item=use_autocomplete)
     async def use(self, ctx: commands.Context, item: str, target_user: discord.User | None = None, name: str | None = None):
@@ -210,6 +213,7 @@ class Shop(commands.Cog):
             app_commands.Choice(name="rename", value="rename"),
         ]
 
+    @guild_only
     @commands.hybrid_command(name="shop_add")
     @app_commands.autocomplete(type=shop_add_type_autocomplete)
     @commands.has_permissions(administrator=True)
@@ -297,6 +301,7 @@ class Shop(commands.Cog):
         embed = discord.Embed(color=discord.Color.blue(), description=f"Vous avez bien rajouté **{emoji} {name}** au shop ! Faîtes /shop pour le voir !")
         await ctx.send(embed=embed)
 
+    @guild_only
     @commands.hybrid_command(name="shop_view")
     @app_commands.autocomplete()
     @commands.has_permissions(administrator=True)
@@ -333,6 +338,7 @@ class Shop(commands.Cog):
 """
         await ctx.send(embed=embed, ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="shop_delete")
     @app_commands.autocomplete(item=use_autocomplete)
     @commands.has_permissions(administrator=True)

@@ -3,3 +3,4 @@
 .env
 discord.log
 test.py
+configuration.json

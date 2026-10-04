@@ -1,10 +1,11 @@
 import discord
+from discord.app_commands import guild_only
 from discord.ext import commands
 import bot_package.custom_func as Cf
-from bot_package.data import model, image_model, flamcoin_symbol
 import asyncio
-from datetime import timedelta
 import os
+from google.genai.errors import ClientError
+from discord.errors import NotFound
 
 class Ai(commands.Cog):
     """
@@ -13,6 +14,7 @@ class Ai(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @guild_only
     @commands.hybrid_command(name="ask")
     async def ask(self, ctx: commands.Context, prompt: str):
         """
@@ -38,13 +40,20 @@ class Ai(commands.Cog):
             author = ctx.author.display_name
 
             try:
+                answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id, emojis=await ctx.guild.fetch_emojis(), guild_name=ctx.guild.name, guild_description=ctx.guild.description)
+                to_send = await Cf.parse_text(answer, ctx, False)
+                try:
+                    await ctx.send(to_send)
+                except discord.HTTPException:
+                    await ctx.send(to_send[:1975] + "... <message trop long>")
+            except NotFound:
                 answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id)
                 to_send = await Cf.parse_text(answer, ctx, False)
                 try:
                     await ctx.send(to_send)
                 except discord.HTTPException:
                     await ctx.send(to_send[:1975] + "... <message trop long>")
-            except:
+            except ClientError:
                 await Cf.warn_no_more_credits(ctx=ctx)
                 return
 
@@ -72,6 +81,7 @@ class Ai(commands.Cog):
             Cf.write_file(author + " : " + content, f"files/dms/{ctx.author.id}.txt")
             Cf.write_file("BelloBot(forbellobot) : " + to_send, f"files/dms/{ctx.author.id}.txt")
 
+    @guild_only
     @commands.hybrid_command(name="vote_reset_memory")
     async def vote_reset_memory(self, ctx: commands.Context):
         """
@@ -137,6 +147,82 @@ class Ai(commands.Cog):
 
         embed = discord.Embed(color=discord.Color.orange(), description="Ma mémoire dans les MP est réinitialisée.")
         await ctx.send(embed=embed, ephemeral=True)
+
+    @guild_only
+    @commands.hybrid_command(name="ai_ignore_add")
+    @commands.has_permissions(administrator=True)
+    async def ai_ignore_add(self, ctx: commands.Context, channel: discord.TextChannel):
+        """
+        ADMIN SEULEMENT - ajoute un salon dans lequel l'IA ne peut pas interagir (voir ou parler)
+        :param ctx:
+        :param channel: Salon dans lequel l'IA est interdite
+        :return:
+        """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_ai"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'IA n'est pas activé sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        ai_ignore = Cf.get_ai_ignore(ctx.guild.id)
+        if not channel.id in ai_ignore["channels"]:
+            ai_ignore["channels"].append(channel.id)
+            embed = discord.Embed(color=discord.Color.green(), description=f"Désormais, l'IA est désactivée dans {channel.mention}.")
+            await ctx.send(embed=embed, ephemeral=True)
+            Cf.set_ai_ignore(ctx.guild.id, ai_ignore)
+        else:
+            embed = discord.Embed(color=discord.Color.red(), description=f"L'IA est déjà désactivée dans {channel.mention}.")
+            await ctx.send(embed=embed, ephemeral=True)
+
+    @guild_only
+    @commands.hybrid_command(name="ai_ignore")
+    @commands.has_permissions(administrator=True)
+    async def ai_ignore(self, ctx: commands.Context):
+        """
+        ADMIN SEULEMENT - Permet d'avoir la liste des salons ignorés par l'IA
+        :param ctx:
+        :return:
+        """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_ai"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'IA n'est pas activé sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        ai_ignore = Cf.get_ai_ignore(ctx.guild.id)
+        embed = discord.Embed(color=discord.Color.blue(), title="Salons AI Ignore du serveur", description=f"")
+        for channel_id in ai_ignore["channels"]:
+            embed.description += f"- <#{channel_id}>\n"
+        embed.description += f"Dans ces salons, l'IA ne pourra ni parler, ni voir quelconque message."
+        await ctx.send(embed=embed, ephemeral=True)
+
+    @guild_only
+    @commands.hybrid_command(name="ai_ignore_remove")
+    @commands.has_permissions(administrator=True)
+    async def ai_ignore_remove(self, ctx: commands.Context, channel: discord.TextChannel):
+        """
+        ADMIN SEULEMENT - Enlève l'interdiction à l'IA
+        :param ctx:
+        :param channel:
+        :return:
+        """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_ai"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(), description=f"Désolé, mais l'IA n'est pas activé sur ce serveur !"), ephemeral=True)
+            return
+
+        ai_ignore = Cf.get_ai_ignore(ctx.guild.id)
+        if not channel.id in ai_ignore["channels"]:
+            embed = discord.Embed(color=discord.Color.red(), description=f"Le salon {channel.mention} n'est pas en AI Ignore.")
+            await ctx.send(embed=embed, ephemeral=True)
+            return
+        ai_ignore["channels"].remove(channel.id)
+        Cf.set_ai_ignore(ctx.guild.id, ai_ignore)
+        embed = discord.Embed(color=discord.Color.green(), description=f"Le salon {channel.mention} n'est plus en AI Ignore.")
+        await ctx.send(embed=embed, ephemeral=True)
+
 
 async def setup(bot):
     await bot.add_cog(Ai(bot))

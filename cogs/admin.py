@@ -1,9 +1,7 @@
-import discord
 from discord import app_commands
+from discord.app_commands import guild_only
 from discord.ext import commands
-import bot_package.custom_func as Cf
 from bot_package.data import config_value_types, config_text_types, flamcoin_symbol
-import os
 from bot_package.ticket_manager import *
 
 class Ticket(discord.ui.View):
@@ -14,7 +12,6 @@ class Ticket(discord.ui.View):
     async def create_ticket(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         await create_ticket(interaction.guild, interaction.user)
-
 
 async def config_autocomplete(interaction: discord.Interaction, current: str):
     return [
@@ -29,6 +26,7 @@ class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @guild_only
     @commands.hybrid_command(name="config_view")
     @commands.has_permissions(administrator=True)
     async def config_view(self, ctx: commands.Context):
@@ -50,7 +48,7 @@ class Admin(commands.Cog):
             lvalue_type = config_value_types[lkey]
             try:
                 if (lvalue_type != int) and (lvalue_type != bool) and (not lvalue_type == str):
-                    if lvalue_type in [discord.TextChannel, discord.CategoryChannel]:
+                    if lvalue_type in [discord.TextChannel, discord.CategoryChannel, discord.ForumChannel]:
                         channel_id = lvalue
                         channel = await ctx.guild.fetch_channel(channel_id)
                         lvalue = channel.mention
@@ -72,6 +70,7 @@ class Admin(commands.Cog):
 
         await ctx.send(embed=embed, ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="config")
     @commands.has_permissions(administrator=True)
     @app_commands.autocomplete(key=config_autocomplete)
@@ -113,7 +112,7 @@ class Admin(commands.Cog):
             await ctx.send(embed=embed, ephemeral=True)
             return
 
-        bot_config[key] = value if not type(value) in [discord.TextChannel, discord.Role, discord.CategoryChannel] else value.id
+        bot_config[key] = value if not type(value) in [discord.TextChannel, discord.Role, discord.CategoryChannel, discord.ForumChannel] else value.id
 
         lbot_config = bot_config.copy()
         config_text = ""
@@ -124,7 +123,7 @@ class Admin(commands.Cog):
             lvalue_type = config_value_types[lkey]
             try:
                 if (lvalue_type != int) and (lvalue_type != bool) and (lvalue_type != str):
-                    if lvalue_type in [discord.TextChannel, discord.CategoryChannel]:
+                    if lvalue_type in [discord.TextChannel, discord.CategoryChannel, discord.ForumChannel]:
                         channel_id = lvalue
                         channel = await ctx.guild.fetch_channel(channel_id)
                         lvalue = channel.mention
@@ -145,6 +144,7 @@ class Admin(commands.Cog):
 
         await ctx.send(embed=embed, ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="reset_memory")
     @commands.has_permissions(administrator=True)
     async def reset_memory(self, ctx: commands.Context):
@@ -164,6 +164,7 @@ class Admin(commands.Cog):
             f.write("")
         await ctx.send(f"Ma mémoire a bien été réinitialisée !", ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="reset")
     @commands.has_permissions(administrator=True)
     async def reset(self, ctx: commands.Context):
@@ -206,6 +207,7 @@ class Admin(commands.Cog):
             app_commands.Choice(name="reset", value="reset"),
         ]
 
+    @guild_only
     @commands.hybrid_command(name="stats_mod")
     @commands.has_permissions(administrator=True)
     @app_commands.autocomplete(what=stats_mod_what_autocomplete, how=stats_mod_how_autocomplete)
@@ -307,6 +309,7 @@ class Admin(commands.Cog):
         await ctx.channel.send(embed=embed)
         await ctx.send("Votre Embed a bien été envoyé", ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="ticket")
     @commands.has_permissions(administrator=True)
     async def ticket(self, ctx: commands.Context):
@@ -338,6 +341,7 @@ class Admin(commands.Cog):
         await channel.send(embed=embed, view=Ticket())
         await ctx.send(f"Mesage envoyé !", ephemeral=True)
 
+    @guild_only
     @commands.hybrid_command(name="ticket_close")
     async def ticket_close(self, ctx: commands.Context):
         """
