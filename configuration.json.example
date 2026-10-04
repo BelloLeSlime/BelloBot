@@ -1,3 +1,4 @@
 {
-  "test_mode": false
+  "test_mode": false,
+  "test_guild": null #put your test guild here so the bot will leave all the other guilds
 }

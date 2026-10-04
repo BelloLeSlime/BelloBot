@@ -115,6 +115,11 @@ class Bot(commands.Bot):
 
         #Send another ticket creator message because the previous one won't work
         for guild in self.guilds:
+            global_config = Cf.get_global_config()
+            if global_config["test_mode"] and global_config["test_guild"]:
+                if guild.id != global_config["test_guild"]:
+                    await guild.leave()
+
             config = Cf.get_config(guild.id)
             if not "ticket_channel" in config or not "ticket_description" in config or not "ticket_role" in config or not "ticket_logs_channel" in config:
                 continue

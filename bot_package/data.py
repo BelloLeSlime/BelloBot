@@ -56,6 +56,7 @@ config_value_types = {
     "ticket_category": discord.CategoryChannel,
     "ticket_role": discord.Role,
     "counting_channel": discord.TextChannel,
+    "quests_channel": discord.ForumChannel,
     "max_messages_in_memory": int,
     "enable_xp": bool,
     "enable_shop": bool,
@@ -73,7 +74,8 @@ config_text_types = {
     str: "Texte",
     discord.role: "Rôle",
     int: "Nombre entier",
-    bool: "Booléan (soit True soit False)"
+    bool: "Booléan (soit True soit False)",
+    discord.ForumChannel: "Salon Forum",
 }
 
 #the keys avaiable in the /counting_config and their respective type

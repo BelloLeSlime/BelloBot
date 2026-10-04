@@ -48,7 +48,7 @@ class Admin(commands.Cog):
             lvalue_type = config_value_types[lkey]
             try:
                 if (lvalue_type != int) and (lvalue_type != bool) and (not lvalue_type == str):
-                    if lvalue_type in [discord.TextChannel, discord.CategoryChannel]:
+                    if lvalue_type in [discord.TextChannel, discord.CategoryChannel, discord.ForumChannel]:
                         channel_id = lvalue
                         channel = await ctx.guild.fetch_channel(channel_id)
                         lvalue = channel.mention
@@ -112,7 +112,7 @@ class Admin(commands.Cog):
             await ctx.send(embed=embed, ephemeral=True)
             return
 
-        bot_config[key] = value if not type(value) in [discord.TextChannel, discord.Role, discord.CategoryChannel] else value.id
+        bot_config[key] = value if not type(value) in [discord.TextChannel, discord.Role, discord.CategoryChannel, discord.ForumChannel] else value.id
 
         lbot_config = bot_config.copy()
         config_text = ""
@@ -123,7 +123,7 @@ class Admin(commands.Cog):
             lvalue_type = config_value_types[lkey]
             try:
                 if (lvalue_type != int) and (lvalue_type != bool) and (lvalue_type != str):
-                    if lvalue_type in [discord.TextChannel, discord.CategoryChannel]:
+                    if lvalue_type in [discord.TextChannel, discord.CategoryChannel, discord.ForumChannel]:
                         channel_id = lvalue
                         channel = await ctx.guild.fetch_channel(channel_id)
                         lvalue = channel.mention

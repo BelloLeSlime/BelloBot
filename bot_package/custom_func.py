@@ -198,6 +198,8 @@ def check_guild_has_presence(guild_id):
         write_json(read_json(f"files/counting/default.json"), f"files/counting/{guild_id}.json")
     if not str(guild_id) + ".json" in os.listdir(f"./files/ai_ignore/"):
         write_json({"channels": []}, f"files/ai_ignore/{guild_id}.json")
+    if not str(guild_id) + ".json" in os.listdir(f"./files/quests/"):
+        write_json({}, f"files/quests/{guild_id}.json")
 
 def check_config(config):
     for expected_key in config_value_types:
@@ -347,6 +349,14 @@ def set_ai_ignore(guild_id, data):
     check_guild_has_presence(guild_id)
     write_json(data, f"files/ai_ignore/{guild_id}.json")
 
+def get_quests(guild_id):
+    check_guild_has_presence(guild_id)
+    return read_json(f"files/quests/{guild_id}.json")
+
+def set_quests(guild_id, data):
+    check_guild_has_presence(guild_id)
+    write_json(data, f"files/quests/{guild_id}.json")
+
 #------------------------------------------------------------MISC
 
 async def send_image(ctx: commands.Context, image, text=""):
@@ -361,7 +371,7 @@ async def send_image(ctx: commands.Context, image, text=""):
     image.save(buffer, format="PNG")
     buffer.seek(0)
 
-    file = discord.File(fp=buffer, filename="generated.png")
+    file = discord.File(fp=buffer, filename="image.png")
     await ctx.send(text, file=file)
 
 def get_gif(query):
@@ -768,6 +778,40 @@ async def counting_process(bot, message: discord.Message):
 
         set_counting(message.guild.id, counting_config)
 
+async def quests_process(bot, message: discord.Message):
+    if message.author == bot.user:
+        return
+
+    config = get_config(message.guild.id)
+    if config["quests_channel"] != None:
+        if isinstance(message.channel, discord.Thread):
+            if isinstance(message.channel.parent, discord.ForumChannel):
+                if message.channel.parent.id == config["quests_channel"]:
+                    quests = get_quests(message.guild.id)
+                    if str(message.channel.id) in  quests:
+                        quest = quests[str(message.channel.id)]
+                        if message.author.id in quest["validations"]:
+                            reply = await message.reply("Désolé, mais vous avez déjà validé votre quête !")
+                            await asyncio.sleep(3)
+                            await message.delete()
+                            await reply.delete()
+                            return
+                        if message.attachments or "https://" in message.content or "http://" in message.content:
+                            await message.add_reaction("✅")
+                            quest["validations"].append(message.author.id)
+                            user_data = get_user_data(message.author.id, message.guild.id)
+                            user_data["xp"] += quest["xp"]
+                            user_data["money"] += quest["money"]
+                            set_user_data(message.author.id, message.guild.id, user_data)
+                            await check_level_up(bot, message.author, message.guild)
+                            set_quests(message.guild.id, quests)
+                        else:
+                            reply = await message.reply("Veuillez indiquer un fichier ou un lien.")
+                            await asyncio.sleep(3)
+                            await message.delete()
+                            await reply.delete()
+
+
 #------------------------------------------------------------ON MESSAGE EDIT PROCESS
 
 async def edit_counting_process(bot, before: discord.Message, after: discord.Message):
@@ -817,12 +861,13 @@ async def on_message(bot, message: discord.Message):
 
     await polls_process(message) #answers to polls
 
+    await quests_process(bot, message)
+
 async def on_message_edit(bot, before: discord.Message, after: discord.Message):
     await edit_counting_process(bot, before, after)
 
 async def on_message_delete(bot, message: discord.Message):
     await delete_counting_process(bot, message)
-
 
 #------------------------------------------------------------CHECK LOOP
 
