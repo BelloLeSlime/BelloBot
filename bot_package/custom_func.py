@@ -907,7 +907,7 @@ async def check_alarm(bot):
                         alarm_channel = await alarm_guild.fetch_channel(alarm_channel_id)
                         if alarm_channel is None:
                             continue
-                        embed = discord.Embed(color=discord.Color.blurple(), title=f"C'est l'heure : Alarme {alarm_id}",
+                        embed = discord.Embed(color=discord.Color.blurple(), title=f"C'est l'heure",
                                       description=f"{alarm["name"]}")
                         await alarm_channel.send(f"{alarm["name"]} <@{alarm_user_id.removesuffix(".json")}>",
                                                  embed=embed)

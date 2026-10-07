@@ -133,7 +133,7 @@ Le shop est une boutique accessible via le /shop. On peut y acheter des objets. 
 Le shop est entièrement customisable par un admin via le /shop_add et le /shop_delete. 
 
 - Alarmes :
-Avec /alarm, /create_alarm, /edit_alarm et /delete_alarm, vous pouvez créer des alarmes qui vous pingueront dans le salon alarme (s'il y en a un) au moment et au jour que vous choisirez.
+Avec /alarm, vous pouvez créer des alarmes qui vous pingueront dans le salon alarme (s'il y en a un) au moment et au jour que vous choisirez.
 
 - Slimania :
 Vous pouvez faire /slimania_roll ou /slimania_booster pour gagner des slimes, et ainsi les ajouter à votre collection.
@@ -142,6 +142,9 @@ L'échange et la vente de slimes n'est malheuresement par encore disponible.
 
 - Comptage : 
 Dans un salon défini par le /config, vous pouvez compter jusqu'à l'infini avec d'autres personnes. Les règles sont customisable via le /counting_config 
+
+- Quêtes :
+Les quêtes sont des minis animations créées par des admins. Il peut y avoir des récompenses à la clé, comme de l'XP ou des Flamcoins.
 
 ## À L'AIDE
 Si je bug, la raison est souvent :

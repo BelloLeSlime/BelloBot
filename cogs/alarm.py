@@ -262,6 +262,15 @@ class AlarmPanel(discord.ui.View):
             return
         await interaction.response.send_message(embed=discord.Embed(color=discord.Color.blue(), description="Veuillez choisir une alarme à supprimer"), view=RemoveAlarm(interaction), ephemeral=True)
 
+    @discord.ui.button(label="Activer/Désactiver une alarme", style=discord.ButtonStyle.gray)
+    async def toggle_alarm(self, interaction: discord.Interaction, item):
+        alarms = Cf.get_alarms(interaction.user.id, interaction.guild.id)
+        if alarms == {}:
+            await interaction.response.send_message(
+                "Vous n'avez pas d'alarme à supprimer, créez-en une avec le `/alarm` !", ephemeral=True)
+            return
+        await interaction.response.send_message(embed=discord.Embed(color=discord.Color.blue(), description="Veuillez choisir une alarme à activer/désactiver"), view=ToggleAlarm(interaction), ephemeral=True)
+
 class EditAlarmSelect(discord.ui.Select):
     def __init__(self, interaction: discord.Interaction):
         options = [discord.SelectOption(label=alarm["name"], value=id) for id, alarm in Cf.get_alarms(interaction.user.id, interaction.guild.id).items()]
@@ -308,6 +317,25 @@ class RemoveAlarmConfirm(discord.ui.View):
         del alarms[self.alarm_id]
         Cf.set_alarms(interaction.user.id, interaction.guild.id, alarms)
         await interaction.response.send_message(f"L'alarme **{name}** a bien été supprimée.", ephemeral=True)
+
+class ToggleAlarmSelect(discord.ui.Select):
+    def __init__(self, interaction: discord.Interaction):
+        options = [discord.SelectOption(label=alarm["name"], value=id) for id, alarm in Cf.get_alarms(interaction.user.id, interaction.guild.id).items()]
+        super().__init__(
+            placeholder="Choisis une alarme à activer/désactiver",
+            options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        alarms = Cf.get_alarms(interaction.user.id, interaction.guild.id)
+        alarms[self.values[0]]["enabled"] = not alarms[self.values[0]]["enabled"]
+        Cf.set_alarms(interaction.user.id, interaction.guild.id, alarms)
+        await interaction.response.send_message(f"L'alarme **{alarms[self.values[0]]["name"]}** a bien été {"activée" if alarms[self.values[0]]["enabled"] else "désactivée"}.", ephemeral=True)
+
+class ToggleAlarm(discord.ui.View):
+    def __init__(self, interaction: discord.Interaction):
+        super().__init__()
+        self.add_item(ToggleAlarmSelect(interaction))
 
 class Alarm(commands.Cog):
     """
