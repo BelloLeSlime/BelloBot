@@ -29,8 +29,7 @@ random_states = [
     "Quoi ? Je suis un Mii dans Tomodachi Life ?!",
     f"0 serveurs !",
     "Posez-moi des questions utiles par pitié",
-    "HuggingFace il a changé ;(",
-    "L'IA est trop chère ;-;",
+    "HuggingFace il a changé",
     "Baldéos, je te retiens",
     "Nous sommes en guerre froide contre les américains",
     "Je bois du jus de bambou, mais je préfère la vodka !",
@@ -43,7 +42,21 @@ random_states = [
     "Baldéos cet américain ಠ_ಠ",
     "Canicule",
     "You can only lose 100%, but you could win 999999999%",
-    "I bet therefore I am"
+    "I bet therefore I am",
+    "BelloBot > Rayned",
+    "BelloBot > Draftbot",
+    "BelloBot > Poulpobot",
+    "BelloBot > velox",
+    "BelloBot > modère la vie",
+    "BelloBot > MEE6",
+    "BelloBot > Clark",
+    "Bobby le GOAT",
+    "R.I.P. Bobby ;c",
+    "GTA VI est sorti. OK",
+    "BelloBot X Blobby (dans Tomodachi Life)",
+    "\"Acier, Vodka, Bazar. Le slime ne bégaie jamais devant l'ennemi\" - BelloBot",
+    "J'ai battu le Bad Time Simulator donc tout est possible =D",
+    "Creating Life"
 ]
 
 #the keys avaiable in the /config and their respective type
