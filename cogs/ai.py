@@ -1,5 +1,6 @@
 import discord
 from discord.app_commands import guild_only
+from discord import app_commands
 from discord.ext import commands
 import bot_package.custom_func as Cf
 import asyncio
@@ -7,12 +8,19 @@ import os
 from google.genai.errors import ClientError
 from discord.errors import NotFound
 
+from cogs import remembers
+
+
 class Ai(commands.Cog):
     """
     Toutes les commandes impliquant l'IA
     """
     def __init__(self, bot):
         self.bot = bot
+
+    async def profile_autocomplete(self, interaction: discord.Interaction, current: str):
+        return ([app_commands.Choice(name=profile, value=profile) for profile in Cf.get_profiles(interaction.guild.id)])
+
 
     @guild_only
     @commands.hybrid_command(name="ask")
@@ -222,6 +230,119 @@ class Ai(commands.Cog):
         Cf.set_ai_ignore(ctx.guild.id, ai_ignore)
         embed = discord.Embed(color=discord.Color.green(), description=f"Le salon {channel.mention} n'est plus en AI Ignore.")
         await ctx.send(embed=embed, ephemeral=True)
+
+    @guild_only
+    @commands.hybrid_command(name="profile_add")
+    @commands.has_permissions(administrator=True)
+    async def profile_add(self, ctx: commands.Context, name: str, avatar_url: str, keyword: str):
+        """
+        ADMIN SEULEMENT - Ajoute un profil au bot (keyword est comme le ping mais c'est pas un ping discord)
+        :param ctx:
+        :param name: Nom du profil
+        :param avatar_url: URL de l'image de l'avatar du profil
+        :param keyword: Pour le ping
+        :return:
+        """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_ai"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),description=f"Désolé, mais l'IA n'est pas activé sur ce serveur !"),ephemeral=True)
+            return
+
+        profiles = Cf.get_profiles(ctx.guild.id)
+        if name in profiles:
+            await ctx.send(f"Le profil que vous voulez créer existe déjà. Voulez-vous le modifier ou el supprimer ? Essayez `/profile_edit` ou `/profile_delete`.", ephemeral=True)
+            return
+        if name == "BelloBot":
+            await ctx.send(f"Vous ne pouvez pas utiliser BelloBot comme nom de profil.", ephemeral=True)
+            return
+        webhook = await ctx.channel.create_webhook(name=name)
+        profiles[name] = {"pp_url": avatar_url, "keyword": keyword, "webhook_id": webhook.id}
+        Cf.set_profiles(ctx.guild.id, profiles)
+
+        await ctx.send(f"Vous avez bien créé un profil au nom de **{name}**. Donnez lui des règles et du lore avec `/remembers_add`.", ephemeral=True)
+
+    @guild_only
+    @commands.hybrid_command(name="profile_edit")
+    @commands.has_permissions(administrator=True)
+    @app_commands.autocomplete(profile=profile_autocomplete)
+    async def profile_edit(self, ctx: commands.Context, profile: str, name: str="", avatar_url: str="", keyword: str=""):
+        """
+        ADMIN SEULEMENT - Modifie un profil
+        :param ctx:
+        :param profile: Profil à modifier
+        :param name: Nouveau nom du profil
+        :param avatar_url: Nouvelle URL de l'image de l'avatar du profil
+        :param keyword: Nouveau mot pour le ping
+        :return:
+        """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_ai"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'IA n'est pas activé sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        profiles = Cf.get_profiles(ctx.guild.id)
+        if not profile in profiles:
+            await ctx.send(
+                f"Le profil que vous voulez modifier n'existe pas. Voulez-vous le créer ? Essayez `/profile_add`.",
+                ephemeral=True)
+            return
+        if name == "BelloBot":
+            await ctx.send(f"Vous ne pouvez pas utiliser BelloBot comme nom de profil.", ephemeral=True)
+            return
+
+        if name != "":
+            profiles[name] = profiles[profile]
+            del profiles[profile]
+
+            remembers = Cf.get_remembers(ctx.guild.id)
+            if profile in remembers:
+                remembers[name] = remembers[profile]
+                del remembers[profile]
+                Cf.set_remembers(ctx.guild.id, remembers)
+
+            profile = name
+        if avatar_url != "":
+            profiles[profile]["pp_url"] = avatar_url
+        if keyword != "":
+            profiles[profile]["keyword"] = keyword
+
+        Cf.set_profiles(ctx.guild.id, profiles)
+        await ctx.send(f"Vous avez bien modifié le profil de **{profile}**.", ephemeral=True)
+
+    @guild_only
+    @commands.hybrid_command(name="profile_delete")
+    @commands.has_permissions(administrator=True)
+    @app_commands.autocomplete(profile=profile_autocomplete)
+    async def profile_delete(self, ctx: commands.Context, profile: str):
+        """
+        ADMIN SEULEMENT - Supprime un profil (les remembers ne sont pas supprimés)
+        :param ctx:
+        :param profile: Profil à supprimer
+        :return:
+        """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_ai"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'IA n'est pas activé sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        profiles = Cf.get_profiles(ctx.guild.id)
+        if not profile in profiles:
+            await ctx.send(
+                f"Le profil que vous voulez supprimer n'existe pas. Tant mieux !",
+                ephemeral=True)
+            return
+        if profile == "BelloBot":
+            await ctx.send(f"Vous ne pouvez pas supprimer BelloBot zebi", ephemeral=True)
+            return
+
+        del profiles[profile]
+        Cf.set_profiles(ctx.guild.id, profiles)
+
+        await ctx.send(f"Vous bien avez supprimé le profil de **{profile}**. Il est ded 💀", ephemeral=True)
 
 
 async def setup(bot):

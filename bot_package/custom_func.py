@@ -18,7 +18,7 @@ from simpleeval import simple_eval
 
 #------------------------------------------------------------FILE MANAGEMENT
 
-def write_file(message, path):
+def write_file(message: str, path: str):
     """
     Adds a message to a txt file
     :param message: String message
@@ -29,7 +29,7 @@ def write_file(message, path):
     with open(path, "a", encoding="utf-8") as file:
         file.write(message + "\n")
 
-def read_file(path):
+def read_file(path: str):
     """
     Reads a txt file
     :param path: Path to the file
@@ -41,7 +41,7 @@ def read_file(path):
             lines.append(line)
     return lines
 
-def write_json(data, path):
+def write_json(data: dict, path: str):
     """
     Writes a json file
     :param data: Dictionary to write
@@ -51,7 +51,7 @@ def write_json(data, path):
     with open(path, "w", encoding="utf-8") as file:
         file.write(json.dumps(data, indent=2))
 
-def read_json(path):
+def read_json(path: str):
     """
     Reads a json file
     :param path: Path to da file
@@ -63,7 +63,7 @@ def read_json(path):
 
 #------------------------------------------------------------AI STUFF
 
-async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = False, dm = False, emojis = tuple(), guild_name=None, guild_description=None) -> str:
+async def ask_ai(prompt: str, user: str|None = None, guild: int|None = None, no_memory = False, dm = False, emojis=None, guild_name=None, guild_description=None, bot=None, usernames=None, profile="BelloBot") -> str:
     """
     Uses the Google AI Studio API to ask something to an AI model
     :param prompt: Question to ask
@@ -71,15 +71,20 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
     :param guild: Guild ID to read the message file
     :param no_memory: If the memory is disabled
     :param dm: If the chat is in DMs
+    :param emojis: Emojis of the server
+    :param guild_name: Name of the server
+    :param guild_description: Description of the server
+    :param bot: The bot itself
+    :param profile: The current profile
     :return:
     """
     client = genai.Client(api_key=AI_TOKEN)
     if not no_memory:
         if not dm:
-            messages = get_messages(guild)
+            messages = get_messages(bot, guild)
             if messages[:-1] == prompt:
                 messages.pop()
-            remembers = get_remembers(guild)
+            remembers = get_remembers(guild)[profile]
             system_str = system
             for remember in remembers:
                 system_str += " \n" + remembers[remember]
@@ -87,10 +92,14 @@ async def ask_ai(prompt: str, user: str = None, guild: int = None, no_memory = F
                 system_str += " \n" + f"Le serveur dans lequel tu es s'appelle {guild_name}."
                 if guild_description:
                     system_str += f"\nVoici la description de ce serveur : {guild_description}"
-            if emojis != tuple():
-                system_str += " \n" + "Voici les émojis du serveur : "
+            if emojis is not None:
+                system_str += "\n" + "Voici les émojis du serveur : "
                 for emoji in emojis:
                     system_str += "\n- " + str(emoji)
+            if usernames:
+                system_str += f"\nVoici la liste des gens sur le serveur (les plus actifs), ainsi que leurs ID si tu veux les ping :"
+                for id,username in usernames.items():
+                    system_str+="\n -"+username+" : "+id
 
 
             chat = client.chats.create(
@@ -180,24 +189,37 @@ def check_guild_has_presence(guild_id):
     :param guild_id: Guild ID
     :return:
     """
+    #config
     if not str(guild_id) + ".json" in os.listdir(f"./files/config/"):
         write_json(read_json(f"files/config/default_config.json"), f"files/config/{guild_id}.json")
-    if not str(guild_id) + ".txt" in os.listdir(f"./files/messages/"):
-        write_file("", f"files/messages/{guild_id}.txt")
-    if not str(guild_id) + ".json" in os.listdir(f"./files/remembers/"):
+    # messages
+    if not str(guild_id)+".json" in os.listdir(f"./files/messages/"):
+        write_json({"messages": []}, f"files/messages/{guild_id}.json")
+    # profiles
+    if not str(guild_id)+".json" in os.listdir(f"./files/profiles/"):
+        write_json({}, f"files/profiles/{guild_id}.json")
+    # remembers
+    if not str(guild_id)+".json" in os.listdir(f"./files/remembers/"):
         write_json({}, f"files/remembers/{guild_id}.json")
+    # user data
     if not str(guild_id) in os.listdir("./files/user_info/"):
         os.makedirs(f"./files/user_info/{guild_id}/", exist_ok=True)
+    # alarms
     if not str(guild_id) in os.listdir(f"./files/alarms/"):
         os.makedirs(f"./files/alarms/{guild_id}/", exist_ok=True)
+    # slimania inv
     if not str(guild_id) in os.listdir(f"./files/slimania_inventory/"):
         os.makedirs(f"./files/slimania_inventory/{guild_id}/", exist_ok=True)
+    # shop
     if not str(guild_id) + ".json" in os.listdir(f"./files/shop/"):
         write_json(read_json(f"files/shop/default.json"), f"files/shop/{guild_id}.json")
+    # counting
     if not str(guild_id) + ".json" in os.listdir(f"./files/counting/"):
         write_json(read_json(f"files/counting/default.json"), f"files/counting/{guild_id}.json")
+    # ai ignore
     if not str(guild_id) + ".json" in os.listdir(f"./files/ai_ignore/"):
         write_json({"channels": []}, f"files/ai_ignore/{guild_id}.json")
+    # quests
     if not str(guild_id) + ".json" in os.listdir(f"./files/quests/"):
         write_json({}, f"files/quests/{guild_id}.json")
 
@@ -285,6 +307,14 @@ def set_remembers(guild_id, data):
     check_guild_has_presence(guild_id)
     write_json(data, f"files/remembers/{guild_id}.json")
 
+def get_profiles(guild_id):
+    check_guild_has_presence(guild_id)
+    return read_json(f"files/profiles/{guild_id}.json")
+
+def set_profiles(guild_id, data):
+    check_guild_has_presence(guild_id)
+    write_json(data, f"files/profiles/{guild_id}.json")
+
 def get_slime_list():
     return read_json("files/slime_list.json")
 
@@ -301,17 +331,34 @@ def set_slimania_inventory(user_id, guild_id, data):
     check_has_data_file(user_id, guild_id)
     write_json(data, f"files/slimania_inventory/{guild_id}/{user_id}.json")
 
-def get_messages(guild_id):
+def get_username(user_id):
+    usernames = read_json(f"files/usernames.json")
+    return usernames.get(str(user_id))
+
+def get_messages(bot, guild_id, profile="BelloBot"):
     messages = []
-    for msg in read_file(f"files/messages/{guild_id}.txt"):
-        msg = str(msg)
-        author = msg.split(" : ")[0]
-        messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "model",
-                         "parts": [{"text": msg if author != "BelloBot(forbellobot)" else msg.removeprefix(
-                             "BelloBot(forbellobot) : ")}]})
+    msgs = read_json(f"files/messages/{guild_id}.json")
+    for msg in msgs["messages"]:
+        author = msg["author"]
+        content = msg["content"]
+        channel = msg["channel"]
+        time = msg["time"]
+        if author == str(bot.user.id)+profile:
+            messages.append({"role": "model", "parts": [{"text": content}]})
+        else:
+            if isinstance(author, str):
+                username = author.replace(str(bot.user.id), "")
+            else:
+                username = get_username(author)
+            messages.append({"role": "user", "parts": [{"text": str({"author": username+(f" (id: {author})" if isinstance(author, int) else ""), "content": content, "channel": channel, "time": datetime.fromisoformat(time).__format__("%d/%m/%Y %H:%M:%S")})}]})
     max_messages = read_json(f"files/config/{guild_id}.json")["max_messages_in_memory"]
     messages = messages[-max_messages:]
     return messages
+
+def add_message(guild_id, author, content, channel, time):
+    messages = read_json(f"files/messages/{guild_id}.json")
+    messages["messages"].append({"author": author, "content": content, "channel": channel, "time": time})
+    write_json(messages, f"files/messages/{guild_id}.json")
 
 def get_dm(user_id: int):
     messages = []
@@ -504,9 +551,54 @@ async def warn_no_more_credits(message = None, ctx = None):
     elif ctx:
         await ctx.send(embed=embed)
 
+async def send_as_profile(name, pp_url, guild_id: int, content, bot: commands.Bot):
+    profiles = get_profiles(guild_id)
+    profile = profiles[name]
+
+    webhook_id = int(profile["webhook_id"])
+
+    webhook = await bot.fetch_webhook(webhook_id)
+
+    await webhook.send(
+        content=content,
+        username=name,
+        avatar_url=pp_url
+    )
+
+async def get_active_profile(message: discord.Message) -> str:
+    profiles = get_profiles(message.guild.id)
+
+    for name, data in profiles.items():
+        keyword = data.get("keyword")
+
+        if keyword and keyword.lower() in message.content.lower():
+            return name
+
+    if message.reference and message.reference.message_id:
+        try:
+            replied_message = (
+                message.reference.resolved
+                if isinstance(
+                    message.reference.resolved,
+                    discord.Message
+                )
+                else await message.channel.fetch_message(
+                    message.reference.message_id
+                )
+            )
+            if replied_message.webhook_id is not None:
+                for name, data in profiles.items():
+                    if data.get("webhook_id") == replied_message.webhook_id:
+                        return name
+
+        except discord.NotFound:
+            print("404")
+
+    return "BelloBot"
+
 #------------------------------------------------------------ON MESSAGE PROCESS
 
-async def ai_process(bot, message):
+async def ai_process(bot: commands.Bot, message: discord.Message):
     """
     The AI part of the on_message function
     :param bot: The bot itself
@@ -522,49 +614,104 @@ async def ai_process(bot, message):
     if message.channel.id in ai_ignore["channels"]:
         return
 
+    usernames = read_json("files/usernames.json")
+    usernames[str(message.author.id)] = message.author.display_name
+    write_json(usernames, "files/usernames.json")
+
+    profiles = get_profiles(message.guild.id)
+
+    if message.webhook_id is not None:
+        known_webhooks = {
+            data["webhook_id"]
+            for data in profiles.values()
+            if "webhook_id" in data
+        }
+        if message.webhook_id in known_webhooks:
+            return
+
     content = message.content
-    if not message.author == bot.user and content != "":
-        author = message.author.display_name
-        for mention in message.mentions: #translate mentions
-            content = content.replace(
-                f"<@{mention.id}>",
-                f"@{mention.display_name}"
+    answer = None
+    to_send = None
+    profile = await get_active_profile(message)
+    should_respond = (
+        bot.user in message.mentions
+        or profile != "BelloBot"
+    )
+    if should_respond:
+        try:
+            async with message.channel.typing():
+                answer = await ask_ai(
+                    str({
+                        "author": f"{message.author.display_name} (id: {message.author.id})",
+                        "content": message.content,
+                        "channel": message.channel.name,
+                        "time": datetime.now().strftime(
+                            "%d/%m/%Y/ %H:%M:%S"
+                        )
+                    }),
+                    message.author.display_name,
+                    message.guild.id,
+                    emojis=await message.guild.fetch_emojis(),
+                    guild_name=message.guild.name,
+                    guild_description=message.guild.description,
+                    bot=bot,
+                    usernames=usernames,
+                    profile=profile
+                )
+                to_send = await parse_text(
+                    answer,
+                    message,
+                    False
+                )
+                if profile == "BelloBot":
+                    await message.reply(to_send)
+                else:
+                    profile_data = profiles[profile]
+                    await send_as_profile(
+                        name=profile,
+                        pp_url=profile_data["pp_url"],
+                        guild_id=message.guild.id,
+                        content=to_send,
+                        bot=bot,
+                    )
+        except errors.ServerError:
+            await message.channel.send(
+                "Désolé, mais le serveur de Google peine "
+                "en ce moment, ou il n'y a plus de crédits. "
+                "Veuillez réessayer plus tard !"
             )
-        for channel in message.channel_mentions: #translate channel mentions
-            content = content.replace(
-                f"<#{channel.id}>",
-                f"#{channel.name}"
+            add_message(
+                message.guild.id,
+                message.author.id,
+                content,
+                message.channel.name,
+                datetime.now().isoformat()
             )
-        for role in message.role_mentions: #translate role mentions
-            content = content.replace(
-                f"<@&{role.id}>",
-                f"@{role.name}"
+            add_message(
+                message.guild.id,
+                str(bot.user.id) + profile,
+                "Désolé, mais le serveur de Google peine "
+                "en ce moment, ou il n'y a plus de crédits.",
+                message.channel.name,
+                datetime.now().isoformat()
             )
-        answer = None
-        if bot.user in message.mentions and message.author != bot.user: #if the bot is mentionned
-            try:
-                async with message.channel.typing():
-                    answer = await ask_ai(content, message.author.display_name, message.guild.id, emojis=await message.guild.fetch_emojis(), guild_name=message.guild.name, guild_description=message.guild.description)
+            return
 
-                    to_send = await parse_text(answer, message, False)
-                    try:
-                        await message.reply(to_send)
-                    except discord.HTTPException:
-                        await message.reply(to_send[:1975] + "... <message trop long>")
-
-            except errors.ClientError:
-                await warn_no_more_credits(message)
-                write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
-                write_file("BelloBot(forbellobot) : Désolé, plus de crédits pour l'IA (réessayez demain !)", f"files/messages/{message.guild.id}.txt")
-                return
-            except errors.ServerError:
-                await message.channel.send(f"Désolé, mais le serveur de Google peine en ce moment... Veuillez réessayer plus tard !")
-                write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
-                write_file("BelloBot(forbellobot) : Problème avec le serveur de Google, réessayez plus tard !",f"files/messages/{message.guild.id}.txt")
-                return
-        write_file(author + " : " + content, f"files/messages/{message.guild.id}.txt")
-        if answer:
-            write_file(f"BelloBot(forbellobot) : {to_send}", f"files/messages/{message.guild.id}.txt")
+    add_message(
+        message.guild.id,
+        message.author.id,
+        content,
+        message.channel.name,
+        datetime.now().isoformat()
+    )
+    if answer:
+        add_message(
+            message.guild.id,
+            str(bot.user.id) + profile,
+            to_send,
+            message.channel.name,
+            datetime.now().isoformat()
+        )
 
 async def xp_process(bot, message):
         """
@@ -883,7 +1030,7 @@ async def check_alarm(bot):
             continue
 
         config = get_config(alarm_guild_id)
-        if not config["enable_alarm"]:
+        if not config["enable_alarm"] or not config["alarm_channel"]:
             continue
 
         for alarm_user_id in os.listdir(f"files/alarms/{alarm_guild_id}/"):
