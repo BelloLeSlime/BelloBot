@@ -2,6 +2,7 @@ import discord
 from discord.app_commands import guild_only
 from discord.ext import commands
 import bot_package.custom_func as Cf
+from discord import app_commands
 
 class Remembers(commands.Cog):
     """
@@ -10,10 +11,15 @@ class Remembers(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def profile_autocomplete(self, interaction: discord.Interaction, current: str):
+        return ([app_commands.Choice(name="BelloBot", value="BelloBot"),] +
+                [app_commands.Choice(name=profile, value=profile) for profile in Cf.get_profiles(interaction.guild.id)])
+
     @guild_only
     @commands.hybrid_command(name="add_remember")
     @commands.has_permissions(administrator=True)
-    async def add_remember(self, ctx: commands.Context, message: str):
+    @app_commands.autocomplete(profile=profile_autocomplete)
+    async def add_remember(self, ctx: commands.Context, message: str, profile: str="BelloBot"):
         """
         ADMIN SEULEMENT - Ajoute un souvenir que le bot n'oubliera pas
         :param ctx: Context
@@ -27,18 +33,27 @@ class Remembers(commands.Cog):
                            ephemeral=True)
             return
 
+        profiles = Cf.get_profiles(ctx.guild.id)
+        if not profile in profiles and profile != "BelloBot":
+            await ctx.send(f"Aucun profil n'est nommé **{profile}**", ephemeral=True)
+            return
+
         message = message.replace("\\n", "\n")
         remembers = Cf.get_remembers(ctx.guild.id)
-        ints = [int(key) for key in remembers.keys()]
-        next_id = max(ints) + 1 if remembers else 0
-        remembers[next_id] = message
+        if not profile in remembers:
+            remembers[profile] = {}
+        remembersp = remembers[profile]
+        ints = [int(key) for key in remembersp.keys()]
+        next_id = max(ints) + 1 if remembersp else 0
+        remembersp[next_id] = message
         Cf.set_remembers(ctx.guild.id, remembers)
-        await ctx.send(f"Votre souvenir \"*{message}*\" a bien été enregistré !", ephemeral=True)
+        await ctx.send(f"Votre souvenir \"*{message}*\" a bien été enregistré ! ID : {next_id}", ephemeral=True)
 
     @guild_only
     @commands.hybrid_command(name="remembers")
     @commands.has_permissions(administrator=True)
-    async def remembers(self, ctx: commands.Context):
+    @app_commands.autocomplete(profile=profile_autocomplete)
+    async def remembers(self, ctx: commands.Context, profile: str="BelloBot"):
         """
         ADMIN SEULEMENT - Affiche le panel des souvenirs
         :param ctx: Context
@@ -51,11 +66,19 @@ class Remembers(commands.Cog):
                            ephemeral=True)
             return
 
+        profiles = Cf.get_profiles(ctx.guild.id)
+        if not profile in profiles and profile != "BelloBot":
+            await ctx.send(f"Aucun profil n'est nommé **{profile}**", ephemeral=True)
+            return
+
         remembers = Cf.get_remembers(ctx.guild.id)
+        if not profile in remembers:
+            remembers[profile] = {}
+        remembersp = remembers[profile]
         embed = discord.Embed(title="Souvenirs du bot", color=discord.Color.orange())
         descr = ""
-        for key in remembers.keys():
-            message = remembers[key]
+        for key in remembersp.keys():
+            message = remembersp[key]
             descr += key + " - **" + message + "**\n\n"
         descr = descr.strip()
         embed.description = descr
@@ -64,7 +87,8 @@ class Remembers(commands.Cog):
     @guild_only
     @commands.hybrid_command(name="delete_remember")
     @commands.has_permissions(administrator=True)
-    async def delete_remember(self, ctx: commands.Context, id: int):
+    @app_commands.autocomplete(profile=profile_autocomplete)
+    async def delete_remember(self, ctx: commands.Context, id: int, profile: str="BelloBot"):
         """
         ADMIN SEULEMENT - Supprime un souvenir
         :param ctx: Context
@@ -78,11 +102,19 @@ class Remembers(commands.Cog):
                            ephemeral=True)
             return
 
+        profiles = Cf.get_profiles(ctx.guild.id)
+        if not profile in profiles and profile != "BelloBot":
+            await ctx.send(f"Aucun profil n'est nommé **{profile}**", ephemeral=True)
+            return
+
         remembers = Cf.get_remembers(ctx.guild.id)
-        if str(id) not in remembers.keys():
+        if not profile in remembers:
+            remembers[profile] = {}
+        remembersp = remembers[profile]
+        if str(id) not in remembersp.keys():
             await ctx.send(f"Vous n'avez pas de souvenir avec l'ID {id}.", ephemeral=True)
             return
-        del remembers[str(id)]
+        del remembersp[str(id)]
         Cf.set_remembers(ctx.guild.id, remembers)
         await ctx.send(f"Le souvenir {id} supprimé !", ephemeral=True)
 

@@ -6,7 +6,7 @@ load_dotenv()
 AI_TOKEN = os.getenv('AI_TOKEN') #Google AI Studio API tokan
 GIPHY_TOKEN = os.getenv('GIPHY_TOKEN') #Giphy API token
 
-model = "gemini-3.1-flash-lite"
+model = "gemini-3.5-flash-lite"
 
 flamcoin_symbol = "₣"
 
@@ -132,6 +132,7 @@ Je suis un bot discord polyvalent dont la fonction principale est le chatbot IA 
 
 ## M'UTILISER
 Pour utiliser ma fonction IA, vous pouvez juste me ping (@BelloBot), répondre à un de mes messages ou alors faire /ask. Vous pouvez également me MP ! Pour un serveur, il est cependant extrêmement conseillé d'ajouter un ou plusieurs salons dans lesquels l'IA ne peux pas voir (/ai_ignore_add) pour le respect de votre vie privée.
+Vous pouvez également créer des profils avec `/profile_add`, `/profile_edit` et `/profile_delete`. Les profils sont des IA indépendante de la principale (BelloBot) et vous pouvez lui donner un nom, un avatar et des règles dans le `/remembers_add`
 
 ## MES FEATURES
 - XP et argent :
@@ -184,7 +185,8 @@ Si vous avez d'autres questions, vous pouvez les poser à Bello.
 #the message sent to the AI for basic presonnality and understanding of what he can and must do
 system = f"""
 Tu es BelloBot, un bot Discord créé par Bello le Slime. 
-Tu aura au début du message de l'utilisateur son nom. Il n'est pas dans ce qu'il a dit réellement, donc ne mets pas BelloBot: ou <Nom>: au début, car cela sera sans rapport. 
+Tu aura dans les messages que tu recevras un dictionnaire comme ça : {"{"}"author": "<nom> (id: <id du user>)", "content": "<contenu du message", "channel": "<salon dans lequel le message est posté>", "time": "<date et heure du message>"{"}"} Répond normalement (pas en dictionnaire)
+Pour ping quelqu'un, tu dois utiliser leur ID comme ceci : <@id> Exemple : user a l'ID 1234 : <@1234>
 Tu peux également utiliser des commandes en tant qu'IA : 
 /gif <query> : recherche un gif sur giphy. query doit être entouré de guillements \". Ne spam pas les GIF (mets les seulement lorsqu'on te demande). 
 /search <query> : te permet de rechercher une information sur Duck Duck Go (renvoie les 5 liens les plus pertinents). Ne l'utilise que s'il te manque une information précise. query est entouré de guillemets. À noter qu'utiliser la commande ignorera le reste de ton message, donc utilise cette commande seule
