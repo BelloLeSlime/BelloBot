@@ -222,6 +222,9 @@ def check_guild_has_presence(guild_id):
     # quests
     if not str(guild_id) + ".json" in os.listdir(f"./files/quests/"):
         write_json({}, f"files/quests/{guild_id}.json")
+    # bets
+    if not str(guild_id) + ".json" in os.listdir(f"./files/bets/"):
+        write_json({}, f"files/bets/{guild_id}.json")
 
 def check_config(config):
     for expected_key in config_value_types:
@@ -403,6 +406,14 @@ def get_quests(guild_id):
 def set_quests(guild_id, data):
     check_guild_has_presence(guild_id)
     write_json(data, f"files/quests/{guild_id}.json")
+
+def get_bets(guild_id):
+    check_guild_has_presence(guild_id)
+    return read_json(f"files/bets/{guild_id}.json")
+
+def set_bets(guild_id, data):
+    check_guild_has_presence(guild_id)
+    write_json(data, f"files/bets/{guild_id}.json")
 
 #------------------------------------------------------------MISC
 
