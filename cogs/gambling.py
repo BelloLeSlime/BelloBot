@@ -1,3 +1,5 @@
+import os
+
 import discord
 from discord.app_commands import guild_only
 from discord.ext import commands
@@ -211,6 +213,65 @@ class DragonTowerChoice(discord.ui.View):
     async def cashout_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.callback(self.ctx, self.bet, self.what, self.game_info, "cashout", message=self.message)
         await interaction.response.defer()
+
+class Bet(discord.ui.View):
+    def __init__(self, bet: str, option_1: str, option_2: str, minimum_bet: int):
+        super().__init__()
+        self.bet = bet
+        self.option_1 = option_1
+        self.option_2 = option_2
+        self.minimum_bet = minimum_bet
+
+    @discord.ui.button(label="Option 1", style=discord.ButtonStyle.green)
+    async def option1_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        bets = Cf.get_bets(interaction.guild.id)
+        if not self.bet in bets:
+            await interaction.response.send_message(f"Ce pari n'est plus d'actualité", ephemeral=True)
+            return
+        user_data = Cf.get_user_data(interaction.user.id, interaction.guild.id)
+        if user_data["money"]<self.minimum_bet:
+            await interaction.response.send_message(f"Vous n'avez pas assez d'argent pour en placer davantage !", ephemeral=True)
+            return
+        if not str(interaction.user.id) in bets[self.bet]["betters"]:
+            bets[self.bet]["betters"][str(interaction.user.id)] = {"bet": self.minimum_bet, "option": 0}
+        else:
+            if bets[self.bet]["betters"][str(interaction.user.id)]["option"] != 0:
+                await interaction.response.send_message(f"Vous avez déjà parié sur **{self.option_2}**, vous ne pouvez pas parier sur **{self.option_1}** !", ephemeral=True)
+                return
+            bets[self.bet]["betters"][str(interaction.user.id)]["bet"] += self.minimum_bet
+        user_data["money"] -= self.minimum_bet
+        Cf.set_user_data(interaction.user.id, interaction.guild.id, user_data)
+        bets[self.bet]["pot"]+=self.minimum_bet
+        await interaction.response.send_message(f"Vous avez ajouté **{self.minimum_bet}{flamcoin_symbol}** à votre mise sur **{self.option_1}**. Elle est désormais de **{bets[self.bet]["betters"][str(interaction.user.id)]["bet"]}{flamcoin_symbol}**.", ephemeral=True)
+        Cf.set_bets(interaction.guild.id, bets)
+
+    @discord.ui.button(label="Option 2", style=discord.ButtonStyle.green)
+    async def option2_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        bets = Cf.get_bets(interaction.guild.id)
+        if not self.bet in bets:
+            await interaction.response.send_message(f"Ce pari n'est plus d'actualité", ephemeral=True)
+            return
+        user_data = Cf.get_user_data(interaction.user.id, interaction.guild.id)
+        if user_data["money"] < self.minimum_bet:
+            await interaction.response.send_message(f"Vous n'avez pas assez d'argent pour en placer davantage !",
+                                            ephemeral=True)
+            return
+        if not str(interaction.user.id) in bets[self.bet]["betters"]:
+            bets[self.bet]["betters"][str(interaction.user.id)] = {"bet": self.minimum_bet, "option": 1}
+        else:
+            if bets[self.bet]["betters"][str(interaction.user.id)]["option"] != 1:
+                await interaction.response.send_message(
+                    f"Vous avez déjà parié sur **{self.option_1}**, vous ne pouvez pas parier sur **{self.option_2}** !",
+                    ephemeral=True)
+                return
+            bets[self.bet]["betters"][str(interaction.user.id)]["bet"] += self.minimum_bet
+        user_data["money"] -= self.minimum_bet
+        Cf.set_user_data(interaction.user.id, interaction.guild.id, user_data)
+        bets[self.bet]["pot"] += self.minimum_bet
+        await interaction.response.send_message(
+            f"Vous avez ajouté **{self.minimum_bet}{flamcoin_symbol}** à votre mise sur **{self.option_2}**. Elle est désormais de **{bets[self.bet]["betters"][str(interaction.user.id)]["bet"]}{flamcoin_symbol}**.",
+            ephemeral=True)
+        Cf.set_bets(interaction.guild.id, bets)
 
 class Gambling(commands.Cog):
     def __init__(self, bot):
@@ -1171,6 +1232,109 @@ class Gambling(commands.Cog):
         """
         quote = random.choice(gambling_quotes)
         await ctx.send(quote)
+
+    @guild_only
+    @commands.hybrid_command(name="create_bet")
+    @commands.has_permissions(administrator=True)
+    async def create_bet(self, ctx: commands.Context, name: str, option_1: str, option_2: str, minimum_bet=10):
+        """
+        ADMIN SEULEMENT - Permet de faire un sondage avec de l'argent à la clé
+        :param ctx:
+        :param name: Nom du pari
+        :param option_1: Option 1
+        :param option_2: Option 2
+        :param minimum_bet: Pari minimum
+        :return:
+        """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        if not config["enable_gambling"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le gambling n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        bets = Cf.get_bets(ctx.guild.id)
+        if name in bets:
+            await ctx.send(f"Un pari à ce nom existe déjà", ephemeral=True)
+            return
+
+        bets[name]={
+            "option_1": option_1,
+            "option_2": option_2,
+            "minimum_bet": minimum_bet,
+            "betters": {},
+            "pot": 0
+        }
+
+        Cf.set_bets(ctx.guild.id, bets)
+
+        embed = discord.Embed(color=discord.Color.green(),title=f"Pari : {name}",description=f"1. {option_1}\n2. {option_2}\nPari minimum : {minimum_bet}{flamcoin_symbol}")
+        await ctx.channel.send(embed=embed, view=Bet(name, option_1, option_2, minimum_bet))
+        await ctx.send(f"Le pari a été origanisé", ephemeral=True)
+
+    async def bet_autocomplete(self, interaction: discord.Interaction, current: str):
+        return [app_commands.Choice(name=bet, value=bet) for bet in Cf.get_bets(interaction.guild.id)]
+
+    async def option_autocomplete(self, interaction: discord.Interaction, current: str):
+        options = []
+        bets = Cf.get_bets(interaction.guild.id)
+        for bet in bets:
+            options.append(bets[bet]["option_1"])
+            options.append(bets[bet]["option_2"])
+        return [app_commands.Choice(name=option, value=option) for option in options]
+
+    @guild_only
+    @commands.hybrid_command(name="end_bet")
+    @commands.has_permissions(administrator=True)
+    @app_commands.autocomplete(bet=bet_autocomplete, winner=option_autocomplete)
+    async def end_bet(self, ctx: commands.Context, bet: str, winner: str):
+        """
+        ADMIN SEULEMENT - Finis un pari et détermine un gagnant
+        :param ctx:
+        :param bet: Pari à finir
+        :param winner: Gagnant du pari
+        :return:
+        """
+        config = Cf.get_config(ctx.guild.id)
+        if not config["enable_xp"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais l'économie n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        if not config["enable_gambling"]:
+            await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                                               description=f"Désolé, mais le gambling n'est pas activée sur ce serveur !"),
+                           ephemeral=True)
+            return
+
+        bets = Cf.get_bets(ctx.guild.id)
+
+        if winner not in [bets[bet]["option_1"], bets[bet]["option_2"]]:
+            await ctx.send(f"Cette option est invalide", ephemeral=True)
+            return
+
+        if not bet in bets:
+            await ctx.send(f"Il n'y a pas de pari à ce nom", ephemeral=True)
+            return
+
+        for better in bets[bet]["betters"]:
+            if bets[bet]["betters"][better]["option"] == (0 if winner == bets[bet]["option_1"] else 1):
+                user_data = Cf.get_user_data(ctx.guild.id, int(better))
+                user_data["money"]+=bets[bet]["betters"][better]["bet"]*2
+                Cf.set_user_data(better, ctx.guild.id, user_data)
+
+        del bets[bet]
+        Cf.set_bets(ctx.guild.id, bets)
+
+        await ctx.channel.send(embed=discord.Embed(color=discord.Color.green(),title=f"Le pari {bet} est terminé", description=f"Le gagnant est...\n\n**{winner}** ! Si vous avez parié sur ça, votre mise est doublée. GG !"))
+        await ctx.send(f"Le pari est clos", ephemeral=True)
 
 
 async def setup(bot):
