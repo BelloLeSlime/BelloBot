@@ -216,7 +216,7 @@ class DragonTowerChoice(discord.ui.View):
 
 class Bet(discord.ui.View):
     def __init__(self, bet: str, option_1: str, option_2: str, minimum_bet: int):
-        super().__init__()
+        super().__init__(timeout=99999999)
         self.bet = bet
         self.option_1 = option_1
         self.option_2 = option_2
