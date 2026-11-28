@@ -3,6 +3,7 @@ from discord.app_commands import guild_only
 from discord.ext import commands
 import bot_package.custom_func as Cf
 import yt_dlp
+from bot_package.data import automatic_message
 
 class Voice(commands.Cog):
     def __init__(self, bot):
@@ -130,7 +131,7 @@ class Voice(commands.Cog):
         voice_client.play(source)
 
         await ctx.send(
-            f"▶️ Lecture de **{title}**"
+            f"{automatic_message}▶️ Lecture de **{title}**"
         )
 
         user_data = Cf.get_user_data(ctx.author.id, ctx.guild.id)
@@ -162,10 +163,10 @@ class Voice(commands.Cog):
             voice_client = ctx.voice_client
             if voice_client.is_playing():
                 voice_client.stop()
-                await ctx.send("Musique arrêtée")
+                await ctx.send(f"{automatic_message}Musique arrêtée")
                 return
 
-        await ctx.send("Aucune musique en cours")
+        await ctx.send(f"{automatic_message}Aucune musique en cours")
 
     @guild_only
     @commands.hybrid_command(name="music_stats")

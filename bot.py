@@ -1,4 +1,4 @@
-VERSION = "5.9.1"
+VERSION = "5.9.2"
 
 #import stuff
 import os

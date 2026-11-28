@@ -4,7 +4,7 @@ from discord.app_commands import guild_only
 from discord.ext import commands
 from discord import app_commands
 import bot_package.custom_func as Cf
-from bot_package.data import flamcoin_symbol
+from bot_package.data import flamcoin_symbol, automatic_message
 from datetime import datetime
 
 class Stats(commands.Cog):
@@ -257,7 +257,7 @@ class Stats(commands.Cog):
                 if user_id == str(user.id):
                     embed.description += f"\n{"Vous êtes " if ctx.author == user else f"<@{user_id}> est "}#{i + 1} avec {level} niveaux"
 
-        elif what == "money":
+        else:
             money_top = {}
             for file in os.listdir(f"./files/user_info/{ctx.guild.id}"):
                 user_id = file.split(".")[0]

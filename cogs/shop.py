@@ -3,7 +3,7 @@ from discord.app_commands import Choice, guild_only
 from discord.ext import commands
 import bot_package.custom_func as Cf
 from discord import app_commands
-from bot_package.data import flamcoin_symbol
+from bot_package.data import flamcoin_symbol, automatic_message
 import re
 from datetime import datetime, timedelta, UTC
 

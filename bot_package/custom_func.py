@@ -3,15 +3,17 @@ import json
 import os
 import discord
 from discord.ext import commands
+from discord.errors import *
 from google import genai
 from google.genai import types
 from google.genai import errors
-from bot_package.data import AI_TOKEN, GIPHY_TOKEN, model, system, flamcoin_symbol, config_value_types
+from bot_package.data import AI_TOKEN, GIPHY_TOKEN, model, system, flamcoin_symbol, config_value_types, \
+    automatic_message
 import io
 import requests
 import re
 from datetime import datetime, UTC, timedelta
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 from bs4 import BeautifulSoup
 import asyncio
 from simpleeval import simple_eval
@@ -81,9 +83,7 @@ async def ask_ai(prompt: str, user: str|None = None, guild: int|None = None, no_
     client = genai.Client(api_key=AI_TOKEN)
     if not no_memory:
         if not dm:
-            messages = get_messages(bot, guild)
-            if messages[:-1] == prompt:
-                messages.pop()
+            messages = get_messages(bot, guild, profile)
             remembers = get_remembers(guild)[profile]
             system_str = system
             for remember in remembers:
@@ -110,13 +110,11 @@ async def ask_ai(prompt: str, user: str|None = None, guild: int|None = None, no_
                 )
             )
 
-            response = chat.send_message(f"{user} : {prompt}")
+            response = chat.send_message(prompt)
             answer = response.text
             return answer
         else:
-            messages = get_dm(guild)
-            if messages[:-1] == prompt:
-                messages.pop()
+            messages = get_dm(bot, guild)
             system_str = system
 
             chat = client.chats.create(
@@ -127,7 +125,7 @@ async def ask_ai(prompt: str, user: str|None = None, guild: int|None = None, no_
                 )
             )
 
-            response = chat.send_message(f"{user} : {prompt}")
+            response = chat.send_message(prompt)
             answer = response.text
             return answer
 
@@ -266,7 +264,13 @@ async def check_level_up(bot, user, guild):
             channel = await guild.fetch_channel(config["xp_channel"])
         else:
             channel = guild.text_channels[0]
-        await channel.send(f"{user.mention}", embed=embed)
+        try:
+            await channel.send(f"{automatic_message}{user.mention}", embed=embed)
+        except Forbidden:
+            try:
+                guild.text_channels[0].send(f"{automatic_message}{user.mention}", embed=embed)
+            except Forbidden:
+                pass
 
 #------------------------------------------------------------GET AND SET DATA
 
@@ -346,33 +350,46 @@ def get_messages(bot, guild_id, profile="BelloBot"):
         content = msg["content"]
         channel = msg["channel"]
         time = msg["time"]
-        if author == str(bot.user.id)+profile:
+        if isinstance(author, str):
+            author = int(author.removesuffix(profile))
+        if author == bot.user.id:
             messages.append({"role": "model", "parts": [{"text": content}]})
         else:
-            if isinstance(author, str):
-                username = author.replace(str(bot.user.id), "")
-            else:
-                username = get_username(author)
+            username = get_username(author)
+            if username is None:
+                username = f"User {author}"
+                author=""
             messages.append({"role": "user", "parts": [{"text": str({"author": username+(f" (id: {author})" if isinstance(author, int) else ""), "content": content, "channel": channel, "time": datetime.fromisoformat(time).__format__("%d/%m/%Y %H:%M:%S")})}]})
     max_messages = read_json(f"files/config/{guild_id}.json")["max_messages_in_memory"]
     messages = messages[-max_messages:]
     return messages
 
-def add_message(guild_id, author, content, channel, time):
-    messages = read_json(f"files/messages/{guild_id}.json")
-    messages["messages"].append({"author": author, "content": content, "channel": channel, "time": time})
-    write_json(messages, f"files/messages/{guild_id}.json")
+def add_message(guild_id, author, content, channel, time, dm=False):
+    if not dm:
+        messages = read_json(f"files/messages/{guild_id}.json")
+        messages["messages"].append({"author": author, "content": content, "channel": channel, "time": time})
+        write_json(messages, f"files/messages/{guild_id}.json")
+    else:
+        messages = read_json(f"files/dms/{guild_id}.json")
+        messages["messages"].append({"author": author, "content": content, "channel": channel, "time": time})
+        write_json(messages, f"files/dms/{guild_id}.json")
 
-def get_dm(user_id: int):
+def get_dm(bot, user_id: int):
     messages = []
-    for msg in read_file(f"files/dms/{user_id}.txt"):
-        if msg == "\n":
-            continue
-        split = msg.split(" : ")
-        author = split[0]
-        messages.append({"role": "user" if author != "BelloBot(forbellobot)" else "model",
-                         "parts": [{"text": split[1]}]})
-        messages = messages[-50:]
+    msgs = read_json(f"files/dms/{user_id}.json")
+    for msg in msgs["messages"]:
+        author = msg["author"]
+        content = msg["content"]
+        channel = msg["channel"]
+        time = msg["time"]
+        if author == bot.user.id:
+            messages.append({"role": "model", "parts": [{"text": content}]})
+        else:
+            username = get_username(author)
+            messages.append({"role": "user", "parts": [{"text": str(
+                {"author": username + (f" (id: {author})" if isinstance(author, int) else ""), "content": content,
+                 "channel": channel, "time": datetime.fromisoformat(time).__format__("%d/%m/%Y %H:%M:%S")})}]})
+    messages = messages[-50:]
     return messages
 
 def get_shop(guild_id):
@@ -501,7 +518,7 @@ def surf(url):
     except:
         return "Résultat du surf : Erreur lors du surf. Peut être URL non valide ou inexistante ?"
 
-async def parse_text(text, message, dm):
+async def parse_text(bot, text, message, dm, profile):
     """
     Executes the AI's commands, such as /gif or /search
     :param text:
@@ -526,26 +543,24 @@ async def parse_text(text, message, dm):
     matches = re.findall(pattern, text)
 
     for m in matches:
-        print("search - " + m)
         results = search(m) #search
-        ai_answer = await ask_ai(results, message.author.display_name, message.guild.id, dm=dm) #ask the ai what to do / say now he has got the links
-        write_file(results, f"files/messages/{message.guild.id}.txt")
-        write_file(f"BelloBot(forbellobot) : {ai_answer}", f"files/messages/{message.guild.id}.txt")
+        ai_answer = await ask_ai(results, message.author.display_name, message.guild.id, dm=dm, bot=bot, profile=profile) #ask the ai what to do / say now he has got the links
+        add_message(message.guild.id, 0, results, message.channel.name, datetime.now().isoformat(), dm)
+        add_message(message.guild.id, bot.user.id, ai_answer, message.channel.name, datetime.now().isoformat(), dm)
         text = ai_answer
-        text = await parse_text(text, message, dm)
+        text = await parse_text(bot, text, message, dm, profile)
 
     #surf
     pattern = r'/surf\s*"([^"]+)"'
     matches = re.findall(pattern, text)
 
     for m in matches:
-        print("surf - " + m)
         page = surf(m) #get the page
-        ai_answer = await ask_ai(page, message.author.display_name, message.guild.id, dm=dm) #ask the ai what to do / say now he has got the page
-        write_file(page, f"files/messages/{message.guild.id}.txt")
-        write_file(f"BelloBot(forbellobot) : {ai_answer}", f"files/messages/{message.guild.id}.txt")
+        ai_answer = await ask_ai(page, message.author.display_name, message.guild.id, dm=dm, bot=bot, profile=profile) #ask the ai what to do / say now he has got the page
+        add_message(message.guild.id, 0, page, message.channel.name, datetime.now().isoformat(), dm)
+        add_message(message.guild.id, bot.user.id, ai_answer, message.channel.name, datetime.now().isoformat(), dm)
         text = ai_answer
-        text = await parse_text(text, message, dm)
+        text = await parse_text(bot, text, message, dm, profile)
 
     return text
 
@@ -617,6 +632,9 @@ async def ai_process(bot: commands.Bot, message: discord.Message):
     :return:
     """
 
+    if message.content.startswith(automatic_message) or message.content == "":
+        return
+
     config = get_config(message.guild.id)
     if not config["enable_ai"]:
         return
@@ -631,22 +649,12 @@ async def ai_process(bot: commands.Bot, message: discord.Message):
 
     profiles = get_profiles(message.guild.id)
 
-    if message.webhook_id is not None:
-        known_webhooks = {
-            data["webhook_id"]
-            for data in profiles.values()
-            if "webhook_id" in data
-        }
-        if message.webhook_id in known_webhooks:
-            return
-
     content = message.content
-    answer = None
-    to_send = None
     profile = await get_active_profile(message)
     should_respond = (
-        bot.user in message.mentions
-        or profile != "BelloBot"
+        (bot.user in message.mentions
+        or profile != "BelloBot")
+        and (message.author != bot.user or not message.webhook_id)
     )
     if should_respond:
         try:
@@ -654,7 +662,7 @@ async def ai_process(bot: commands.Bot, message: discord.Message):
                 answer = await ask_ai(
                     str({
                         "author": f"{message.author.display_name} (id: {message.author.id})",
-                        "content": message.content,
+                        "content": content,
                         "channel": message.channel.name,
                         "time": datetime.now().strftime(
                             "%d/%m/%Y/ %H:%M:%S"
@@ -670,9 +678,18 @@ async def ai_process(bot: commands.Bot, message: discord.Message):
                     profile=profile
                 )
                 to_send = await parse_text(
+                    bot,
                     answer,
                     message,
-                    False
+                    False,
+                    profile
+                )
+                add_message(
+                    message.guild.id,
+                    message.author.id,
+                    content,
+                    message.channel.name,
+                    datetime.now().isoformat()
                 )
                 if profile == "BelloBot":
                     await message.reply(to_send)
@@ -687,39 +704,15 @@ async def ai_process(bot: commands.Bot, message: discord.Message):
                     )
         except errors.ServerError:
             await message.channel.send(
-                "Désolé, mais le serveur de Google peine "
+                f"{automatic_message}Désolé, mais le serveur de Google peine "
                 "en ce moment, ou il n'y a plus de crédits. "
                 "Veuillez réessayer plus tard !"
             )
-            add_message(
-                message.guild.id,
-                message.author.id,
-                content,
-                message.channel.name,
-                datetime.now().isoformat()
-            )
-            add_message(
-                message.guild.id,
-                str(bot.user.id) + profile,
-                "Désolé, mais le serveur de Google peine "
-                "en ce moment, ou il n'y a plus de crédits.",
-                message.channel.name,
-                datetime.now().isoformat()
-            )
-            return
-
-    add_message(
-        message.guild.id,
-        message.author.id,
-        content,
-        message.channel.name,
-        datetime.now().isoformat()
-    )
-    if answer:
+    else:
         add_message(
             message.guild.id,
-            str(bot.user.id) + profile,
-            to_send,
+            message.author.id,
+            content,
             message.channel.name,
             datetime.now().isoformat()
         )
@@ -741,33 +734,11 @@ async def xp_process(bot, message):
         user_data["xp"] += int(5 * user_data["mult_xp"])
         user_data["money"] += int(10 * user_data["mult_money"])
 
-        #checks if the xp has reached the xp goal
-        leveluped = False
-        xp_goal = user_data["level"] ** 2 *2 +12 #xp goal formula
-        levelup = user_data["xp"] >= xp_goal
-        money_bonus = 0
-        while levelup: #level ups until the xp is less than the xp goal
-            leveluped = True
-            user_data["xp"] -= xp_goal
-            user_data["level"] += 1
-            money_bonus += user_data["level"] ** 2 *4 +14
-
-            xp_goal = user_data["level"] ** 2 *2 +12
-            levelup = user_data["xp"] >= xp_goal
-
-        user_data["money"] += money_bonus
         set_user_data(user.id, guild.id, user_data)
 
-        if leveluped: #send the level up message
-            embed = discord.Embed(color=discord.Color.green(), title="Passage de niveau !", description=f"GG à {user.mention} pour avoir passé le niveau {user_data["level"]} !🔥 Tu gagnes {money_bonus}{flamcoin_symbol} 🫰💰🪙 Continue de gagner des niveaux..." if user != bot.user else f"GG à moi (BelloBot) pour avoir passé le niveau {user_data["level"]} ! 🔥 Je gagne {money_bonus}{flamcoin_symbol} 🫰💰🪙")
-            config = get_config(guild.id)
-            if config["xp_channel"]:
-                channel = await guild.fetch_channel(config["xp_channel"])
-            else:
-                channel = guild.text_channels[0]
-            await channel.send(f"{user.mention}",embed=embed)
+        await check_level_up(bot, message.author, message.guild)
 
-async def polls_process(message):
+async def polls_process(bot, message):
     """
     The polls part of the on_message function, executed when a poll is created
     :param message: Message
@@ -786,7 +757,7 @@ async def polls_process(message):
         prompt = f"Un nouveau sondage a été publié par {message.author.display_name} : {title} \n Tu as le choix entre : \n"
         for answer in answers:
             prompt += f"-{answer.id} : {answer.emoji if answer.emoji else ""} {answer.text}\n"
-        prompt += f"{"Le sondage autorise plusieurs réponse." if poll.multiple else "Le sondage n'autorise qu'une seule réponse."} Décris le pour et le contre de chaque réponse, et dit ton opinion en te basant sur tes souvenirs et ta raison, et emmet un avis objectif de la question, sauf si cette dernière est tout sauf objectif bien entendu, et ne dépasse pas les 2000 caractères."
+        prompt += f"{"Le sondage autorise plusieurs réponse." if poll.multiple else "Le sondage n'autorise qu'une seule réponse."} Décris le pour et le contre de chaque réponse, et dit ton opinion en te basant sur tes souvenirs et ta raison, et emmet un avis objectif de la question, sauf si cette dernière est tout sauf objectif bien entendu, et ne dépasse SURTOUT PAS les 2000 caractères (fait court sur ta réflexion en gros)."
 
         try:
             thread: discord.Thread = await message.create_thread(
@@ -799,9 +770,9 @@ async def polls_process(message):
                 auto_archive_duration=1440
             )
 
-        write_file(f"{message.author.display_name} : " + prompt, f"files/messages/{message.guild.id}.txt")
+        add_message(message.guild.id, message.author.id, prompt, message.channel.name, datetime.now().isoformat())
 
-        ai_answer = await ask_ai(prompt, message.author.display_name, message.guild.id)
+        ai_answer = await ask_ai(prompt, message.author.display_name, message.guild.id, bot=bot)
         try:
             await thread.send(ai_answer)
         except discord.HTTPException:
@@ -814,30 +785,54 @@ async def dm_process(bot, message: discord.Message):
     :param message: Message
     :return:
     """
-    content = message.content
-    if not message.author == bot.user:
-        if not str(message.author.id) + ".txt" in os.listdir("files/dms/"):
-            write_file("", "files/dms/" + str(message.author.id) + ".txt")
-        author = message.author.display_name
-        for mention in message.mentions:
-            content = content.replace(
-                f"<@{mention.id}>",
-                f"@{mention.display_name}"
-            )
+    if message.content.startswith(automatic_message) or message.content == "":
+        return
 
-        try:
-            async with message.channel.typing():
-                answer = await ask_ai(content, message.author.display_name, message.author.id, dm = True)
-                to_send = await parse_text(answer, message, True)
-                try:
-                    await message.reply(to_send)
-                except discord.HTTPException:
-                    await message.reply(to_send[:1975] + "... <message trop long>")
-        except errors.ClientError:
-            await warn_no_more_credits(message=message)
-            return
-        write_file(author + " : " + content, f"files/dms/{message.author.id}.txt")
-        write_file("BelloBot(forbellobot) : " + to_send, f"files/dms/{message.author.id}.txt")
+    if message.author == bot.user:
+        return
+
+    if not os.path.exists(f"files/dms/{message.author.id}.json"):
+        write_json({"messages": []}, f"files/dms/{message.author.id}.json")
+
+    content = message.content
+    try:
+        async with message.channel.typing():
+            answer = await ask_ai(
+                str({
+                    "author": f"{message.author.display_name} (id: {message.author.id})",
+                    "content": content,
+                    "channel": "MP",
+                    "time": datetime.now().strftime(
+                        "%d/%m/%Y/ %H:%M:%S"
+                    )
+                }),
+                message.author.display_name,
+                message.author.id,
+                dm=True,
+                bot=bot
+            )
+            to_send = await parse_text(
+                bot,
+                answer,
+                message,
+                True,
+                "BelloBot"
+            )
+            add_message(
+                message.author.id,
+                message.author.id,
+                content,
+                "MP",
+                datetime.now().isoformat(),
+                dm=True
+            )
+            await message.reply(to_send)
+    except errors.ServerError:
+        await message.channel.send(
+            f"{automatic_message}Désolé, mais le serveur de Google peine "
+            "en ce moment, ou il n'y a plus de crédits. "
+            "Veuillez réessayer plus tard !"
+        )
 
 async def counting_process(bot, message: discord.Message):
     if message.author == bot.user:
@@ -998,7 +993,7 @@ async def delete_counting_process(bot, message: discord.Message):
         if counting_config["warn_at_deleted_message"] and message.content.isdigit() and int(message.content) == counting_config["number"]:
             channel = await message.guild.fetch_channel(counting_channel)
             await channel.send(
-                f"ATTENTION, {message.author.mention} a supprimé son message **{message.content}**. Le prochain nombre est **{counting_config["number"] + 1}**.")
+                f"{automatic_message}ATTENTION, {message.author.mention} a supprimé son message **{message.content}**. Le prochain nombre est **{counting_config["number"] + 1}**.")
 
 #------------------------------------------------------------ON MESSAGE FUNCTIONS
 
@@ -1017,7 +1012,7 @@ async def on_message(bot, message: discord.Message):
 
     await xp_process(bot, message) #adds XP and money to the user and eventualy level up
 
-    await polls_process(message) #answers to polls
+    await polls_process(bot, message) #answers to polls
 
     await quests_process(bot, message)
 
@@ -1067,8 +1062,11 @@ async def check_alarm(bot):
                             continue
                         embed = discord.Embed(color=discord.Color.blurple(), title=f"C'est l'heure",
                                       description=f"{alarm["name"]}")
-                        await alarm_channel.send(f"{alarm["name"]} <@{alarm_user_id.removesuffix(".json")}>",
+                        try:
+                            await alarm_channel.send(f"{automatic_message}{alarm["name"]} <@{alarm_user_id.removesuffix(".json")}>",
                                                  embed=embed)
+                        except discord.Forbidden:
+                            return
                         if alarm["one_shot"]:
                             alarm["enabled"] = False
                             alarms[alarm_id] = alarm
@@ -1122,4 +1120,4 @@ async def check_effect_expiration(bot):
                         channel = await guild.fetch_channel(config["xp_channel"])
                     else:
                         channel = guild.text_channels[0]
-                    await channel.send(f"{user.mention}", embed=embed)
+                    await channel.send(f"{automatic_message}{user.mention}", embed=embed)

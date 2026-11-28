@@ -4,7 +4,7 @@ from discord import app_commands
 from discord.app_commands import guild_only
 from discord import ForumChannel, Thread
 import bot_package.custom_func as Cf
-from bot_package.data import flamcoin_symbol
+from bot_package.data import flamcoin_symbol, automatic_message
 
 class Quests(commands.Cog):
     def __init__(self, bot):
@@ -79,7 +79,7 @@ class Quests(commands.Cog):
             return
 
         quest_thread: Thread = await ctx.guild.fetch_channel(int(quest))
-        await quest_thread.send(f"{user.mention}, votre validation a été désignée comme invalide, veuillez réessayer avec une validation qui respècte les règles de la quête.")
+        await quest_thread.send(f"{automatic_message}{user.mention}, votre validation a été désignée comme invalide, veuillez réessayer avec une validation qui respècte les règles de la quête.")
         quests[quest]["validations"].remove(user.id)
         Cf.set_quests(ctx.guild.id, quests)
         user_data = Cf.get_user_data(user.id, ctx.guild.id)
@@ -106,7 +106,7 @@ class Quests(commands.Cog):
             return
 
         channel: Thread = await ctx.guild.fetch_channel(int(quest))
-        await channel.send("# ⚠️ La quête n'est plus disponible")
+        await channel.send(f"{automatic_message}\n# ⚠️ La quête n'est plus disponible")
         await channel.edit(locked=True)
 
         del quests[quest]

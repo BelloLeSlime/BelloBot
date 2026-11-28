@@ -3,7 +3,7 @@ from discord.app_commands import guild_only
 from discord.ext import commands
 from discord import app_commands
 import bot_package.custom_func as Cf
-from bot_package.data import image_url
+from bot_package.data import image_url, automatic_message
 from datetime import datetime, timedelta, UTC
 import random
 

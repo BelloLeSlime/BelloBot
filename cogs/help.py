@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from bot_package.data import help_message
+from bot_package.data import help_message, automatic_message
 
 
 class Help(commands.Cog):
@@ -59,7 +59,7 @@ class Help(commands.Cog):
         :param ctx: Context
         :return:
         """
-        await ctx.send("Pong !")
+        await ctx.send(f"{automatic_message}Pong !")
 
     @commands.hybrid_command(name="bellobot_info")
     async def bellobot_info(self, ctx: commands.Context):

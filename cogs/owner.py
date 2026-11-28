@@ -3,6 +3,7 @@ from discord.ext import commands
 import sys
 import subprocess
 import os
+from bot_package.data import automatic_message
 
 class Owner(commands.Cog):
     def __init__(self, bot):
@@ -16,7 +17,7 @@ class Owner(commands.Cog):
         :param ctx:
         :return:
         """
-        await ctx.send("Arrêt du bot...")
+        await ctx.send(f"Arrêt du bot...", ephemeral=True)
         await self.bot.close()
 
     @commands.hybrid_command(name="restart")
@@ -27,7 +28,7 @@ class Owner(commands.Cog):
         :param ctx:
         :return:
         """
-        await ctx.send("Redémarrage...")
+        await ctx.send(f"Redémarrage...", ephemeral=True)
         await self.bot.close()
         sys.exit(42)
 
@@ -129,6 +130,21 @@ class Owner(commands.Cog):
         """
         os.unlink("discord.log")
         await ctx.send("Les logs ont bien été supprimé !", ephemeral=True)
+
+    @commands.hybrid_command(name="get_file")
+    @commands.is_owner()
+    async def get_file(self, ctx, path):
+        """
+        OWNER SEULEMENT - Permet d'obtenir un fichier particulier
+        :param ctx:
+        :param path: Chemin relatif à la racine du bot vers le ficheir
+        :return:
+        """
+        if not os.path.isfile(path):
+            await ctx.send(f"Le chemin spécifié ne même vers aucun fichier !", ephemeral=True)
+            return
+
+        await ctx.send(file=discord.File(path), ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(Owner(bot))

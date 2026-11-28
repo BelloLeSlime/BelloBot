@@ -3,6 +3,7 @@ from discord.app_commands import guild_only
 from discord.ext import commands
 import bot_package.custom_func as Cf
 from discord import app_commands
+from bot_package.data import automatic_message
 
 class Remembers(commands.Cog):
     """

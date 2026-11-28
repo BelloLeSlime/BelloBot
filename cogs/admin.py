@@ -160,8 +160,8 @@ class Admin(commands.Cog):
                            ephemeral=True)
             return
 
-        with open(f"files/messages/{ctx.guild.id}.txt", "w", encoding="utf-8") as f:
-            f.write("")
+        with open(f"files/messages/{ctx.guild.id}.json", "w", encoding="utf-8") as f:
+            f.write('{"messages": []}')
         await ctx.send(f"Ma mémoire a bien été réinitialisée !", ephemeral=True)
 
     @guild_only
