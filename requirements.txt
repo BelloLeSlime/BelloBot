@@ -4,7 +4,7 @@ discord.py[voice]
 pillow
 requests
 google-genai
-duckduckgo-search
+ddgs
 beautifulsoup4
 yt-dlp
 pynacl

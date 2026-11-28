@@ -6,7 +6,7 @@ from discord.ext import commands
 from discord import app_commands
 import bot_package.custom_func as Cf
 import random
-from bot_package.data import flamcoin_symbol, gambling_quotes
+from bot_package.data import flamcoin_symbol, gambling_quotes, automatic_message
 
 class ReplayButton(discord.ui.View):
     def __init__(self, game_function, ctx, bet, what, arg=None, no_loss=False):
@@ -1231,7 +1231,7 @@ class Gambling(commands.Cog):
         :return:
         """
         quote = random.choice(gambling_quotes)
-        await ctx.send(quote)
+        await ctx.send(automatic_message+quote)
 
     @guild_only
     @commands.hybrid_command(name="create_bet")

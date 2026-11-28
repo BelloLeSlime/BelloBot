@@ -3,12 +3,18 @@ from discord.app_commands import guild_only
 from discord import app_commands
 from discord.ext import commands
 import bot_package.custom_func as Cf
+from bot_package.data import automatic_message
 import asyncio
-import os
-from google.genai.errors import ClientError
-from discord.errors import NotFound
+from datetime import datetime
+from google.genai import errors
 
-from cogs import remembers
+
+async def profile_autocomplete(interaction: discord.Interaction, current: str):
+    return [app_commands.Choice(name=profile, value=profile) for profile in Cf.get_profiles(interaction.guild.id)]
+
+
+async def profile_plus_bellobot_autocomplete(interaction: discord.Interaction, current: str):
+    return [app_commands.Choice(name="BelloBot", value="BelloBot")]+[app_commands.Choice(name=profile, value=profile) for profile in Cf.get_profiles(interaction.guild.id)]
 
 
 class Ai(commands.Cog):
@@ -18,17 +24,15 @@ class Ai(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def profile_autocomplete(self, interaction: discord.Interaction, current: str):
-        return ([app_commands.Choice(name=profile, value=profile) for profile in Cf.get_profiles(interaction.guild.id)])
-
-
     @guild_only
     @commands.hybrid_command(name="ask")
-    async def ask(self, ctx: commands.Context, prompt: str):
+    @app_commands.autocomplete(profile=profile_plus_bellobot_autocomplete)
+    async def ask(self, ctx: commands.Context, prompt: str, profile: str="BelloBot"):
         """
         Alternative à juste ping
         :param ctx: Context
         :param prompt: Demande faite à l'IA
+        :param profile: Profil
         :return:
         """
 
@@ -39,55 +43,65 @@ class Ai(commands.Cog):
                            ephemeral=True)
             return
 
-        if ctx.guild:
-            await ctx.defer()
+        usernames = Cf.read_json("files/usernames.json")
+        usernames[str(ctx.author.id)] = ctx.author.display_name
+        Cf.write_json(usernames, "files/usernames.json")
 
-            Cf.check_guild_has_presence(ctx.guild.id)
-            Cf.check_has_data_file(ctx.author.id, ctx.guild.id)
-            content = prompt
-            author = ctx.author.display_name
+        profiles = Cf.get_profiles(ctx.guild.id)
 
-            try:
-                answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id, emojis=await ctx.guild.fetch_emojis(), guild_name=ctx.guild.name, guild_description=ctx.guild.description)
-                to_send = await Cf.parse_text(answer, ctx, False)
-                try:
+        content = prompt
+        try:
+            async with ctx.channel.typing():
+                answer = await Cf.ask_ai(
+                    str({
+                        "author": f"{ctx.author.display_name} (id: {ctx.author.id})",
+                        "content": content,
+                        "channel": ctx.channel.name,
+                        "time": datetime.now().strftime(
+                            "%d/%m/%Y/ %H:%M:%S"
+                        )
+                    }),
+                    ctx.author.display_name,
+                    ctx.guild.id,
+                    emojis=await ctx.guild.fetch_emojis(),
+                    guild_name=ctx.guild.name,
+                    guild_description=ctx.guild.description,
+                    bot=self.bot,
+                    usernames=usernames,
+                    profile=profile
+                )
+                to_send = await Cf.parse_text(
+                    self.bot,
+                    answer,
+                    ctx,
+                    False,
+                    profile
+                )
+                if profile == "BelloBot":
                     await ctx.send(to_send)
-                except discord.HTTPException:
-                    await ctx.send(to_send[:1975] + "... <message trop long>")
-            except NotFound:
-                answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id)
-                to_send = await Cf.parse_text(answer, ctx, False)
-                try:
-                    await ctx.send(to_send)
-                except discord.HTTPException:
-                    await ctx.send(to_send[:1975] + "... <message trop long>")
-            except ClientError:
-                await Cf.warn_no_more_credits(ctx=ctx)
-                return
+                else:
+                    profile_data = profiles[profile]
+                    await Cf.send_as_profile(
+                        name=profile,
+                        pp_url=profile_data["pp_url"],
+                        guild_id=ctx.guild.id,
+                        content=to_send,
+                        bot=self.bot,
+                    )
+        except errors.ServerError:
+            await ctx.send(
+                f"{automatic_message}Désolé, mais le serveur de Google peine "
+                "en ce moment, ou il n'y a plus de crédits. "
+                "Veuillez réessayer plus tard !", ephemeral=True
+            )
 
-            Cf.write_file(author + " : " + content, f"files/messages/{ctx.guild.id}.txt")
-            Cf.write_file("BelloBot(forbellobot) : " + to_send, f"files/messages/{ctx.guild.id}.txt")
-
-        else:
-            await ctx.defer()
-
-            if not str(ctx.author.id) + ".txt" in os.listdir("files/dms/"):
-                Cf.write_file("", "files/dms/" + str(ctx.author.id) + ".txt")
-
-            content = prompt
-            author = ctx.author.display_name
-            try:
-                answer = await Cf.ask_ai(content, ctx.author.display_name, ctx.guild.id, dm=True)
-                to_send = await Cf.parse_text(answer, ctx, True)
-                try:
-                    await ctx.send(to_send)
-                except discord.HTTPException:
-                    await ctx.send(to_send[:1975] + "... <message trop long>")
-            except:
-                await Cf.warn_no_more_credits(ctx=ctx)
-                return
-            Cf.write_file(author + " : " + content, f"files/dms/{ctx.author.id}.txt")
-            Cf.write_file("BelloBot(forbellobot) : " + to_send, f"files/dms/{ctx.author.id}.txt")
+        Cf.add_message(
+            ctx.guild.id,
+            ctx.author.id,
+            content,
+            ctx.channel.name,
+            datetime.now().isoformat()
+        )
 
     @guild_only
     @commands.hybrid_command(name="vote_reset_memory")
@@ -132,11 +146,11 @@ class Ai(commands.Cog):
         print(f"👍: {yes_count}, 👎: {no_count}")
 
         if yes_count > no_count:
-            await ctx.channel.send("Ma mémoire va être réinitialisée...")
-            with open(f"files/messages/{ctx.guild.id}.txt", "w", encoding="utf-8") as f:
-                f.write("")
+            await ctx.channel.send(f"{automatic_message}Ma mémoire va être réinitialisée...")
+            with open(f"files/messages/{ctx.guild.id}.json", "w", encoding="utf-8") as f:
+                f.write('{"messages":[]}')
         else:
-            await ctx.channel.send("Ma mémoire ne sera pas réinitialisée !")
+            await ctx.channel.send(f"{automatic_message}Ma mémoire ne sera pas réinitialisée !")
 
     @commands.hybrid_command(name="reset_dm_memory")
     async def reset_dm_memory(self, ctx: commands.Context):
@@ -148,10 +162,11 @@ class Ai(commands.Cog):
 
         if ctx.guild:
             await ctx.send("Cette commande n'est utilisable que dans des messages privées.", ephemeral=True)
+            return
 
         user_id = ctx.author.id
-        with open(f"files/dms/{user_id}.txt", "w", encoding="utf-8") as f:
-            f.write("")
+        with open(f"files/dms/{user_id}.json", "w", encoding="utf-8") as f:
+            f.write('{"messages": []}')
 
         embed = discord.Embed(color=discord.Color.orange(), description="Ma mémoire dans les MP est réinitialisée.")
         await ctx.send(embed=embed, ephemeral=True)
@@ -250,7 +265,7 @@ class Ai(commands.Cog):
 
         profiles = Cf.get_profiles(ctx.guild.id)
         if name in profiles:
-            await ctx.send(f"Le profil que vous voulez créer existe déjà. Voulez-vous le modifier ou el supprimer ? Essayez `/profile_edit` ou `/profile_delete`.", ephemeral=True)
+            await ctx.send(f"Le profil que vous voulez créer existe déjà. Voulez-vous le modifier ou le supprimer ? Essayez `/profile_edit` ou `/profile_delete`.", ephemeral=True)
             return
         if name == "BelloBot":
             await ctx.send(f"Vous ne pouvez pas utiliser BelloBot comme nom de profil.", ephemeral=True)
